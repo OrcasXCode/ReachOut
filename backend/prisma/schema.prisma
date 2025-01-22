@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  BUSINESS
+  USER
+}
+
+enum DayOfWeek {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String     @unique
+  phoneNumber  String
+  password     String
+  role         Role       @default(USER)
+  businesses   Business[]
+}
+
+model Business {
+  id             Int        @id @default(autoincrement())
+  ownerId        Int
+  owner          User       @relation(fields: [ownerId], references: [id])
+  name           String
+  verified       Boolean    @default(false)
+  address        String
+  category       String
+  subCategory    String
+  contactDetails String   
+  totalRating    Int        @default(0)
+  website        String?
+  about          String
+  reviews        Review[]
+  businessHours  BusinessTimings[]
+  businessMedia  Media[]    @relation("BusinessMedia")
+}
+
+model Review {
+  id            Int      @id @default(autoincrement())
+  businessId    Int
+  rating        Int
+  description   String
+  createdAt     DateTime @default(now())
+  business      Business @relation(fields: [businessId], references: [id])
+  customerMedia Media[]  @relation("CustomerMedia")
+}
+
+model Media {
+  id               Int      @id @default(autoincrement())
+  type             String   // 'photo' or 'video'
+  url              String
+
+  customerMediaId  Int?
+  customerMedia    Review?   @relation("CustomerMedia", fields: [customerMediaId], references: [id])
+
+  businessMediaId  Int?
+  businessMedia    Business? @relation("BusinessMedia", fields: [businessMediaId], references: [id])
+
+  // @@check("customerMediaId IS NOT NULL OR businessMediaId IS NOT NULL") // Ensures at least one is set
+}
+
+model BusinessTimings {
+  id           Int       @id @default(autoincrement())
+  businessId   Int
+  dayOfWeek    DayOfWeek
+  openingTime  String
+  closingTime  String
+  specialNote  String?
+  business     Business  @relation(fields: [businessId], references: [id])
+}
