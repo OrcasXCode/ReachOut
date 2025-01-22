@@ -1,8 +1,5 @@
-# ReachOut
-
 Here’s a basic template for a README file for your ReachOut repository:
 
-```markdown
 # ReachOut
 
 ReachOut is a platform designed to list and promote local vendors, home-based businesses, and roadside sellers. The platform focuses on providing exposure to small businesses, allowing them to connect with potential customers. With features like vendor management, business listings, media uploads, and customer reviews, ReachOut aims to bridge the gap between local vendors and their target audience.
