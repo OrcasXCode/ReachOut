@@ -35,7 +35,7 @@ model User {
 
 model Business {
   id             Int        @id @default(autoincrement())
-  ownerId        Int
+  ownerId        Int          //Foreign Key
   owner          User       @relation(fields: [ownerId], references: [id])
   name           String
   verified       Boolean    @default(false)
@@ -48,17 +48,17 @@ model Business {
   about          String
   reviews        Review[]
   businessHours  BusinessTimings[]
-  businessMedia  Media[]    @relation("BusinessMedia")
+  businessMedia  Media[]    @relation("BusinessMedia") //This helps prisma differntiate between multiple relationships with the same model!
 }
 
 model Review {
   id            Int      @id @default(autoincrement())
-  businessId    Int
+  businessId    Int        //Foreign Key
   rating        Int
   description   String
   createdAt     DateTime @default(now())
   business      Business @relation(fields: [businessId], references: [id])
-  customerMedia Media[]  @relation("CustomerMedia")
+  customerMedia Media[]  @relation("CustomerMedia") //This helps prisma differntiate between multiple relationships with the same model!
 }
 
 model Media {
@@ -66,7 +66,7 @@ model Media {
   type             String   // 'photo' or 'video'
   url              String
 
-  customerMediaId  Int?
+  customerMediaId  Int?     //Foreign Key
   customerMedia    Review?   @relation("CustomerMedia", fields: [customerMediaId], references: [id])
 
   businessMediaId  Int?
@@ -77,7 +77,7 @@ model Media {
 
 model BusinessTimings {
   id           Int       @id @default(autoincrement())
-  businessId   Int
+  businessId   Int       //Foreign Key
   dayOfWeek    DayOfWeek
   openingTime  String
   closingTime  String

@@ -1,19 +1,14 @@
 import { Hono } from 'hono'
+import {userRoutes} from './routes/user'
 
-const app = new Hono()
-
-
-app.get("/",(c)=>{
-  return c.text('Hello World!')
-})
-
-app.post('/api/v1/user/signup', (c) => {
-  return c.text('Hello Signup!')
-})
+const app = new Hono<{
+  Bindings:{
+    DATABASE_URL:string,
+    JWT_SECRET:string
+  }
+}>()
 
 
-app.post('/api/v1/user/signin', (c) => {
-  return c.text('Hello Signin!')
-})
+app.route('/api/v1/user',userRoutes);
 
 export default app
