@@ -1,84 +1,116 @@
-import {Hono} from 'hono'
-import {PrismaClient} from '@prisma/client/edge'
-import {withAccelerate} from '@prisma/extension-accelerate'
-import {sign , decode , verify } from 'hono/jwt'
+import { Hono } from 'hono';
+import { PrismaClient } from '@prisma/client/edge';
+import { withAccelerate } from '@prisma/extension-accelerate';
+import { sign, verify } from 'hono/jwt';
 
-export const userRoutes=new Hono<{
-    Bindings:{
-        DATABASE_URL:string,
-        JWT_SECRET:string
-    }
-}>()
+export const userRoutes = new Hono<{
+  Bindings: {
+    DATABASE_URL: string;
+    JWT_SECRET: string;
+  };
+  Variables: {
+    userId: string;
+    prisma: PrismaClient;
+  };
+}>();
 
-userRoutes.post('/api/v1/user/signup', async (c) => {
-  
+
+//Defining the PrismClient Globallly so that we dont need to define it in every route
+userRoutes.use('*', async (c, next) => {
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
+    }).$extends(withAccelerate()) as unknown as PrismaClient;
   
+    c.set('prisma', prisma);
+    await next();
+});
+
+
+userRoutes.post('/signup', async (c) => {
+    const prisma = c.get('prisma');
     const body = await c.req.json();
-    try{
-        const validEmail=await prisma.user.findUnique({
-            where:{
-                email:body.email
-            }
-        })
-        if(!validEmail){
-            return c.text('Email Already Exists')
-        }
-
-        const user=await prisma.user.create({
-            data:{
-            firstName:body.firstName,
-            lastName:body.lastName,
-            email:body.email,
-            phoneNumber:body.phoneNumber,
-            password:body.password,
-            }
-        })
-     
-        const jwt = await sign({
-            id:user.id
-        },c.env.JWT_SECRET)
-        return c.text(jwt);
-    }
-    catch(error){
+  
+    try {
+      const validEmail = await prisma.user.findUnique({
+        where: { email: body.email },
+      });
+  
+      if (validEmail) {
+        return c.json({ error: 'Email Already Exists' }, 400);
+      }
+  
+      //!Before storing it in DB hash it
+      const user = await prisma.user.create({
+        data: {
+          firstName: body.firstName,
+          lastName: body.lastName,
+          email: body.email,
+          phoneNumber: body.phoneNumber,
+          password: body.password,
+        },
+      });
+  
+      const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
+      return c.json({ token: jwt });
+    } catch (error) {
       console.log(error);
-      c.status(411);
-      return c.text('Invalid');
+      c.status(500);
+      return c.json({ error: 'Internal Server Error' });
     }
-  })
-  
-  
-userRoutes.post('/api/v1/user/signin',async (c) => {
-    const prisma = new PrismaClient({
-      datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
-  
-    const body=await c.req.json();
-  
-    try{
-        const user=await prisma.user.findFirst({
-            where:{
-            email:body.email,
-            password:body.password,
-            }
-        })
-        if(!user){
-            c.status(403); //unauthorized
-            return c.json({
-            message:"Incorrect Credentials"
-            })
-        }
-        const jwt = await sign({
-            id:user.id
-         },c.env.JWT_SECRET);
-        return c.json({jwt});
+});
+
+userRoutes.use('/*', async (c, next) => {
+  const jwt = c.req.header('Authorization') || " ";
+  if (!jwt) {
+    c.status(401);
+    return c.json({ error: 'Unauthorized' });
+  }
+
+  const token = jwt.split(' ')[1];
+  if (!token) {
+    c.status(401);
+    return c.json({ error: 'Token Missing' });
+  }
+
+  try {
+    const payload = await verify(token, c.env.JWT_SECRET);
+    if (!payload || !payload.id) {
+      c.status(401);
+      return c.json({ error: 'Unauthorized' });
     }
-    catch(error){
-        console.log(error);
-        c.status(411);
-        return c.text('Invalid');
+
+    c.set('userId', payload.id as string);
+    await next();
+  } catch (error) {
+    console.log(error);
+    c.status(500);
+    return c.json({ error: 'Internal Server Error' });
+  }
+});
+
+
+userRoutes.post('/signin', async (c) => {
+  const prisma = c.get('prisma');
+  const body = await c.req.json();
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        email: body.email,
+        password: body.password,
+      },
+    });
+
+    if (!user) {
+      c.status(403);
+      return c.json({ error: 'Incorrect Credentials' });
     }
-  })
-  
+
+    const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
+    return c.json({ message: 'SignIn Successful', token: jwt });
+  } catch (error) {
+    console.log(error);
+    c.status(500);
+    return c.json({ error: 'Internal Server Error' });
+  }
+});
