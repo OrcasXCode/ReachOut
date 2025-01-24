@@ -5,13 +5,18 @@
     "deploy": "wrangler deploy --minify"
   },
   "dependencies": {
+    "@omsureja/reachout": "^1.1.0",
     "@prisma/client": "6.2.1",
     "@prisma/extension-accelerate": "^1.2.1",
+    "crypto": "^1.0.1",
     "hono": "^4.6.17",
+    "jsonwebtoken": "^9.0.2",
     "prisma": "^6.2.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
+    "@types/jsonwebtoken": "^9.0.8",
+    "@types/node": "^22.10.10",
     "wrangler": "^3.101.0"
   }
 }

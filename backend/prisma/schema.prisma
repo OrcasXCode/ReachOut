@@ -79,8 +79,18 @@ model BusinessTimings {
   id           Int       @id @default(autoincrement())
   businessId   Int       //Foreign Key
   dayOfWeek    DayOfWeek
-  openingTime  String
+  openingTime  String 
   closingTime  String
   specialNote  String?
   business     Business  @relation(fields: [businessId], references: [id])
+}
+
+
+model OTP{
+  id Int @id @default(autoincrement())
+  email String @unique
+  otp String
+  expiresAt DateTime
+  used Boolean @default(false)
+  @@unique([email,otp])
 }
