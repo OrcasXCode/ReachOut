@@ -363,6 +363,7 @@ userRoutes.put('/:id', async (c) => {
         if (lastName && lastName !== userDetails.lastName) updateData.lastName = lastName;
         if (password) updateData.password = password;
 
+        //!Apply Send OTP Verification Trigger
         // if (email && email !== userDetails.email) {
         //     await sendOtpVerification(email);
         //     return c.json({
@@ -397,3 +398,4 @@ userRoutes.put('/:id', async (c) => {
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
+

@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import {userRoutes} from './routes/user'
+import {businessRoutes} from './routes/business'
 
 const app = new Hono<{
   Bindings:{
@@ -10,5 +11,6 @@ const app = new Hono<{
 
 
 app.route('/api/v1/user',userRoutes);
+app.route('/api/v1/business',businessRoutes);
 
 export default app

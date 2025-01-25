@@ -7,6 +7,262 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  BUSINESS
+  USER
+}
+
+enum DayOfWeek {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+
+// enum AllCategory {
+//   BEAUTY
+//   FOOD
+//   HEALTH
+//   EDUCATION
+//   ENTERTAINMENT
+//   AUTOMOBILE
+//   HOME_SERVICES
+//   FITNESS
+//   TECHNOLOGY
+//   FASHION
+//   TRAVEL
+//   EVENTS
+//   ART
+//   PETS
+//   FINANCE
+//   REAL_ESTATE
+//   HOSPITALITY
+//   RETAIL
+//   WELLNESS
+//   SPORTS
+//   MEDIA
+//   OTHER
+// }
+
+
+// enum BeautySubCategory {
+//   HAIR_CARE
+//   SKIN_CARE
+//   MAKEUP
+//   NAILS
+//   SPA
+//   MEHNDI
+//   WEDDING_SERVICES
+//   SALON
+// }
+
+// enum FoodSubCategory {
+//   RESTAURANT
+//   CAFE
+//   BAKERY
+//   FOOD_TRUCK
+//   CATERING
+//   ICE_CREAM
+//   FAST_FOOD
+//   VEGETARIAN
+//   NON_VEGETARIAN
+//   VEGAN
+//   JUICE_BAR
+// }
+
+// enum HealthSubCategory {
+//   PHARMACY
+//   DOCTOR
+//   DENTIST
+//   AYURVEDA
+//   HOMEOPATHY
+//   NUTRITIONIST
+//   WELLNESS_CENTER
+//   ALTERNATIVE_MEDICINE
+//   CLINIC
+// }
+
+// enum EducationSubCategory {
+//   SCHOOL
+//   TUITION
+//   COACHING
+//   LANGUAGE_CLASSES
+//   MUSIC_CLASSES
+//   DANCE_CLASSES
+//   SPORTS_TRAINING
+//   COMPUTER_TRAINING
+//   ONLINE_COURSES
+// }
+
+// enum EntertainmentSubCategory {
+//   CINEMA
+//   THEATER
+//   MUSIC_CONCERT
+//   COMEDY_SHOW
+//   NIGHT_CLUB
+//   ART_GALLERY
+//   STADIUM
+//   PARK
+//   KARAOKE
+// }
+
+// enum AutomobileSubCategory {
+//   CAR_RENTAL
+//   BIKE_RENTAL
+//   CAR_SERVICE
+//   CAR_WASH
+//   CAR_ACCESSORIES
+//   CAR_SALES
+// }
+
+// enum HomeServicesSubCategory {
+//   PLUMBING
+//   ELECTRICAL
+//   CLEANING
+//   PAINTING
+//   CARPENTRY
+//   MOVING
+//   INTERIOR_DESIGN
+//   LANDSCAPING
+// }
+
+// enum FitnessSubCategory {
+//   GYM
+//   YOGA
+//   PILATES
+//   DANCE_FITNESS
+//   ZUMBA
+//   PERSONAL_TRAINER
+// }
+
+// enum TechnologySubCategory {
+//   SOFTWARE_DEVELOPMENT
+//   WEB_DEVELOPMENT
+//   MOBILE_APP_DEVELOPMENT
+//   IT_SUPPORT
+//   DIGITAL_MARKETING
+//   CYBER_SECURITY
+//   DATA_ANALYTICS
+// }
+
+// enum FashionSubCategory {
+//   CLOTHING
+//   FOOTWEAR
+//   ACCESSORIES
+//   JEWELRY
+//   HAIR_ACCESSORIES
+// }
+
+// enum TravelSubCategory {
+//   FLIGHT_BOOKING
+//   HOTEL_BOOKING
+//   TOUR_GUIDE
+//   TRAVEL_AGENCY
+//   CAR_RENTAL
+// }
+
+// enum EventsSubCategory {
+//   WEDDING
+//   BIRTHDAY_PARTY
+//   CORPORATE_EVENTS
+//   CONCERTS
+//   EXHIBITIONS
+//   CONFERENCES
+//   SEMINARS
+// }
+
+// enum ArtSubCategory {
+//   PAINTING
+//   SCULPTURE
+//   PHOTOGRAPHY
+//   DIGITAL_ART
+//   ART_GALLERY
+// }
+
+// enum PetsSubCategory {
+//   PET_SHOP
+//   VETERINARY_CLINIC
+//   PET_SITTING
+//   PET_TRAINING
+//   PET_ACCESSORIES
+//   PET_BOARDING
+// }
+
+// enum FinanceSubCategory {
+//   ACCOUNTING
+//   TAX_SERVICES
+//   INSURANCE
+//   LOANS
+//   INVESTMENT_ADVISORY
+//   WEALTH_MANAGEMENT
+//   FINANCIAL_PLANNING
+// }
+
+
+// enum RealEstateSubCategory {
+//   PROPERTY_SALE
+//   PROPERTY_RENTAL
+//   PROPERTY_MANAGEMENT
+//   INTERIOR_DESIGN
+//   CONSTRUCTION
+//   ARCHITECTURE
+// }
+
+
+// enum HospitalitySubCategory {
+//   HOTEL
+//   RESORT
+//   BED_AND_BREAKFAST
+//   GUESTHOUSE
+//   HOMESTAY
+// }
+
+// enum RetailSubCategory {
+//   ELECTRONICS
+//   CLOTHING
+//   FURNITURE
+//   HOME_DECOR
+//   BOOKS
+//   TOYS
+//   GROCERY
+//   STATIONERY
+// }
+
+// enum WellnessSubCategory {
+//   MASSAGE
+//   SPA
+//   MEDIATION
+//   ACUPUNCTURE
+//   AROMATHERAPY
+// }
+
+// enum SportsSubCategory {
+//   GYM
+//   SPORTS_EQUIPMENT
+//   COACHING
+//   SWIMMING_POOL
+//   TENNIS_COURT
+//   CRICKET_PITCH
+// }
+
+// enum MediaSubCategory {
+//   RADIO
+//   TELEVISION
+//   PRINT
+//   SOCIAL_MEDIA
+//   VIDEO_PRODUCTION
+// }
+
+// enum OtherSubCategory {
+//   CUSTOM_SERVICE
+//   EVENT_ORGANIZATION
+//   OTHERS
+// }
+
 model User {
   id          Int        @id @default(autoincrement())
   firstName   String
@@ -21,20 +277,50 @@ model User {
 model Business {
   id             Int               @id @default(autoincrement())
   ownerId        Int
-  name           String
+  name           String            
+  businessEmail  String            @unique
+  phoneNumber    String            @unique
   verified       Boolean           @default(false)
   address        String
-  category       String
-  subCategory    String
-  contactDetails String
+  categoryId     Int
+  category       Category          @relation(fields: [categoryId], references: [id]) 
+  subCategories  BusinessSubCategory[]  
   totalRating    Int               @default(0)
   website        String?
   about          String
   owner          User              @relation(fields: [ownerId], references: [id])
-  businessHours  BusinessTimings[]
+  businessHours  BusinessTimings[]  
   businessMedia  Media[]           @relation("BusinessMedia")
   reviews        Review[]
+
+  @@unique([name, address])
 }
+
+model Category {
+  id            Int          @id @default(autoincrement())
+  name          String       
+  subCategories SubCategory[]
+  Business      Business[]
+}
+
+model SubCategory {
+  id          Int        @id @default(autoincrement())
+  name        String
+  categoryId  Int
+  category    Category   @relation(fields: [categoryId], references: [id])
+  businesses  BusinessSubCategory[]
+}
+
+
+model BusinessSubCategory {
+  businessId    Int
+  subCategoryId Int
+  business      Business   @relation(fields: [businessId], references: [id])
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+
+  @@id([businessId, subCategoryId])
+}
+
 
 model Review {
   id            Int      @id @default(autoincrement())
@@ -76,17 +362,3 @@ model OTP {
   @@unique([email, otp])
 }
 
-enum Role {
-  BUSINESS
-  USER
-}
-
-enum DayOfWeek {
-  SUNDAY
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-}
