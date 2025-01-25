@@ -7,6 +7,7 @@ import {signininput} from "@omsureja/reachout";
 import {forgetpasswordinput} from "@omsureja/reachout"
 import {verifyotpinput} from "@omsureja/reachout"
 import {resetpasswordinput} from "@omsureja/reachout"
+import {editprofileinput} from "../../../common/src/index"
 import jwt from 'jsonwebtoken';
 
 
@@ -32,41 +33,7 @@ userRoutes.use('*', async (c, next) => {
     await next();
 });
 
-
-// userRoutes.post('/signup', async (c) => {
-//     const prisma = c.get('prisma');
-//     const body = await c.req.json();
-  
-//     try {
-//       const validEmail = await prisma.user.findUnique({
-//         where: { email: body.email },
-//       });
-  
-//       if (validEmail) {
-//         return c.json({ error: 'Email Already Exists' }, 400);
-//       }
-  
-//       //!Before storing it in DB hash it
-//       const user = await prisma.user.create({
-//         data: {
-//           firstName: body.firstName,
-//           lastName: body.lastName,
-//           email: body.email,
-//           phoneNumber: body.phoneNumber,
-//           password: body.password,
-//         },
-//       });
-  
-//       const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
-//       return c.json({ token: jwt });
-//     } catch (error) {
-//       console.log(error);
-//       c.status(500);
-//       return c.json({ error: 'Internal Server Error' });
-//     }
-// });
-
-
+//signup route
 userRoutes.post('/signup', async (c) => {
     const prisma = c.get('prisma');
     const body = await c.req.json();
@@ -112,7 +79,7 @@ userRoutes.post('/signup', async (c) => {
     }
 });
 
-
+//global middelware
 userRoutes.use('/*', async (c, next) => {
     const jwt = c.req.header('Authorization') || " ";
     if (!jwt) {
@@ -142,7 +109,7 @@ userRoutes.use('/*', async (c, next) => {
     }
 });
 
-
+//signin route
 userRoutes.post('/signin', async (c) => {
     const prisma = c.get('prisma');
     const body = await c.req.json();
@@ -179,6 +146,7 @@ userRoutes.post('/signin', async (c) => {
     }
 });
 
+//forget password route
 userRoutes.post('/forgetpassword',async (c)=>{
     const prisma = c.get('prisma');
     const body = await c.req.json();
@@ -232,6 +200,7 @@ userRoutes.post('/forgetpassword',async (c)=>{
     }
 })
 
+//verify otp route
 userRoutes.post('/verifyotp',async (c)=>{
     const body = await c.req.json();
     const prisma = c.get('prisma');
@@ -283,7 +252,7 @@ userRoutes.post('/verifyotp',async (c)=>{
     }
 })
 
-
+//reset password route
 userRoutes.post('/resetpassword',async (c)=>{
     const body =await c.req.json();
     const prisma= c.get('prisma');
@@ -331,3 +300,100 @@ userRoutes.post('/resetpassword',async (c)=>{
         return c.json({error : 'Internal Server Error'})
     }
 })
+
+//getting user profile route
+userRoutes.get('/:id',async (c)=>{
+    const id = c.req.param('id');
+    const prisma = c.get('prisma');
+
+    try{
+        if(!id) return c.json({
+            error: 'Id is required',
+        },401)
+        const userDetails=await prisma.user.findFirst({
+            where:{
+                id:parseInt(id)
+            }
+        })
+        if(!userDetails){
+            return c.json({
+                error:'User does not exists'
+            },401)
+        }
+        return c.json(userDetails);
+    }
+    catch(error){
+        console.log(error);
+        c.status(500);
+        return c.json({error:'Internal Server Error'});
+    }
+})
+
+
+//edit user detail route
+userRoutes.put('/:id', async (c) => {
+    const id = c.req.param('id');
+    const body = await c.req.json();
+    const parsed = editprofileinput.safeParse(body);
+    const prisma = c.get('prisma');
+
+    if (!parsed.success) {
+        return c.json({
+            error: 'Invalid input',
+            details: parsed.error.errors
+        }, 400);
+    }
+
+    try {
+        if (!id) return c.json({ error: 'Id is required' }, 400);
+
+        const userDetails = await prisma.user.findFirst({
+            where: { id: parseInt(id) }
+        });
+
+        if (!userDetails) {
+            return c.json({ error: 'User does not exist' }, 404);
+        }
+
+        const { firstName, lastName, email, phoneNumber, password } = parsed.data;
+
+        let updateData: any = {};
+
+        if (firstName && firstName !== userDetails.firstName) updateData.firstName = firstName;
+        if (lastName && lastName !== userDetails.lastName) updateData.lastName = lastName;
+        if (password) updateData.password = password;
+
+        // if (email && email !== userDetails.email) {
+        //     await sendOtpVerification(email);
+        //     return c.json({
+        //         message: 'OTP sent to new email. Verify before updating.'
+        //     }, 200);
+        // }
+        
+        // if (phoneNumber && phoneNumber !== userDetails.phoneNumber) {
+        //     await sendOtpVerification(phoneNumber);
+        //     return c.json({
+        //         message: 'OTP sent to new phone number. Verify before updating.'
+        //     }, 200);
+        // }
+
+        if ('role' in body) {
+            return c.json({ error: 'Role modification is not allowed' }, 403);
+        }
+
+        if (Object.keys(updateData).length > 0) {
+            await prisma.user.update({
+                where: { id: parseInt(id) },
+                data: updateData
+            });
+        }
+
+        return c.json({
+            message: 'User details updated successfully',
+            userDetails: { ...userDetails, ...updateData }
+        }, 200);
+    } catch (error) {
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
+    }
+});
