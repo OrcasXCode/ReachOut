@@ -34,6 +34,7 @@ userRoutes.use('*', async (c, next) => {
 });
 
 //signup route
+//!Pending
 userRoutes.post('/signup', async (c) => {
     const prisma = c.get('prisma');
     const body = await c.req.json();
@@ -147,6 +148,7 @@ userRoutes.post('/signin', async (c) => {
 });
 
 //forget password route
+//!Pending
 userRoutes.post('/forgetpassword',async (c)=>{
     const prisma = c.get('prisma');
     const body = await c.req.json();
@@ -331,6 +333,7 @@ userRoutes.get('/:id',async (c)=>{
 
 
 //edit user detail route
+//!Pending
 userRoutes.put('/:id', async (c) => {
     const id = c.req.param('id');
     const body = await c.req.json();
@@ -399,3 +402,34 @@ userRoutes.put('/:id', async (c) => {
     }
 });
 
+//delete user profile 
+userRoutes.delete('/',async (c)=>{
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const {id : userid} = c.req.query();
+    
+    try{
+        if(!userId) return c.json({
+            error: 'Provide a user ID'
+        },401)
+
+        const user = await prisma.user.findUnique({
+            where: { id: parseInt(userid) },
+        })
+        if(!user) return c.json({
+            error: 'User not found'
+        },404)
+        await prisma.user.delete({
+            where: { id: parseInt(userid) },
+        })
+        return c.json({
+            message: 'User deleted successfully'
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error'
+        },500)
+    }
+})

@@ -288,10 +288,13 @@ model Business {
   totalRating    Int               @default(0)
   website        String?
   about          String
+  likes          Int               @default(0)
+  dislikes       Int               @default(0)
   owner          User              @relation(fields: [ownerId], references: [id])
   businessHours  BusinessTimings[]  
   businessMedia  Media[]           @relation("BusinessMedia")
   reviews        Review[]
+  reports        Report[]
 
   @@unique([name, address])
 }
@@ -300,7 +303,7 @@ model Category {
   id            Int          @id @default(autoincrement())
   name          String       
   subCategories SubCategory[]
-  Business      Business[]
+  Business      Business[]   // One category can have many subcategories
 }
 
 model SubCategory {
@@ -308,7 +311,7 @@ model SubCategory {
   name        String
   categoryId  Int
   category    Category   @relation(fields: [categoryId], references: [id])
-  businesses  BusinessSubCategory[]
+  businesses  BusinessSubCategory[]  // A subcategory can have many businesses
 }
 
 
@@ -362,3 +365,13 @@ model OTP {
   @@unique([email, otp])
 }
 
+
+model Report {
+  id         Int      @id @default(autoincrement())
+  businessId Int      
+  userId     Int      
+  reason     String
+  status     String   @default("pending") // "pending", "reviewed", "resolved"
+  createdAt  DateTime @default(now())
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}

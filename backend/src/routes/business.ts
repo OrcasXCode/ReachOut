@@ -141,6 +141,7 @@ businessRoutes.post('/create', async (c) => {
 
 
 //update business details
+//!pending
 businessRoutes.put('/updatebusiness',async(c)=>{
     const prisma = c.get('prisma');
     const body = c.req.json();
@@ -287,3 +288,244 @@ businessRoutes.get('/bulk', async (c) => {
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
+
+
+//liking a business
+businessRoutes.post('/like',async (c)=>{
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const businessId = c.req.query('id');
+
+
+    try{
+        if(!businessId) return c.json({
+            error:'Provide a business Id'
+        },401)
+
+        if(!userId) return c.json({
+            error: 'Provide a user Id'
+        },401)
+        const user = await prisma.user.findUnique({
+            where:{
+                id:parseInt(userId)
+            }
+        })
+        if(!user){
+            return c.json({
+                error: 'Unauthorized'
+            },401)
+        }
+
+        await prisma.business.update({
+            where:{
+                id:parseInt(businessId)
+            },
+            data:{
+                likes : {
+                    increment : 1
+                }
+            }
+        })
+
+        return c.json({
+            message: 'Business liked successfully'
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error',
+        },500)
+    }
+})
+
+
+//disliking a busienss
+businessRoutes.post('/dislike',async(c)=>{
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const businessId = c.req.query('id');
+
+    try{
+
+        if(!businessId) return c.json({
+            error:'Provide a business Id'
+        },401)
+
+        if(!userId) return c.json({
+            error: 'Provide a user Id'
+        },401)
+        const user = await prisma.user.findUnique({
+            where:{
+                id:parseInt(userId)
+            }
+        })
+        if(!user){
+            return c.json({
+                error: 'User not found'
+            },401)
+        }
+
+        await prisma.business.update({
+            where:{
+                id:parseInt(businessId)
+            },
+            data:{
+                dislikes : {
+                    increment : 1
+                }
+            }
+        })
+
+        return c.json({
+            message: 'Business disliked successfully'
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error',
+        },500)
+    }
+})
+
+
+//get all reviews 
+businessRoutes.get('/getallreviews/', async (c) => {
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const { id: businessId } = c.req.query(); 
+    try {
+        if (!businessId) {
+            return c.json({ error: 'Provide a business ID' }, 400);
+        }
+        if (!userId) {
+            return c.json({ error: 'Provide a user ID' }, 400);
+        }
+
+        const businessIdNumber = parseInt(businessId);
+        const userIdNumber = parseInt(userId);
+
+        if (isNaN(businessIdNumber) || isNaN(userIdNumber)) {
+            return c.json({ error: 'Invalid ID format' }, 400);
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userIdNumber }
+        });
+
+        if (!user) {
+            return c.json({ error: 'User not found' }, 404);
+        }
+
+        const business = await prisma.business.findUnique({
+            where: { id: businessIdNumber },
+            include: { reviews: true }
+        });
+
+        if (!business) {
+            return c.json({ error: 'Business not found' }, 404);
+        }
+
+        return c.json(business.reviews, 200);
+    } catch (error) {
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
+    }
+});
+
+
+//report a business
+businessRoutes.post('/report/',async (c)=>{
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const {id : businessId} = c.req.query();
+    const { reason }=await c.req.json();
+
+
+    try{
+        if(!userId) {
+            return c.json({
+                error: 'Provide a user ID'
+            },401)
+        }
+        const user= await prisma.user.findUnique({
+            where:{
+                id:parseInt(businessId)
+            }
+        })
+        if(!user) return c.json({
+            error: 'User not found'
+        },401)
+
+        if(!reason){
+            return c.json({
+                error: 'Provide a reason'
+            },401)
+        }
+
+        await prisma.report.create({
+            data: {
+                businessId: parseInt(businessId),
+                userId: parseInt(userId),
+                reason,
+            }
+        })
+
+        return c.json({
+            message:'Business Reported Successfully',
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error',
+        },500)
+    }
+})
+
+
+//fetch all the report of a business for businessOwners
+businessRoutes.get('/fetchallreports/',async(c)=>{
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const {id:businessId} = c.req.query();
+
+    try{
+        if(!userId) return c.json({
+            error: 'Provide a user ID'
+        },401)
+
+        if(!businessId) return c.json({
+            error: 'Provide a business ID'
+        },401)
+
+        const user= await prisma.user.findUnique({
+            where:{
+                id:parseInt(businessId)
+            }
+        })
+        if(!user) return c.json({
+            error: 'User not found'
+        },401)
+
+        const allReports = await prisma.business.findMany({
+            where:{
+                id:parseInt(businessId)
+            },
+            include:{
+                reports:true
+            }
+        })
+
+        return c.json({
+            allReports
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error',
+        },500)
+    }
+})
