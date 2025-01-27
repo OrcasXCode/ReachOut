@@ -403,33 +403,28 @@ userRoutes.put('/:id', async (c) => {
 });
 
 //delete user profile 
-userRoutes.delete('/',async (c)=>{
+userRoutes.delete('/', async (c) => {
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const {id : userid} = c.req.query();
-    
-    try{
-        if(!userId) return c.json({
-            error: 'Provide a user ID'
-        },401)
+    const { id: userid } = c.req.query();
 
-        const user = await prisma.user.findUnique({
-            where: { id: parseInt(userid) },
-        })
-        if(!user) return c.json({
-            error: 'User not found'
-        },404)
+    try {
+        if (!userId) {
+            return c.json({ error: 'Provide a user ID' }, 401);
+        }
+
+        const userIdNum = Number(userid);
+        if (!userIdNum) {
+            return c.json({ error: 'Invalid user ID' }, 400);
+        }
+
         await prisma.user.delete({
-            where: { id: parseInt(userid) },
-        })
-        return c.json({
-            message: 'User deleted successfully'
-        },200)
-    }
-    catch(error){
+            where: { id: userIdNum },
+        });
+
+        return c.json({ message: 'User deleted successfully' }, 200);
+    } catch (error) {
         console.log(error);
-        return c.json({
-            error: 'Internal Server Error'
-        },500)
+        return c.json({ error: 'Internal Server Error' }, 500);
     }
-})
+});

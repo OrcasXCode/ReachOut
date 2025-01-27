@@ -166,24 +166,21 @@ businessRoutes.delete('/delete', async (c) => {
     try {
         const business = await prisma.business.findUnique({
             where: { id: parseInt(businessId) },
-            include: { owner: true },  // Include the owner to verify ownership
+            include: { owner: true },  
         });
 
         if (!business) {
             return c.json({ error: 'Business not found' }, 404);
         }
 
-        // Check if the logged-in user is the owner
         if (business.ownerId !== parseInt(userId)) {
             return c.json({ error: 'You are not the owner of this business' }, 401);
         }
 
-        // Delete related records in BusinessSubCategory (if any)
         await prisma.businessSubCategory.deleteMany({
             where: { businessId: parseInt(businessId) },
         });
 
-        // delete the whole business
         await prisma.business.delete({
             where: { id: parseInt(businessId) },
         });
