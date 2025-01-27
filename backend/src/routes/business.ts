@@ -3,6 +3,8 @@ import {PrismaClient} from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate';
 import {sign,verify} from 'hono/jwt'
 import {addBusinessInput} from "../../../common/src/index"
+import {editBusinessTimings} from "../../../common/src/index"
+import {editBusinessDetails} from "../../../common/src/index"
 
 
 export const businessRoutes = new Hono<{
@@ -60,52 +62,64 @@ businessRoutes.use('/*', async (c, next) => {
 
 //create new business
 businessRoutes.post('/create', async (c) => {
-    const prisma=c.get('prisma');
-    const userId=c.get('userId');
-    const body=await c.req.json();
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const body = await c.req.json();
 
-    const user = await prisma.user.findUnique({
-        where: { id: parseInt(userId) }
-    });
-
-    if (!user || user.role !== 'BUSINESS') {
-        return c.json({ error: 'User is not a business user, not allowed to create a business' }, 401);
-    }
-
-    const parsed = addBusinessInput.safeParse(body);
-    if (!parsed.success) {
-        return c.json({
-            error: 'Invalid Inputs',
-            details: parsed.error.errors
-        }, 401);
-    }
-
-    const { name, verified, address, businessEmail, categoryId, subCategoryIds, phoneNumber, totalRating, website, about } = parsed.data;
-
-    const existingBusiness = await prisma.business.findFirst({
-        where: {
-            OR: [
-                { name, address },
-                { businessEmail },
-                { phoneNumber }
-            ]
-        }
-    });
-    if (existingBusiness) {
-        return c.json({ error: 'Business already exists' }, 401);
-    }
-
-    // check if category exists
-    const category = await prisma.category.findUnique({
-        where: { id: categoryId }
-    });
-
-    if (!category) {
-        return c.json({ error: `Category with ID ${categoryId} does not exist` }, 401);
-    }
-
-    const ownerId=c.get('userId');
     try {
+        const user = await prisma.user.findUnique({
+            where: { id: parseInt(userId) }
+        });
+
+        if (!user || user.role !== 'BUSINESS') {
+            return c.json({ error: 'User is not a business user, not allowed to create a business' }, 401);
+        }
+
+        const parsed = addBusinessInput.safeParse(body);
+        if (!parsed.success) {
+            return c.json({
+                error: 'Invalid Inputs',
+                details: parsed.error.errors
+            }, 400);
+        }
+
+        const { name, verified, address, mediaUrls, businessHours ,businessEmail, categoryId, subCategoryIds, phoneNumber, totalRating, website, about } = parsed.data;
+
+
+        if (!Array.isArray(mediaUrls) || !mediaUrls.every(media => typeof media.type === 'string' && typeof media.url === 'string')) {
+            return c.json({ error: 'Invalid media format: Each media item must have type and url' }, 400);
+        }
+
+        if (!Array.isArray(businessHours) || !businessHours.every(hour => 
+            typeof hour.dayofWeek === 'string' && 
+            typeof hour.openingTime === 'string' && 
+            typeof hour.closingTime === 'string'
+        )) {
+            return c.json({ error: 'Invalid business hours format' }, 400);
+        }
+
+        const existingBusiness = await prisma.business.findFirst({
+            where: {
+                OR: [
+                    { name, address },
+                    { businessEmail },
+                    { phoneNumber }
+                ]
+            }
+        });
+
+        if (existingBusiness) {
+            return c.json({ error: 'Business already exists' }, 401);
+        }
+
+        const category = await prisma.category.findUnique({
+            where: { id: categoryId }
+        });
+
+        if (!category) {
+            return c.json({ error: `Category with ID ${categoryId} does not exist` }, 401);
+        }
+
         const newBusiness = await prisma.business.create({
             data: {
               name,
@@ -114,25 +128,42 @@ businessRoutes.post('/create', async (c) => {
               verified: false,
               address,
               category: {
-                connect: { id: categoryId } // Ensure categoryId exists in Category table
+                connect: { id: categoryId }
               },
               subCategories: {
-                create: subCategoryIds.map((subCategoryId) => ({
-                  subCategory: { connect: { id: subCategoryId } } // Ensure subCategoryId exists in SubCategory table
+                create: subCategoryIds.map(subCategoryId => ({
+                  subCategory: { connect: { id: subCategoryId } }
                 }))
               },
               totalRating: 0,
               website,
               about,
               owner: {
-                connect: { id: parseInt(ownerId) } // Ensure ownerId exists in User table
+                connect: { id: parseInt(userId) }
+              },
+              businessMedia: {
+                create: mediaUrls.map(media => ({
+                  type: media.type,
+                  url: media.url
+                }))
+              },
+              businessHours: {
+                create: businessHours.map(hour => ({
+                  dayOfWeek: hour.dayofWeek, 
+                  openingTime: hour.openingTime,
+                  closingTime: hour.closingTime,
+                  specialNote: hour.specialNote || null  
+                }))
               }
-            },
-        });          
+            }
+        });
+          
+
         return c.json({
             message: 'Business created successfully',
             business: newBusiness
         }, 200);
+        
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
@@ -140,22 +171,79 @@ businessRoutes.post('/create', async (c) => {
 });
 
 
-//update business details
-//!pending
-businessRoutes.put('/updatebusiness',async(c)=>{
-    const prisma = c.get('prisma');
-    const body = c.req.json();
-    
-    try{
 
-    }
-    catch(error){
+//update business details
+businessRoutes.put('/updatebusiness', async (c) => {
+    const prisma = c.get('prisma');
+    const body = await c.req.json();
+    const {id:businessId} = c.req.query();
+
+    try {
+        const parsed= editBusinessDetails.safeParse(body);
+
+        if (!parsed.success) {
+            return c.json({
+                error: 'Invalid data format',
+                details: parsed.error.errors
+            }, 400);
+        }
+
+        const { name, about, address,  phoneNumber, businessHours } = parsed.data;
+
+        const existingBusiness = await prisma.business.findUnique({
+            where: {
+                id: parseInt(businessId)
+            }
+        });
+
+        if (!existingBusiness) {
+            return c.json({
+                error: 'Business not found'
+            }, 404);
+        }
+
+        const updatedBusiness = await prisma.business.update({
+            where: {
+                id: parseInt(businessId)
+            },
+            data: {
+                name: name || existingBusiness.name,
+                about : about || existingBusiness.about,
+                address: address || existingBusiness.address,
+                phoneNumber:  phoneNumber || existingBusiness. phoneNumber
+            }
+        });
+
+        if (businessHours) {
+            await prisma.businessTimings.deleteMany({
+                where: {
+                    businessId:  parseInt(businessId)
+                }
+            });
+
+            const createBusinessTimings = await prisma.businessTimings.createMany({
+                data: businessHours.map(hour => ({
+                    businessId:  parseInt(businessId),
+                    dayOfWeek: hour.dayOfWeek, 
+                    openingTime: hour.openingTime,
+                    closingTime: hour.closingTime,
+                    specialNote: hour.specialNote || null
+                }))
+            });
+        }
+
+        return c.json({
+            message: 'Business updated successfully',
+            business: updatedBusiness
+        }, 200);
+    } catch (error) {
         console.log(error);
         return c.json({
-            error:'Internal Server Error'
-        },500)
+            error: 'Internal Server Error'
+        }, 500);
     }
-})
+});
+
 
 //delete the business profile
 businessRoutes.delete('/delete', async (c) => {
@@ -526,3 +614,128 @@ businessRoutes.get('/fetchallreports/',async(c)=>{
         },500)
     }
 })
+
+
+//add business hours
+businessRoutes.put('/updatebusinesstimings/', async (c) => {
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const { businessId } = c.req.query();
+  
+    const body = await c.req.json();
+  
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: parseInt(userId) }
+      });
+  
+      if (!user || user.role !== 'BUSINESS') {
+        return c.json({ error: 'User is not a business user, not allowed to update business timings' }, 401);
+      }
+
+      const parsed = editBusinessTimings.safeParse(body);
+  
+  
+      if (!parsed.success) {
+        return c.json({
+          error: 'Invalid business hours format',
+          details: parsed.error.errors
+        }, 400);
+      }
+  
+      const businessHours = parsed.data;
+  
+      const business = await prisma.business.findUnique({
+        where: { id: parseInt(businessId) },
+        include: {
+          owner: true
+        }
+      });
+  
+      if (!business) {
+        return c.json({ error: 'Business not found' }, 404);
+      }
+  
+      if (business.owner.id !== parseInt(userId)) {
+        return c.json({ error: 'You are not the owner of this business' }, 401);
+      }
+  
+      const updatedBusinessTimings = await prisma.businessTimings.deleteMany({
+        where: { businessId: parseInt(businessId) }
+      });
+  
+      const createBusinessTimings = await prisma.businessTimings.createMany({
+        data: businessHours.map(hour => ({
+          businessId: parseInt(businessId),
+          dayOfWeek: hour.dayofWeek, 
+          openingTime: hour.openingTime,
+          closingTime: hour.closingTime,
+          specialNote: hour.specialNote || null
+        }))
+      });
+  
+      return c.json({
+        message: 'Business timings updated successfully',
+        businessTimings: createBusinessTimings
+      }, 200);
+  
+    } catch (error) {
+      console.error(error);
+      return c.json({ error: 'Internal Server Error' }, 500);
+    }
+});
+  
+
+
+//add business medias
+businessRoutes.put('/uploadbusinessmedia/', async (c) => {
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const body = await c.req.json();
+
+    try {
+        if (!userId) {
+            return c.json({ error: 'Provide a user ID' }, 401);
+        }
+
+        const { businessId, mediaUrls } = body;
+
+        if (!businessId || !Array.isArray(mediaUrls) || mediaUrls.length === 0) {
+            return c.json({ error: 'Invalid input: businessId and mediaUrls are required' }, 400);
+        }
+
+        const business = await prisma.business.findUnique({
+            where: { id: businessId },
+            include: { owner: true },
+        });
+
+        if (!business) {
+            return c.json({ error: 'Business not found' }, 404);
+        }
+
+        if (business.ownerId !== parseInt(userId)) {
+            return c.json({ error: 'Unauthorized: You do not own this business' }, 403);
+        }
+
+        if (!mediaUrls.every(media => media.type && media.url)) {
+            return c.json({ error: 'Invalid media format: Each media item must have type and url' }, 400);
+        }
+
+        const createdMedia = await prisma.media.createMany({
+            data: mediaUrls.map(media => ({
+                type: media.type,
+                url: media.url,
+                businessMediaId: businessId
+            }))
+        });
+
+        return c.json({
+            message: 'Business media uploaded successfully',
+            uploadedMediaCount: createdMedia.count
+        }, 200);
+
+    } catch (error) {
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
+    }
+});
