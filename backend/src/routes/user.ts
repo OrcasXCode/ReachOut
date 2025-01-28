@@ -9,6 +9,8 @@ import {verifyotpinput} from "@omsureja/reachout"
 import {resetpasswordinput} from "@omsureja/reachout"
 import {editprofileinput} from "@omsureja/reachout"
 import jwt from 'jsonwebtoken';
+import {AES} from '../services/aesService'
+import crypto from 'crypto'
 
 
 export const userRoutes = new Hono<{
@@ -16,6 +18,7 @@ export const userRoutes = new Hono<{
     DATABASE_URL: string;
     JWT_SECRET: string;
     REFRESH_SECRET: string;
+    AES_SECRET_KEY: string;
   };
   Variables: {
     userId: string;
@@ -59,23 +62,40 @@ userRoutes.post('/signup', async (c) => {
             return c.json({ error: 'Email Already Exists' }, 400);
         }
 
-        //Using Argon2id for hashing of the password 
-        const hashPassword =await Bun.password.hash(password);
+        const secretKey = c.env.AES_SECRET_KEY;
+        if(!secretKey) return c.json({error:'Enryption key not found'},500);
+
+        const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+
+        const existingUser = await prisma.user.findUnique({
+            where: { emailHash }
+        });
+
+        if (existingUser) {
+            return c.json({ error: 'Email Already Exists' }, 400);
+        }
+
+        const encryptedEmail = await AES.encrypt(email,secretKey);
+        const encryptedPhoneNumber = await AES.encrypt(phoneNumber,secretKey);
+   
 
         const user = await prisma.user.create({
             data: {
                 firstName,
                 lastName,
-                email,
-                phoneNumber,
-                password : hashPassword ,
+                email: encryptedEmail.encrypted,
+                emailIV: encryptedEmail.iv,
+                emailHash,
+                phoneNumber: encryptedPhoneNumber.encrypted,
+                phoneNumberIV: encryptedPhoneNumber.iv,
+                password : password ,
+                // password : hashedPassword ,
                 role
             },
         });
 
-        const accessToken = await sign({ id: user.id }, process.env.JWT_SECRET || "");
-        const refreshToken = await sign({ id: user.id }, process.env.REFRESH_TOKEN || "");
-
+        const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
+        const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");        
 
         c.res.headers.append('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
 
@@ -123,52 +143,60 @@ userRoutes.post('/signin', async (c) => {
     const body = await c.req.json();
 
     const parsed = signininput.safeParse(body);
-    if(!parsed.success){
+    if (!parsed.success) {
         return c.json({
             error: 'Invalid input',
-            details:parsed.error.errors
-        },400)
+            details: parsed.error.errors
+        }, 400);
     }
 
-    const {email,password}=parsed.data
+    const { email, password } = parsed.data;
 
     try {
-        const user = await prisma.user.findFirst({
-            where: {
-                email,
-            },
-            select:{
-                id:true,
-                password:true
+        const secretKey = c.env.AES_SECRET_KEY;
+        if (!secretKey) return c.json({ error: 'Encryption key not found' }, 500);
+
+        const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+
+        const user = await prisma.user.findUnique({
+            where: { emailHash },
+            select: {
+                id: true,
+                password: true,
+                email: true,
+                emailIV: true
             }
         });
 
         if (!user) {
-            c.status(403);
-            return c.json({ error: 'Incorrect Credentials' });
+            return c.json({ error: 'Incorrect Credentials' }, 403);
         }
 
-        const isMatch = await Bun.password.verify( password , user.password);
-        if(!isMatch){
-            return c.json({
-                error: 'Incorrect Password',
-            },401)
+        const decryptedEmail = await AES.decrypt(user.email, user.emailIV, secretKey);
+        if (decryptedEmail !== email) {
+            return c.json({ error: 'Incorrect Credentials' }, 403);
         }
 
-       const accessToken = await sign({ id: user.id }, process.env.JWT_SECRET || "");
-       const refreshToken = await sign({ id: user.id }, process.env.REFRESH_TOKEN || "");
 
-       c.res.headers.append('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+        if(user.password!==password){
+            return c.json({ error: 'Password does not match' }, 403);
+        }
 
-        return c.json({ message: 'SignIn Successful', accessToken }, 200);
+
+        const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
+        const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
+
+        c.res.headers.append('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+
+        return c.json({ accessToken }, 200);
     } catch (error) {
-        console.log(error);
-        c.status(500);
-        return c.json({ error: 'Internal Server Error' });
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
 
-//forget password route
+
+// //forget password route
 userRoutes.post('/forgetpassword',async (c)=>{
     const prisma = c.get('prisma');
     const body = await c.req.json();
@@ -182,16 +210,39 @@ userRoutes.post('/forgetpassword',async (c)=>{
     }
 
     const {email}=parsed.data;
+
     try{
-        const validEmail= await prisma.user.findUnique({
+
+        const secretKey = c.env.AES_SECRET_KEY;
+        if(!secretKey){
+            return c.json({
+                error: 'AES Secret Key is not set',
+            },403)
+        }
+
+        const emailHash =  crypto.createHash("sha256").update(email).digest("hex");
+
+        const user= await prisma.user.findUnique({
             where:{
-                email
+                emailHash
+            },
+            select:{
+                email:true,
+                emailIV:true
             }
         })
-        if(!validEmail){
+
+        if(!user){
             return c.json({
-                error:'Email does not exist'
-            })
+                error:'User does not exist'
+            },401)
+        }
+
+        const decryptedEmail = await AES.decrypt(user.email,user.emailIV,secretKey);
+        if(email !== decryptedEmail){
+            return c.json({
+                error: 'Email does not match'
+            },403)
         }
 
         function generateOTP(length: number): string {
@@ -204,13 +255,18 @@ userRoutes.post('/forgetpassword',async (c)=>{
         
         const otp= generateOTP(6);
         const expiresAt=new Date(Date.now()+10*60*1000);
+        const encryptedEmail = await AES.encrypt(email,secretKey);
 
         await prisma.oTP.create({
-            data:{
-                email,otp,expiresAt
+            data: {
+              emailHash,  
+              email: encryptedEmail.encrypted, 
+              emailIV: encryptedEmail.iv, 
+              otp,
+              expiresAt
             }
-        })
-
+          });
+          
         const response = await fetch('https://cfw-react-emails.omp164703.workers.dev/send/email/otp-email', {
             method: 'POST',
             headers: {
@@ -244,17 +300,38 @@ userRoutes.post('/verifyotp',async (c)=>{
     }
 
     const {email,otp} = parsed.data;
+
     try{
 
+        const secretKey = c.env.AES_SECRET_KEY;
+        if(!secretKey) {
+            return c.json({
+                error: 'AES Secret Key is not set',
+            },403)
+        }
+        
+        const emailHash = crypto.createHash("sh256").update(email).digest("hex");
+
         const getUser=await prisma.oTP.findFirst({
-            where:{ email }
+            where:{
+                emailHash,
+            }
         })
+
         if(!getUser){
             return c.json({
                 error:'You have not SignedUp Yet',
                 details:'Please create a account first and then try again later'
             },404)
         }
+
+        const decryptedEmail = await AES.decrypt(getUser.email,getUser.emailIV,secretKey);
+        if(decryptedEmail!==email){
+            return c.json({
+                error:'Email has been tampered with',
+            },403)
+        }
+
         if(getUser?.otp!==otp){
             return c.json({
                 error:'OTP did not match',
@@ -267,7 +344,7 @@ userRoutes.post('/verifyotp',async (c)=>{
             })
         }
 
-        const resetToken = jwt.sign({ email }, c.env.JWT_SECRET, { expiresIn: '15m' });
+        const resetToken = jwt.sign({ emailHash }, c.env.JWT_SECRET, { expiresIn: '15m' });
 
         await prisma.oTP.delete({ where: { email } });
 
@@ -296,12 +373,13 @@ userRoutes.post('/resetpassword',async (c)=>{
     }
 
     const { resetToken, newPassword, confirmnewPassword } = parsed.data;
+
     try{
-        const decoded = jwt.verify(resetToken, c.env.JWT_SECRET) as { email: string };
-        const { email } = decoded;
+        const decoded = jwt.verify(resetToken, c.env.JWT_SECRET) as { emailHash: string };
+        const { emailHash } = decoded;
 
         const user = await prisma.user.findUnique({
-            where:{email}
+            where:{emailHash}
         })
         if(!user){
             return c.json({
@@ -314,14 +392,14 @@ userRoutes.post('/resetpassword',async (c)=>{
             })
         }
         await prisma.user.update({
-            where:{email},
+            where:{emailHash},
             data:{
                 password:newPassword
             }
         })
         return c.json({
             message:'Password reset successfully',
-            details:email
+            details:emailHash
         },200)
     }
     catch(error){
@@ -335,14 +413,21 @@ userRoutes.post('/resetpassword',async (c)=>{
 userRoutes.get('/:id', async (c) => {
     const id = c.req.param('id');
     const prisma = c.get('prisma');
+    const userId = c.get('userId');
 
     try {
         if (!id) {
             return c.json({ error: 'Id is required' }, 401);
         }
 
+        if(!userId){
+            return c.json({
+                error: 'User is not authenticated',
+            },403)
+        }
+
         const userDetails = await prisma.user.findFirst({
-            where: { id : parseInt(id) }
+            where: { id : id }
         });
 
         if (!userDetails) {
@@ -377,7 +462,7 @@ userRoutes.put('/:id', async (c) => {
         if (!id) return c.json({ error: 'Id is required' }, 400);
 
         const userDetails = await prisma.user.findFirst({
-            where: { id: parseInt(id) }
+            where: { id: id }
         });
 
         if (!userDetails) {
@@ -413,7 +498,7 @@ userRoutes.put('/:id', async (c) => {
 
         if (Object.keys(updateData).length > 0) {
             await prisma.user.update({
-                where: { id: parseInt(id) },
+                where: { id : id },
                 data: updateData
             });
         }
@@ -429,23 +514,29 @@ userRoutes.put('/:id', async (c) => {
 });
 
 //delete user profile 
-userRoutes.delete('/', async (c) => {
+userRoutes.delete('/:id', async (c) => {
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const { id: userid } = c.req.query();
+    const id  = c.req.param('id');
 
     try {
         if (!userId) {
             return c.json({ error: 'Provide a user ID' }, 401);
         }
 
-        const userIdNum = Number(userid);
-        if (!userIdNum) {
-            return c.json({ error: 'Invalid user ID' }, 400);
+        if(!id){
+            return c.json({
+                error: 'Provide a user ID to delete',
+            },403)
+        }
+
+        const user = await prisma.user.findUnique({ where: { id } });
+        if (!user) {
+            return c.json({ error: 'User not found' }, 404);
         }
 
         await prisma.user.delete({
-            where: { id: userIdNum },
+            where: { id },
         });
 
         return c.json({ message: 'User deleted successfully' }, 200);

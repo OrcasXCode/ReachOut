@@ -7,6 +7,123 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String     @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String     @unique
+  phoneNumber   String     @unique
+  password      String
+  role          Role       @default(USER)
+  emailIV       String
+  emailHash     String     @unique
+  phoneNumberIV String
+  businesses    Business[]
+}
+
+model Business {
+  id            String                @id @default(uuid())
+  ownerId       String
+  name          String
+  verified      Boolean               @default(false)
+  address       String
+  totalRating   Int                   @default(0)
+  website       String?
+  about         String
+  businessEmail String                @unique
+  categoryId    String
+  phoneNumber   String                @unique
+  dislikes      Int                   @default(0)
+  likes         Int                   @default(0)
+  category      Category              @relation(fields: [categoryId], references: [id])
+  owner         User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  subCategories BusinessSubCategory[]
+  businessHours BusinessTimings[]
+  businessMedia Media[]               @relation("BusinessMedia")
+  reports       Report[]
+  reviews       Review[]
+
+  @@unique([name, address])
+}
+
+model Category {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  Business      Business[]
+  subCategories SubCategory[]
+}
+
+model SubCategory {
+  id         String                @id @default(uuid())
+  name       String
+  categoryId String
+  businesses BusinessSubCategory[]
+  category   Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([name, categoryId], name: "name_categoryId")
+}
+
+model BusinessSubCategory {
+  businessId    String
+  subCategoryId String
+  business      Business    @relation(fields: [businessId], references: [id])
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+
+  @@id([businessId, subCategoryId])
+}
+
+model Review {
+  id            String   @id @default(uuid())
+  businessId    String
+  rating        Int
+  description   String
+  createdAt     DateTime @default(now())
+  customerMedia Media[]  @relation("CustomerMedia")
+  business      Business @relation(fields: [businessId], references: [id])
+}
+
+model Media {
+  id              String    @id @default(uuid())
+  type            String
+  url             String
+  customerMediaId String?
+  businessMediaId String?
+  businessMedia   Business? @relation("BusinessMedia", fields: [businessMediaId], references: [id])
+  customerMedia   Review?   @relation("CustomerMedia", fields: [customerMediaId], references: [id])
+}
+
+model BusinessTimings {
+  id          String    @id @default(uuid())
+  businessId  String
+  dayOfWeek   DayOfWeek
+  openingTime String
+  closingTime String
+  specialNote String?
+  business    Business  @relation(fields: [businessId], references: [id])
+}
+
+model OTP {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  emailHash String   @unique
+  emailIV   String
+  otp       String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  @@unique([emailHash, otp])
+}
+
+model Report {
+  id         String   @id @default(uuid())
+  businessId String
+  userId     String
+  reason     String
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
 enum Role {
   BUSINESS
   USER
@@ -20,119 +137,4 @@ enum DayOfWeek {
   THURSDAY
   FRIDAY
   SATURDAY
-}
-
-model User {
-  id          String        @id @default(uuid())
-  firstName   String
-  lastName    String
-  email       String        @unique
-  phoneNumber String        @unique
-  password    String
-  role        Role          @default(USER)
-  businesses  Business[]
-}
-
-model Business {
-  id             String            @id @default(uuid())
-  ownerId        String
-  name           String            
-  businessEmail  String            @unique
-  phoneNumber    String            @unique
-  verified       Boolean           @default(false)
-  address        String
-  categoryId     String
-  category       Category          @relation(fields: [categoryId], references: [id]) 
-  subCategories  BusinessSubCategory[]  
-  totalRating    Int               @default(0)
-  website        String?
-  about          String
-  likes          Int               @default(0)
-  dislikes       Int               @default(0)
-  owner          User              @relation(fields: [ownerId], references: [id] , onDelete : Cascade)
-  businessHours  BusinessTimings[]  
-  businessMedia  Media[]           @relation("BusinessMedia")
-  reviews        Review[]
-  reports        Report[]
-
-  @@unique([name, address])
-}
-
-model Category {
-  id            String          @id @default(uuid())
-  name          String       @unique
-  subCategories SubCategory[]  // One category can have many SubCategories
-  Business      Business[]   // One category can have many Business
-}
-model SubCategory {
-  id          String        @id @default(uuid())
-  name        String
-  categoryId  String
-  category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  businesses  BusinessSubCategory[]
-
-  @@unique([name, categoryId], name: "name_categoryId")  // Explicitly naming the composite key
-}
-
-
-
-model BusinessSubCategory {
-  businessId    String
-  subCategoryId String
-  business      Business   @relation(fields: [businessId], references: [id])
-  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
-
-  @@id([businessId, subCategoryId])
-}
-
-
-model Review {
-  id            String      @id @default(uuid())
-  businessId    String
-  rating        Int
-  description   String
-  createdAt     DateTime @default(now())
-  customerMedia Media[]  @relation("CustomerMedia")
-  business      Business @relation(fields: [businessId], references: [id])
-}
-
-model Media {
-  id              String       @id @default(uuid())
-  type            String
-  url             String
-  customerMediaId String?
-  businessMediaId String?
-  businessMedia   Business?    @relation("BusinessMedia", fields: [businessMediaId], references: [id])
-  customerMedia   Review?      @relation("CustomerMedia", fields: [customerMediaId], references: [id])
-}
-
-model BusinessTimings {
-  id          String       @id @default(uuid())
-  businessId  String
-  dayOfWeek   DayOfWeek
-  openingTime String
-  closingTime String
-  specialNote String?
-  business    Business    @relation(fields: [businessId], references: [id])
-}
-
-model OTP {
-  id        String      @id @default(uuid())
-  email     String      @unique
-  otp       String
-  expiresAt DateTime
-  used      Boolean     @default(false)
-
-  @@unique([email, otp])
-}
-
-
-model Report {
-  id         String      @id @default(uuid())
-  businessId String      
-  userId     String      
-  reason     String
-  status     String      @default("pending") // "pending", "reviewed", "resolved"
-  createdAt  DateTime    @default(now())
-  business   Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }

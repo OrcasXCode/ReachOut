@@ -8,9 +8,15 @@ compatibility_flags = [ "nodejs_compat" ]
 
 [vars]
 DATABASE_URL="prisma://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiZjY3YWE5YWQtMzAyNC00NmY5LTg5MGQtMGQzY2M4ZGZhZTU4IiwidGVuYW50X2lkIjoiNjc4ZDJlNGU1YmEyMTRlZjExZDI1NmRkMWY1YjNmYTAzNzYyOTE1MjE1MzFlZThlMTg0OTVkOTgxODY1MmYxMSIsImludGVybmFsX3NlY3JldCI6ImUzZGE1MTU4LWY4MTQtNDkxMC04Nzg1LTkzNTNmYzEzYTRkYyJ9.m4sef5vA12TiFtT7j_FKQZnp6DKcdk9YjOWqdfKiQiA"
-JWT_SECRET="omsureja"
-REFRESH_SECRET="omsureja"
-# MY_VAR = "my-variable"
+JWT_SECRET="jaidwarkadhish"
+REFRESH_SECRET="jaidwarkadhish"
+AES_SECRET_KEY="jaidwarkadhish"
+
+[build]
+# Use external_modules under [build] section, and it should be under the proper configuration
+[[build.upload]]
+external_modules = ["mock-aws-s3", "aws-sdk", "nock"]
+
 
 # [[kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
