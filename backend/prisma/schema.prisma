@@ -23,25 +23,25 @@ enum DayOfWeek {
 }
 
 model User {
-  id          Int        @id @default(autoincrement())
+  id          String        @id @default(uuid())
   firstName   String
   lastName    String
-  email       String     @unique
-  phoneNumber String
+  email       String        @unique
+  phoneNumber String        @unique
   password    String
-  role        Role       @default(USER)
+  role        Role          @default(USER)
   businesses  Business[]
 }
 
 model Business {
-  id             Int               @id @default(autoincrement())
-  ownerId        Int
+  id             String            @id @default(uuid())
+  ownerId        String
   name           String            
   businessEmail  String            @unique
   phoneNumber    String            @unique
   verified       Boolean           @default(false)
   address        String
-  categoryId     Int
+  categoryId     String
   category       Category          @relation(fields: [categoryId], references: [id]) 
   subCategories  BusinessSubCategory[]  
   totalRating    Int               @default(0)
@@ -59,15 +59,15 @@ model Business {
 }
 
 model Category {
-  id            Int          @id @default(autoincrement())
+  id            String          @id @default(uuid())
   name          String       @unique
   subCategories SubCategory[]  // One category can have many SubCategories
   Business      Business[]   // One category can have many Business
 }
 model SubCategory {
-  id          Int        @id @default(autoincrement())
+  id          String        @id @default(uuid())
   name        String
-  categoryId  Int
+  categoryId  String
   category    Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   businesses  BusinessSubCategory[]
 
@@ -77,8 +77,8 @@ model SubCategory {
 
 
 model BusinessSubCategory {
-  businessId    Int
-  subCategoryId Int
+  businessId    String
+  subCategoryId String
   business      Business   @relation(fields: [businessId], references: [id])
   subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
 
@@ -87,8 +87,8 @@ model BusinessSubCategory {
 
 
 model Review {
-  id            Int      @id @default(autoincrement())
-  businessId    Int
+  id            String      @id @default(uuid())
+  businessId    String
   rating        Int
   description   String
   createdAt     DateTime @default(now())
@@ -97,42 +97,42 @@ model Review {
 }
 
 model Media {
-  id              Int       @id @default(autoincrement())
+  id              String       @id @default(uuid())
   type            String
   url             String
-  customerMediaId Int?
-  businessMediaId Int?
-  businessMedia   Business? @relation("BusinessMedia", fields: [businessMediaId], references: [id])
-  customerMedia   Review?   @relation("CustomerMedia", fields: [customerMediaId], references: [id])
+  customerMediaId String?
+  businessMediaId String?
+  businessMedia   Business?    @relation("BusinessMedia", fields: [businessMediaId], references: [id])
+  customerMedia   Review?      @relation("CustomerMedia", fields: [customerMediaId], references: [id])
 }
 
 model BusinessTimings {
-  id          Int       @id @default(autoincrement())
-  businessId  Int
+  id          String       @id @default(uuid())
+  businessId  String
   dayOfWeek   DayOfWeek
   openingTime String
   closingTime String
   specialNote String?
-  business    Business  @relation(fields: [businessId], references: [id])
+  business    Business    @relation(fields: [businessId], references: [id])
 }
 
 model OTP {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        String      @id @default(uuid())
+  email     String      @unique
   otp       String
   expiresAt DateTime
-  used      Boolean  @default(false)
+  used      Boolean     @default(false)
 
   @@unique([email, otp])
 }
 
 
 model Report {
-  id         Int      @id @default(autoincrement())
-  businessId Int      
-  userId     Int      
+  id         String      @id @default(uuid())
+  businessId String      
+  userId     String      
   reason     String
-  status     String   @default("pending") // "pending", "reviewed", "resolved"
-  createdAt  DateTime @default(now())
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  status     String      @default("pending") // "pending", "reviewed", "resolved"
+  createdAt  DateTime    @default(now())
+  business   Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }

@@ -7,7 +7,7 @@ import {signininput} from "@omsureja/reachout";
 import {forgetpasswordinput} from "@omsureja/reachout"
 import {verifyotpinput} from "@omsureja/reachout"
 import {resetpasswordinput} from "@omsureja/reachout"
-import {editprofileinput} from "../../../common/src/index"
+import {editprofileinput} from "@omsureja/reachout"
 import jwt from 'jsonwebtoken';
 
 
@@ -15,6 +15,7 @@ export const userRoutes = new Hono<{
   Bindings: {
     DATABASE_URL: string;
     JWT_SECRET: string;
+    REFRESH_SECRET: string;
   };
   Variables: {
     userId: string;
@@ -34,7 +35,6 @@ userRoutes.use('*', async (c, next) => {
 });
 
 //signup route
-//!Pending
 userRoutes.post('/signup', async (c) => {
     const prisma = c.get('prisma');
     const body = await c.req.json();
@@ -59,20 +59,27 @@ userRoutes.post('/signup', async (c) => {
             return c.json({ error: 'Email Already Exists' }, 400);
         }
 
-        //!Before storing it in DB, hash the password if necessary
+        //Using Argon2id for hashing of the password 
+        const hashPassword =await Bun.password.hash(password);
+
         const user = await prisma.user.create({
             data: {
                 firstName,
                 lastName,
                 email,
                 phoneNumber,
-                password,
+                password : hashPassword ,
                 role
             },
         });
 
-        const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
-        return c.json({ token: jwt },200);
+        const accessToken = await sign({ id: user.id }, process.env.JWT_SECRET || "");
+        const refreshToken = await sign({ id: user.id }, process.env.REFRESH_TOKEN || "");
+
+
+        c.res.headers.append('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+
+        return c.json({ accessToken }, 200);
     } catch (error) {
         console.log(error);
         c.status(500);
@@ -127,19 +134,33 @@ userRoutes.post('/signin', async (c) => {
 
     try {
         const user = await prisma.user.findFirst({
-        where: {
-            email,
-            password
-        },
+            where: {
+                email,
+            },
+            select:{
+                id:true,
+                password:true
+            }
         });
 
         if (!user) {
-        c.status(403);
-        return c.json({ error: 'Incorrect Credentials' });
+            c.status(403);
+            return c.json({ error: 'Incorrect Credentials' });
         }
 
-        const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
-        return c.json({ message: 'SignIn Successful', token: jwt },200);
+        const isMatch = await Bun.password.verify( password , user.password);
+        if(!isMatch){
+            return c.json({
+                error: 'Incorrect Password',
+            },401)
+        }
+
+       const accessToken = await sign({ id: user.id }, process.env.JWT_SECRET || "");
+       const refreshToken = await sign({ id: user.id }, process.env.REFRESH_TOKEN || "");
+
+       c.res.headers.append('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+
+        return c.json({ message: 'SignIn Successful', accessToken }, 200);
     } catch (error) {
         console.log(error);
         c.status(500);
@@ -148,7 +169,6 @@ userRoutes.post('/signin', async (c) => {
 });
 
 //forget password route
-//!Pending
 userRoutes.post('/forgetpassword',async (c)=>{
     const prisma = c.get('prisma');
     const body = await c.req.json();
@@ -190,7 +210,15 @@ userRoutes.post('/forgetpassword',async (c)=>{
                 email,otp,expiresAt
             }
         })
-        //!Implement the function of sending the email seperately
+
+        const response = await fetch('https://cfw-react-emails.omp164703.workers.dev/send/email/otp-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ otp })
+        });
+        
         return c.json({message:'OTP sent to your email',otp},200)
     }
     catch(error){
@@ -304,32 +332,30 @@ userRoutes.post('/resetpassword',async (c)=>{
 })
 
 //getting user profile route
-userRoutes.get('/:id',async (c)=>{
+userRoutes.get('/:id', async (c) => {
     const id = c.req.param('id');
     const prisma = c.get('prisma');
 
-    try{
-        if(!id) return c.json({
-            error: 'Id is required',
-        },401)
-        const userDetails=await prisma.user.findFirst({
-            where:{
-                id:parseInt(id)
-            }
-        })
-        if(!userDetails){
-            return c.json({
-                error:'User does not exists'
-            },401)
+    try {
+        if (!id) {
+            return c.json({ error: 'Id is required' }, 401);
         }
+
+        const userDetails = await prisma.user.findFirst({
+            where: { id : parseInt(id) }
+        });
+
+        if (!userDetails) {
+            return c.json({ error: 'User does not exist' }, 401);
+        }
+
         return c.json(userDetails);
-    }
-    catch(error){
-        console.log(error);
+    } catch (error) {
+        console.error(error);
         c.status(500);
-        return c.json({error:'Internal Server Error'});
+        return c.json({ error: 'Internal Server Error' });
     }
-})
+});
 
 
 //edit user detail route
