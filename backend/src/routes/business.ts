@@ -2,15 +2,18 @@ import {Hono} from 'hono'
 import {PrismaClient} from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate';
 import {sign,verify} from 'hono/jwt'
-import {addBusinessInput} from "@omsureja/reachout"
+import {addBusinessInput} from '../../../common/src/index'
 import {editBusinessTimings} from "@omsureja/reachout"
 import {editBusinessDetails} from "@omsureja/reachout"
+import {AES} from '../services/aesService'
+import crypto from 'crypto'
 
 
 export const businessRoutes = new Hono<{
     Bindings:{
         DATABASE_URL:string,
-        JWT_SECRET:string
+        JWT_SECRET:string,
+        AES_SECRET_KEY: string
     },
     Variables:{
         userId: string;
@@ -68,7 +71,7 @@ businessRoutes.post('/create', async (c) => {
 
     try {
         const user = await prisma.user.findUnique({
-            where: { id: parseInt(userId) }
+            where: { id: userId }
         });
 
         if (!user || user.role !== 'BUSINESS') {
@@ -98,12 +101,25 @@ businessRoutes.post('/create', async (c) => {
             return c.json({ error: 'Invalid business hours format' }, 400);
         }
 
+        const secretKey = c.env.AES_SECRET_KEY;
+        if(!secretKey){
+            return c.json({
+                error: 'AES Secret Key is missing'
+            },403)
+        }
+
+        const businessEmailHash = crypto.createHash("sha256").update(businessEmail).digest("hex");
+        const phoneNumberHash = crypto.createHash("sha256").update(phoneNumber).digest("hex");
+        const encryptedBusienssEmail = await AES.encrypt(businessEmail,secretKey);
+        const encryptedPhoneNumber = await AES.encrypt(phoneNumber,secretKey);
+        const encryptedOwnerId = await AES.encrypt(userId,secretKey);
+
         const existingBusiness = await prisma.business.findFirst({
             where: {
                 OR: [
                     { name, address },
-                    { businessEmail },
-                    { phoneNumber }
+                    { businessEmailHash },
+                    { phoneNumberHash }
                 ]
             }
         });
@@ -120,45 +136,51 @@ businessRoutes.post('/create', async (c) => {
             return c.json({ error: `Category with ID ${categoryId} does not exist` }, 401);
         }
 
+        if(!categoryId || !userId || !subCategoryIds){
+            return c.json({
+                error: 'Category ID is missing'
+            },403)
+        }
+
         const newBusiness = await prisma.business.create({
             data: {
-              name,
-              businessEmail,
-              phoneNumber,
-              verified: false,
-              address,
-              category: {
-                connect: { id: categoryId }
-              },
-              subCategories: {
-                create: subCategoryIds.map(subCategoryId => ({
-                  subCategory: { connect: { id: subCategoryId } }
-                }))
-              },
-              totalRating: 0,
-              website,
-              about,
-              owner: {
-                connect: { id: parseInt(userId) }
-              },
-              businessMedia: {
-                create: mediaUrls.map(media => ({
-                  type: media.type,
-                  url: media.url
-                }))
-              },
-              businessHours: {
-                create: businessHours.map(hour => ({
-                  dayOfWeek: hour.dayofWeek, 
-                  openingTime: hour.openingTime,
-                  closingTime: hour.closingTime,
-                  specialNote: hour.specialNote || null  
-                }))
-              }
+                name,
+                ownerId: encryptedOwnerId.encrypted,
+                ownerIdIV: encryptedOwnerId.iv,
+                businessEmail: encryptedBusienssEmail.encrypted,
+                businessEmailIV: encryptedBusienssEmail.iv,
+                businessEmailHash,  
+                phoneNumber: encryptedPhoneNumber.encrypted,
+                phoneNumberIV: encryptedPhoneNumber.iv,
+                phoneNumberHash,   
+                verified: false,
+                address,
+                categoryId,
+                subCategories: {
+                    create: subCategoryIds.map(subCategoryId => ({
+                        subCategory: { connect: { id: subCategoryId } }
+                    }))
+                },
+                totalRating: 0,
+                website,
+                about,
+                businessMedia: {
+                    create: mediaUrls.map(media => ({
+                        type: media.type,
+                        url: media.url
+                    }))
+                },
+                businessHours: {
+                    create: businessHours.map(hour => ({
+                        dayOfWeek: hour.dayofWeek, 
+                        openingTime: hour.openingTime,
+                        closingTime: hour.closingTime,
+                        specialNote: hour.specialNote || null  
+                    }))
+                }
             }
-        });
+        });        
           
-
         return c.json({
             message: 'Business created successfully',
             business: newBusiness
@@ -173,25 +195,25 @@ businessRoutes.post('/create', async (c) => {
 
 
 //update business details
-businessRoutes.put('/updatebusiness', async (c) => {
+businessRoutes.put('/updatebusiness/:id', async (c) => {
     const prisma = c.get('prisma');
     const body = await c.req.json();
     const userId = c.get('userId');
-    const {id:businessId} = c.req.query();
+    const businessId = c.req.param('id');
 
     try {
         const parsed= editBusinessDetails.safeParse(body);
 
         const user = await prisma.business.findUnique({
             where: {
-                id: parseInt(businessId)
+                id: businessId
             },
             select:{
                 ownerId : true
             }
         })
 
-        if(user?.ownerId !== parseInt(userId)){
+        if(user?.ownerId !== userId){
             return c.json({error: 'You are not authorized to update this business'}, 403);
         }
 
@@ -206,7 +228,7 @@ businessRoutes.put('/updatebusiness', async (c) => {
 
         const existingBusiness = await prisma.business.findUnique({
             where: {
-                id: parseInt(businessId)
+                id: businessId
             }
         });
 
@@ -218,7 +240,7 @@ businessRoutes.put('/updatebusiness', async (c) => {
 
         const updatedBusiness = await prisma.business.update({
             where: {
-                id: parseInt(businessId)
+                id: businessId
             },
             data: {
                 name: name || existingBusiness.name,
@@ -231,13 +253,13 @@ businessRoutes.put('/updatebusiness', async (c) => {
         if (businessHours) {
             await prisma.businessTimings.deleteMany({
                 where: {
-                    businessId:  parseInt(businessId)
+                    businessId:  businessId
                 }
             });
 
             const createBusinessTimings = await prisma.businessTimings.createMany({
                 data: businessHours.map(hour => ({
-                    businessId:  parseInt(businessId),
+                    businessId:  businessId,
                     dayOfWeek: hour.dayOfWeek, 
                     openingTime: hour.openingTime,
                     closingTime: hour.closingTime,
@@ -263,11 +285,11 @@ businessRoutes.put('/updatebusiness', async (c) => {
 businessRoutes.delete('/delete', async (c) => {
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const { businessId } = await c.req.json(); 
+    const businessId = await c.req.param('id')
 
     try {
         const business = await prisma.business.findUnique({
-            where: { id: parseInt(businessId) },
+            where: { id: businessId },
             include: { owner: true },  
         });
 
@@ -275,16 +297,16 @@ businessRoutes.delete('/delete', async (c) => {
             return c.json({ error: 'Business not found' }, 404);
         }
 
-        if (business.ownerId !== parseInt(userId)) {
+        if (business.ownerId !== userId) {
             return c.json({ error: 'You are not the owner of this business' }, 401);
         }
 
         await prisma.businessSubCategory.deleteMany({
-            where: { businessId: parseInt(businessId) },
+            where: { businessId: businessId },
         });
 
         await prisma.business.delete({
-            where: { id: parseInt(businessId) },
+            where: { id: businessId },
         });
 
         return c.json({ message: 'Business deleted successfully' }, 200);
@@ -300,7 +322,7 @@ businessRoutes.get('/', async (c) => {
     const prisma = c.get('prisma');
     // const id = c.req.query('id');  
     const userId = c.get('userId');
-    const {id:businessId} = c.req.query();
+    const businessId = c.req.param('id')
 
     try {
         // if (!id) return c.json({ error: 'id is required' }, 400);
@@ -329,24 +351,34 @@ businessRoutes.get('/', async (c) => {
 
         const user = await prisma.business.findUnique({
             where: {
-                id: parseInt(businessId)
+                id: businessId
             },
             select:{
-                ownerId : true
+                ownerId : true,
+                ownerIdIV : true,
             }
         })
 
-        if(user?.ownerId !== parseInt(userId)){
+        if(!user){
+            return c.json({
+                error: 'Business not found',
+            },403)
+        }
+
+        const secretKey = c.env.AES_SECRET_KEY;
+        const decryptedOwnerId = await AES.decrypt(user.ownerId,user.ownerIdIV,secretKey);
+
+        if(decryptedOwnerId !== userId){
             return c.json({error: 'You are not authorized to update this business'}, 403);
         }
 
         
         const userBusiness = await prisma.user.findUnique({
             where: {
-                id: parseInt(userId)
+                id: userId
             },
             include: {
-                businesses: {  // Assuming `businesses` is the correct relation name
+                businesses: { 
                     include: {
                         category: true,
                         subCategories: true
@@ -368,13 +400,13 @@ businessRoutes.get('/bulk', async (c) => {
     const query = c.req.query();
     const userId = c.get('userId');
 
-    const categoryId = query.categoryId ? parseInt(query.categoryId) : undefined;
-    const subCategoryId = query.subCategoryId ? parseInt(query.subCategoryId) : undefined;
+    const categoryId = query.categoryId ? query.categoryId : undefined;
+    const subCategoryId = query.subCategoryId ? query.subCategoryId : undefined;
 
     try {
         const userBusiness = await prisma.user.findUnique({
             where: {
-                id: parseInt(userId)
+                id: userId
             },
             include: {
                 businesses: {
@@ -408,7 +440,7 @@ businessRoutes.get('/bulk', async (c) => {
 businessRoutes.post('/like',async (c)=>{
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const businessId = c.req.query('id');
+    const businessId = c.req.param('id');
 
 
     try{
@@ -422,7 +454,7 @@ businessRoutes.post('/like',async (c)=>{
 
         const user = await prisma.user.findUnique({
             where:{
-                id:parseInt(userId)
+                id : userId
             }
         })
         if(!user){
@@ -433,7 +465,7 @@ businessRoutes.post('/like',async (c)=>{
 
         await prisma.business.update({
             where:{
-                id:parseInt(businessId)
+                id: businessId
             },
             data:{
                 likes : {
@@ -459,7 +491,7 @@ businessRoutes.post('/like',async (c)=>{
 businessRoutes.post('/dislike',async(c)=>{
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const businessId = c.req.query('id');
+    const businessId = c.req.param('id');
 
     try{
 
@@ -472,7 +504,7 @@ businessRoutes.post('/dislike',async(c)=>{
         },401)
         const user = await prisma.user.findUnique({
             where:{
-                id:parseInt(userId)
+                id:userId
             }
         })
         if(!user){
@@ -483,7 +515,7 @@ businessRoutes.post('/dislike',async(c)=>{
 
         await prisma.business.update({
             where:{
-                id:parseInt(businessId)
+                id:businessId
             },
             data:{
                 dislikes : {
@@ -509,7 +541,7 @@ businessRoutes.post('/dislike',async(c)=>{
 businessRoutes.get('/getallreviews/', async (c) => {
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const { id: businessId } = c.req.query(); 
+    const businessId  = c.req.param('id'); 
 
 
     try {
@@ -521,15 +553,8 @@ businessRoutes.get('/getallreviews/', async (c) => {
             return c.json({ error: 'Provide a user ID' }, 400);
         }
 
-        const businessIdNumber = parseInt(businessId);
-        const userIdNumber = parseInt(userId);
-
-        if (isNaN(businessIdNumber) || isNaN(userIdNumber)) {
-            return c.json({ error: 'Invalid ID format' }, 400);
-        }
-
         const user = await prisma.user.findUnique({
-            where: { id: userIdNumber },
+            where: { id: userId },
         });
 
         if (!user) {
@@ -537,7 +562,7 @@ businessRoutes.get('/getallreviews/', async (c) => {
         }
 
         const business = await prisma.business.findUnique({
-            where: { id: businessIdNumber },
+            where: { id: businessId },
             include: { reviews: true},
         });
 
@@ -547,7 +572,7 @@ businessRoutes.get('/getallreviews/', async (c) => {
 
         return c.json(business.reviews, 200);
     } catch (error) {
-        console.error(error);
+        console.log(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
@@ -557,9 +582,8 @@ businessRoutes.get('/getallreviews/', async (c) => {
 businessRoutes.post('/report/',async (c)=>{
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const {id : businessId} = c.req.query();
+    const businessId = c.req.param('id');
     const { reason }=await c.req.json();
-
 
     try{
         if(!userId) {
@@ -569,7 +593,7 @@ businessRoutes.post('/report/',async (c)=>{
         }
         const user= await prisma.user.findUnique({
             where:{
-                id:parseInt(businessId)
+                id:businessId
             }
         })
         if(!user) return c.json({
@@ -582,10 +606,16 @@ businessRoutes.post('/report/',async (c)=>{
             },401)
         }
 
+        if(!businessId){
+            return c.json({
+                error: 'Provide a business ID'
+            },403)
+        }
+
         await prisma.report.create({
             data: {
-                businessId: parseInt(businessId),
-                userId: parseInt(userId),
+                businessId: businessId,
+                userId: userId,
                 reason,
             }
         })
@@ -607,7 +637,7 @@ businessRoutes.post('/report/',async (c)=>{
 businessRoutes.get('/fetchallreports/',async(c)=>{
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const {id:businessId} = c.req.query();
+    const businessId = c.req.param('id');
 
     try{
         if(!userId) return c.json({
@@ -620,13 +650,24 @@ businessRoutes.get('/fetchallreports/',async(c)=>{
 
         const business= await prisma.business.findUnique({
             where:{
-                id:parseInt(businessId), 
+                id:businessId, 
             },
             select:{
-                ownerId : true
+                ownerId : true,
+                ownerIdIV: true
             }
         })
-        if(parseInt(userId) !== business?.ownerId){
+
+        if(!business){
+            return c.json({
+                error: 'Business Not Found',
+            },403)
+        }
+
+        const secretKey = c.env.AES_SECRET_KEY;
+        const decrpytedOwnerId = await AES.decrypt(business.ownerId,business.ownerIdIV,secretKey);
+
+        if(userId !== decrpytedOwnerId){
             return c.json({
                 error: 'You are not the owner of this business',
             },401)
@@ -634,16 +675,18 @@ businessRoutes.get('/fetchallreports/',async(c)=>{
 
         const user= await prisma.user.findUnique({
             where:{
-                id:parseInt(businessId)
+                id:businessId
             }
         })
+
+
         if(!user) return c.json({
             error: 'User not found'
         },401)
 
         const allReports = await prisma.business.findMany({
             where:{
-                id:parseInt(businessId)
+                id:businessId
             },
             include:{
                 reports:true
@@ -667,82 +710,90 @@ businessRoutes.get('/fetchallreports/',async(c)=>{
 businessRoutes.put('/updatebusinesstimings/', async (c) => {
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const { id : businessId } = c.req.query();
+    const businessId = c.req.param('id');
   
     const body = await c.req.json();
   
     try {
-      const user = await prisma.user.findUnique({
-        where: { id: parseInt(userId) }
-      });
-  
-      if (!user || user.role !== 'BUSINESS') {
-        return c.json({ error: 'User is not a business user, not allowed to update business timings' }, 401);
-      }
-
-      const parsed = editBusinessTimings.safeParse(body);
-
-      const businessOwner= await prisma.business.findUnique({
-        where:{
-            id:parseInt(businessId), 
-        },
-        select:{
-            ownerId : true
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        });
+    
+        if (!user || user.role !== 'BUSINESS') {
+            return c.json({ error: 'User is not a business user, not allowed to update business timings' }, 401);
         }
-    })
-    if(parseInt(userId) !== businessOwner?.ownerId){
-        return c.json({
-            error: 'You are not the owner of this business',
-        },401)
-    }
-  
-  
-      if (!parsed.success) {
-        return c.json({
-          error: 'Invalid business hours format',
-          details: parsed.error.errors
-        }, 400);
-      }
-  
-      const businessHours = parsed.data;
-  
-      const business = await prisma.business.findUnique({
-        where: { id: parseInt(businessId) },
-        include: {
-          owner: true
+
+        const parsed = editBusinessTimings.safeParse(body);
+        if (!parsed.success) {
+            return c.json({
+            error: 'Invalid business hours format',
+            details: parsed.error.errors
+            }, 400);
         }
-      });
   
-      if (!business) {
-        return c.json({ error: 'Business not found' }, 404);
-      }
+
+        const businessOwner= await prisma.business.findUnique({
+            where:{
+                id:businessId, 
+            },
+            select:{
+                ownerId : true,
+                ownerIdIV: true,
+            }
+        });
+
+        if (!businessOwner) {
+            return c.json({ error: 'Business not found' }, 404);
+        }
+
+
+        const secretKey = c.env.AES_SECRET_KEY;
+        const decryptedOwnerId = await AES.decrypt(businessOwner.ownerId,businessOwner.ownerIdIV,secretKey);
+
+
+        if(userId !== decryptedOwnerId){
+            return c.json({
+                error: 'You are not the owner of this business',
+            },401)
+        }
+    
+        const businessHours = parsed.data;
+
+        if(userId !== decryptedOwnerId){
+            return c.json({
+                error: 'You are not the owner of this business',
+            },401)
+        }
+
+        if(!businessId){
+            return c.json({
+                error: 'Business ID is required',
+            },403)
+        }
   
-      if (business.owner.id !== parseInt(userId)) {
-        return c.json({ error: 'You are not the owner of this business' }, 401);
-      }
+        const updatedBusinessTimings = await prisma.businessTimings.deleteMany({
+            where: { businessId: businessId }
+        });
+    
+        const createBusinessTimings = await prisma.businessTimings.createMany({
+            data: businessHours.map(hour => ({
+            businessId: businessId,
+            dayOfWeek: hour.dayofWeek, 
+            openingTime: hour.openingTime,
+            closingTime: hour.closingTime,
+            specialNote: hour.specialNote || null
+            }))
+        });
+    
+        return c.json({
+            message: 'Business timings updated successfully',
+            businessTimings: createBusinessTimings
+        }, 200);
   
-      const updatedBusinessTimings = await prisma.businessTimings.deleteMany({
-        where: { businessId: parseInt(businessId) }
-      });
-  
-      const createBusinessTimings = await prisma.businessTimings.createMany({
-        data: businessHours.map(hour => ({
-          businessId: parseInt(businessId),
-          dayOfWeek: hour.dayofWeek, 
-          openingTime: hour.openingTime,
-          closingTime: hour.closingTime,
-          specialNote: hour.specialNote || null
-        }))
-      });
-  
-      return c.json({
-        message: 'Business timings updated successfully',
-        businessTimings: createBusinessTimings
-      }, 200);
-  
-    } catch (error) {
-      console.error(error);
-      return c.json({ error: 'Internal Server Error' }, 500);
+    } 
+    catch (error) {
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
   
@@ -767,15 +818,21 @@ businessRoutes.put('/uploadbusinessmedia/', async (c) => {
 
         const business = await prisma.business.findUnique({
             where: { id: businessId },
-            include: { owner: true },
+            select: { ownerId : true , ownerIdIV : true},
         });
 
+        
         if (!business) {
             return c.json({ error: 'Business not found' }, 404);
         }
 
-        if (business.ownerId !== parseInt(userId)) {
-            return c.json({ error: 'Unauthorized: You do not own this business' }, 403);
+        const secretKey = c.env.AES_SECRET_KEY;
+        const decryptedOwnerId = await AES.decrypt(business.ownerId,business.ownerIdIV,secretKey);
+
+        if(userId !== decryptedOwnerId){
+            return c.json({
+                error: 'You are not the owner of this business',
+            },401)
         }
 
         if (!mediaUrls.every(media => media.type && media.url)) {

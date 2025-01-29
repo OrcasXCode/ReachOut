@@ -24,6 +24,7 @@ model User {
 model Business {
   id            String                @id @default(uuid())
   ownerId       String
+  ownerIdIV     String
   name          String
   verified      Boolean               @default(false)
   address       String
@@ -31,8 +32,12 @@ model Business {
   website       String?
   about         String
   businessEmail String                @unique
+  businessEmailHash String            @unique
+  businessEmailIV String   
   categoryId    String
   phoneNumber   String                @unique
+  phoneNumberIV String          
+  phoneNumberHash String              @unique
   dislikes      Int                   @default(0)
   likes         Int                   @default(0)
   category      Category              @relation(fields: [categoryId], references: [id])
