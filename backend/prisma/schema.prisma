@@ -24,7 +24,6 @@ model User {
 model Business {
   id            String                @id @default(uuid())
   ownerId       String
-  ownerIdIV     String
   name          String
   verified      Boolean               @default(false)
   address       String

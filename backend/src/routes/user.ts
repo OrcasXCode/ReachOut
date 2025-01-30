@@ -310,11 +310,15 @@ userRoutes.post('/verifyotp',async (c)=>{
             },403)
         }
         
-        const emailHash = crypto.createHash("sh256").update(email).digest("hex");
+        const emailHash = crypto.createHash("sha256").update(email).digest("hex");
 
-        const getUser=await prisma.oTP.findFirst({
+        const getUser=await prisma.user.findUnique({
             where:{
                 emailHash,
+            },
+            select:{
+                email:true,
+                emailIV:true
             }
         })
 
@@ -332,12 +336,22 @@ userRoutes.post('/verifyotp',async (c)=>{
             },403)
         }
 
-        if(getUser?.otp!==otp){
+        const otpUser = await prisma.oTP.findFirst({
+            where:{
+                emailHash
+            },
+            select:{
+                otp:true,
+                expiresAt:true,
+            }
+        })
+
+        if(otpUser?.otp!==otp){
             return c.json({
                 error:'OTP did not match',
             },404)
         }
-        if(getUser.expiresAt<new Date()){
+        if(otpUser.expiresAt<new Date()){
             return c.json({
                 error:'OTP expired',
                 details:'Try to Resend it and try again later!'
@@ -346,7 +360,7 @@ userRoutes.post('/verifyotp',async (c)=>{
 
         const resetToken = jwt.sign({ emailHash }, c.env.JWT_SECRET, { expiresIn: '15m' });
 
-        await prisma.oTP.delete({ where: { email } });
+        await prisma.oTP.delete({ where: { emailHash } });
 
         return c.json({ message: 'OTP verified', resetToken }, 200);
     }
@@ -542,6 +556,77 @@ userRoutes.delete('/:id', async (c) => {
         return c.json({ message: 'User deleted successfully' }, 200);
     } catch (error) {
         console.log(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
+    }
+});
+
+//user to review a business
+userRoutes.post('/review/:id', async (c) => {
+    const prisma = c.get('prisma');
+    const userId = c.get('userId');
+    const businessId = c.req.param('id');
+    const body = await c.req.json();
+
+    try {
+        if (!userId) {
+            return c.json({ error: 'Provide a user ID' }, 401);
+        }
+
+        if (!businessId) {
+            return c.json({ error: 'Provide a business ID for review' }, 403);
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return c.json({ error: 'User not found' }, 404);
+        }
+
+        const business = await prisma.business.findUnique({ where: { id: businessId } });
+        if (!business) {
+            return c.json({ error: 'Business not found' }, 404);
+        }
+
+        const { rating, description, mediaUrls }: { 
+            rating: number; 
+            description: string; 
+            mediaUrls?: { type: string; url: string }[]; 
+        } = body; // Explicit typing for `mediaUrls`
+
+        if (!rating || rating < 1 || rating > 5) {
+            return c.json({ error: 'Rating must be between 1 and 5' }, 400);
+        }
+
+        if (!description || description.trim() === '') {
+            return c.json({ error: 'Description is required' }, 400);
+        }
+
+        if (
+            mediaUrls &&
+            (!Array.isArray(mediaUrls) || !mediaUrls.every(media => media.type && media.url))
+        ) {
+            return c.json({ error: 'Invalid media format: Each media item must have type and url' }, 400);
+        }
+
+        const newReview = await prisma.review.create({
+            data: {
+                businessId,
+                rating,
+                description,
+                customerMedia: {
+                    create: mediaUrls?.map(({ type, url }) => ({
+                        type,
+                        url
+                    })) || []
+                }
+            },
+            include: {
+                customerMedia: true
+            }
+        });
+
+        return c.json({ message: 'Review submitted successfully', review: newReview }, 201);
+    } catch (error) {
+        console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
