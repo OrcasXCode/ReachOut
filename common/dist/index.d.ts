@@ -66,3 +66,182 @@ export declare const resetpasswordinput: z.ZodObject<{
     confirmnewPassword: string;
 }>;
 export type ResetPasswordInput = z.infer<typeof resetpasswordinput>;
+export declare const editprofileinput: z.ZodObject<{
+    firstName: z.ZodString;
+    lastName: z.ZodString;
+    email: z.ZodString;
+    phoneNumber: z.ZodString;
+    password: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+}, {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+}>;
+export type EditProfileInput = z.infer<typeof editprofileinput>;
+export declare const addBusinessInput: z.ZodObject<{
+    name: z.ZodString;
+    verified: z.ZodBoolean;
+    address: z.ZodString;
+    businessEmail: z.ZodString;
+    phoneNumber: z.ZodString;
+    categoryId: z.ZodString;
+    subCategoryIds: z.ZodArray<z.ZodString, "many">;
+    totalRating: z.ZodDefault<z.ZodNumber>;
+    website: z.ZodOptional<z.ZodString>;
+    about: z.ZodString;
+    mediaUrls: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        type: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        type: string;
+        url: string;
+    }, {
+        type: string;
+        url: string;
+    }>, "many">>;
+    businessHours: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        dayofWeek: z.ZodEnum<["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"]>;
+        openingTime: z.ZodString;
+        closingTime: z.ZodString;
+        specialNote: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        dayofWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        openingTime: string;
+        closingTime: string;
+        specialNote?: string | undefined;
+    }, {
+        dayofWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        openingTime: string;
+        closingTime: string;
+        specialNote?: string | undefined;
+    }>, "many">>;
+}, "strip", z.ZodTypeAny, {
+    phoneNumber: string;
+    name: string;
+    verified: boolean;
+    address: string;
+    businessEmail: string;
+    categoryId: string;
+    subCategoryIds: string[];
+    totalRating: number;
+    about: string;
+    website?: string | undefined;
+    mediaUrls?: {
+        type: string;
+        url: string;
+    }[] | undefined;
+    businessHours?: {
+        dayofWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        openingTime: string;
+        closingTime: string;
+        specialNote?: string | undefined;
+    }[] | undefined;
+}, {
+    phoneNumber: string;
+    name: string;
+    verified: boolean;
+    address: string;
+    businessEmail: string;
+    categoryId: string;
+    subCategoryIds: string[];
+    about: string;
+    totalRating?: number | undefined;
+    website?: string | undefined;
+    mediaUrls?: {
+        type: string;
+        url: string;
+    }[] | undefined;
+    businessHours?: {
+        dayofWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        openingTime: string;
+        closingTime: string;
+        specialNote?: string | undefined;
+    }[] | undefined;
+}>;
+export type AddBusinessInput = z.infer<typeof addBusinessInput>;
+export declare const editBusinessTimings: z.ZodObject<{
+    businessHours: z.ZodArray<z.ZodObject<{
+        dayOfWeek: z.ZodEnum<["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"]>;
+        openingTime: z.ZodString;
+        closingTime: z.ZodString;
+        specialNote: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        openingTime: string;
+        closingTime: string;
+        dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        specialNote?: string | undefined;
+    }, {
+        openingTime: string;
+        closingTime: string;
+        dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        specialNote?: string | undefined;
+    }>, "many">;
+}, "strip", z.ZodTypeAny, {
+    businessHours: {
+        openingTime: string;
+        closingTime: string;
+        dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        specialNote?: string | undefined;
+    }[];
+}, {
+    businessHours: {
+        openingTime: string;
+        closingTime: string;
+        dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        specialNote?: string | undefined;
+    }[];
+}>;
+export type EditBusinessTimings = z.infer<typeof editBusinessTimings>;
+export declare const editBusinessDetails: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    about: z.ZodOptional<z.ZodString>;
+    address: z.ZodOptional<z.ZodString>;
+    phoneNumber: z.ZodOptional<z.ZodString>;
+    businessHours: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        dayOfWeek: z.ZodEnum<["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"]>;
+        openingTime: z.ZodString;
+        closingTime: z.ZodString;
+        specialNote: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        openingTime: string;
+        closingTime: string;
+        dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        specialNote?: string | undefined;
+    }, {
+        openingTime: string;
+        closingTime: string;
+        dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        specialNote?: string | undefined;
+    }>, "many">>;
+}, "strip", z.ZodTypeAny, {
+    phoneNumber?: string | undefined;
+    name?: string | undefined;
+    address?: string | undefined;
+    about?: string | undefined;
+    businessHours?: {
+        openingTime: string;
+        closingTime: string;
+        dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        specialNote?: string | undefined;
+    }[] | undefined;
+}, {
+    phoneNumber?: string | undefined;
+    name?: string | undefined;
+    address?: string | undefined;
+    about?: string | undefined;
+    businessHours?: {
+        openingTime: string;
+        closingTime: string;
+        dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+        specialNote?: string | undefined;
+    }[] | undefined;
+}>;
+export type EditBusinessDetails = z.infer<typeof editBusinessDetails>;
