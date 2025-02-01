@@ -1,5 +1,9 @@
 "use client";
+
+
 import React from "react";
+import Link from "next/link"
+
 import {
   Avatar,
   Button,
@@ -19,11 +23,11 @@ import {
 } from "@heroicons/react/24/solid";
  
 const profileMenuItems = [
-  { label: "My Profile", icon: UserCircleIcon },
-  { label: "Edit Profile", icon: Cog6ToothIcon },
-  { label: "Inbox", icon: InboxArrowDownIcon },
-  { label: "Help", icon: LifebuoyIcon },
-  { label: "Sign Out", icon: PowerIcon },
+  { label: "My Profile", icon: UserCircleIcon , route:'/myprofile' },
+  { label: "Edit Profile", icon: Cog6ToothIcon , route:'/editprofile' },
+  { label: "Inbox", icon: InboxArrowDownIcon , route:'/viewinbox'},
+  { label: "Help", icon: LifebuoyIcon , route:'/contact'},
+  { label: "Sign Out", icon: PowerIcon, route:'/signout' },
 ];
 
 export default function AvatarWithUserDropdown() {
@@ -47,32 +51,34 @@ export default function AvatarWithUserDropdown() {
           </Button>
         </MenuHandler>
         <MenuList className="p-3 w-48 space-y-5  z-20 bg-[#ffffff] border-gray-50 rounded-sm">
-          {profileMenuItems.map(({ label, icon }, key) => {
+          {profileMenuItems.map(({ label, icon , route }, key) => {
             const isLastItem = key === profileMenuItems.length - 1;
             return (
-              <MenuItem
-                key={label}
-                onClick={closeMenu}
-                className={`group flex items-center p-2 rounded gap-2 text-gray-600  ${
-                  isLastItem
-                    ? "hover:bg-red-500/10 focus:bg-red-500/10"
-                    : "hover:bg-gray-100 hover:text-black"
-                }`}
-              >
-                {React.createElement(icon, {
-                  className: `h-4 w-4 group-hover:text-blac ${
-                    isLastItem ? "text-red-500" : "text-gray-600"
-                  }`,
-                  strokeWidth: 1,
-                })}
-                <Typography
-                  as="span"
-                  variant="small"
-                  className="font-medium group-hover:text-black"
-                >
-                  {label}
-                </Typography>
-            </MenuItem>
+              <Link href={route} key={label}>
+                  <MenuItem
+                    key={label}
+                    onClick={closeMenu}
+                    className={`group flex items-center p-2 rounded gap-2 text-gray-600  ${
+                      isLastItem
+                        ? "hover:bg-red-500/10 focus:bg-red-500/10"
+                        : "hover:bg-gray-100 hover:text-black"
+                    }`}
+                  >
+                    {React.createElement(icon, {
+                      className: `h-4 w-4 group-hover:text-blac ${
+                        isLastItem ? "text-red-500" : "text-gray-600"
+                      }`,
+                      strokeWidth: 1,
+                    })}
+                    <Typography
+                      as="span"
+                      variant="small"
+                      className="font-medium group-hover:text-black"
+                    >
+                      {label}
+                    </Typography>
+                </MenuItem>
+              </Link>
             );
           })}
         </MenuList>

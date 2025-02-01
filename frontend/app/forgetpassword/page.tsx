@@ -1,53 +1,54 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import { Form, Input, Button } from "@heroui/react";
 
-interface FormDataType {
-  [key: string]: FormDataEntryValue;
-}
-
-export default function App() {
-  const [submitted, setSubmitted] = useState<FormDataType | null>(null); // Updated type for state
-  const [isClient, setIsClient] = useState(false); // Flag to check if it's client-side
-
-  useEffect(() => {
-    // Ensures this runs only on the client side after the component mounts
-    setIsClient(true);
-  }, []);
-
-  const onSubmit = (e: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) => {
-    e.preventDefault();
-
-    const data = Object.fromEntries(new FormData(e.currentTarget));
-
-    setSubmitted(data as FormDataType); // Cast data to FormDataType
-  };
-
-  // Early return if not client-side
-  if (!isClient) {
-    return null; // Or a loading state
-  }
-
+export default function Example() {
   return (
-    <Form className="w-full max-w-xs" validationBehavior="native" onSubmit={onSubmit}>
-      <Input
-        isRequired
-        errorMessage="Please enter a valid email"
-        label="Email"
-        labelPlacement="outside"
-        name="email"
-        placeholder="Enter your email"
-        type="email"
-      />
-      <Button type="submit" variant="bordered">
-        Submit
-      </Button>
-      {submitted && (
-        <div className="text-small text-default-500">
-          You submitted: <code>{JSON.stringify(submitted)}</code>
+    <>
+      {/*
+        This example requires updating your template:
+
+        ```
+        <html class="h-full bg-white">
+        <body class="h-full">
+        ```
+      */}
+      <div className="flex min-h-full h-screen w-screen flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+          <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+          Forgot Your Password?
+          </h2>
+          <p className="italic font-light mt-5 text-center">Just enter your registered email address, and we'll send reset instructions to your inbox.</p>
         </div>
-      )}
-    </Form>
-  );
+
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+          <form action="#" method="POST" className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
+                Email address
+              </label>
+              <div className="mt-2">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                Proceed
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  )
 }
