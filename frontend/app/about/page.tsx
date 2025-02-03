@@ -7,9 +7,9 @@ export default function Example() {
     return (
       <div className=" py-24 sm:py-32">
         <div className="mx-auto max-w-2xl px-6 lg:max-w-7xl lg:px-8">
-          <h2 className="text-center text-base/7 font-semibold text-indigo-600">Deploy faster</h2>
+          <h2 className="text-center text-base/7 font-semibold text-indigo-600">Empower Local Businesses</h2>
           <p className="mx-auto mt-2 max-w-lg text-center text-4xl font-semibold tracking-tight text-balance text-gray-950 sm:text-5xl">
-            Everything you need to deploy your app
+            Helping vendors grow with digital exposure
           </p>
           <div className="mt-10 grid gap-4 sm:mt-16 lg:grid-cols-3 lg:grid-rows-2">
             <div className="relative lg:row-span-2">
@@ -17,10 +17,10 @@ export default function Example() {
               <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] lg:rounded-l-[calc(2rem+1px)]">
                 <div className="px-8 pt-8 pb-3 sm:px-10 sm:pt-10 sm:pb-0">
                   <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">
-                    Mobile friendly
+                  Easy to Use
                   </p>
                   <p className="mt-2 max-w-lg text-sm/6 text-gray-600 max-lg:text-center">
-                    Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo.
+                  Get listed effortlessly and start attracting new customers within minutes.
                   </p>
                 </div>
                 <div className="@container relative min-h-[30rem] w-full grow max-lg:mx-auto max-lg:max-w-sm">
@@ -39,9 +39,9 @@ export default function Example() {
               <div className="absolute inset-px rounded-lg bg-white max-lg:rounded-t-[2rem]"></div>
               <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-t-[calc(2rem+1px)]">
                 <div className="px-8 pt-8 sm:px-10 sm:pt-10">
-                  <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">Performance</p>
+                  <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">Reach More Customers</p>
                   <p className="mt-2 max-w-lg text-sm/6 text-gray-600 max-lg:text-center">
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit maiores impedit.
+                  Increase your visibility with our smart listing and recommendation system.
                   </p>
                 </div>
                 <div className="flex flex-1 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
@@ -58,9 +58,9 @@ export default function Example() {
               <div className="absolute inset-px rounded-lg bg-white"></div>
               <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)]">
                 <div className="px-8 pt-8 sm:px-10 sm:pt-10">
-                  <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">Security</p>
+                  <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">Secure & Reliable</p>
                   <p className="mt-2 max-w-lg text-sm/6 text-gray-600 max-lg:text-center">
-                    Morbi viverra dui mi arcu sed. Tellus semper adipiscing suspendisse semper morbi.
+                  Your business data is protected with advanced security measures.
                   </p>
                 </div>
                 <div className="@container flex flex-1 items-center max-lg:py-6 lg:pb-2">
@@ -78,10 +78,10 @@ export default function Example() {
               <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-b-[calc(2rem+1px)] lg:rounded-r-[calc(2rem+1px)]">
                 <div className="px-8 pt-8 pb-3 sm:px-10 sm:pt-10 sm:pb-0">
                   <p className="mt-2 text-lg font-medium tracking-tight text-gray-950 max-lg:text-center">
-                    Powerful APIs
+                  Marketing Tools
                   </p>
                   <p className="mt-2 max-w-lg text-sm/6 text-gray-600 max-lg:text-center">
-                    Sit quis amet rutrum tellus ullamcorper ultricies libero dolor eget sem sodales gravida.
+                  Promote your products and services effortlessly with our built-in marketing solutions.
                   </p>
                 </div>
                 <div className="relative min-h-[30rem] w-full grow">
@@ -133,13 +133,12 @@ export default function Example() {
             <div className="lg:col-span-2 lg:col-start-1 lg:row-start-1 lg:mx-auto lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8">
               <div className="lg:pr-4">
                 <div className="lg:max-w-lg">
-                  <p className="text-base/7 font-semibold text-indigo-600">Deploy faster</p>
+                  <p className="text-base/7 font-semibold text-indigo-600">Empowering Local Businesses</p>
                   <h1 className="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">
-                    A better workflow
+                  Unlock Growth with ReachOut
                   </h1>
                   <p className="mt-6 text-xl/8 text-gray-700">
-                    Aliquet nec orci mattis amet quisque ullamcorper neque, nibh sem. At arcu, sit dui mi, nibh dui, diam
-                    eget aliquam. Quisque id at vitae feugiat egestas.
+                  ReachOut helps local vendors, home-based businesses, and roadside sellers gain visibility and expand their reach effortlessly.
                   </p>
                 </div>
               </div>
@@ -155,47 +154,29 @@ export default function Example() {
               <div className="lg:pr-4">
                 <div className="max-w-xl text-base/7 text-gray-700 lg:max-w-lg">
                   <p>
-                    Faucibus commodo massa rhoncus, volutpat. Dignissim sed eget risus enim. Mattis mauris semper sed amet
-                    vitae sed turpis id. Id dolor praesent donec est. Odio penatibus risus viverra tellus varius sit neque
-                    erat velit. Faucibus commodo massa rhoncus, volutpat. Dignissim sed eget risus enim. Mattis mauris
-                    semper sed amet vitae sed turpis id.
+                  ReachOut helps local vendors, home-based businesses, and roadside sellers gain visibility and expand their reach effortlessly..
                   </p>
                   <ul role="list" className="mt-8 space-y-8 text-gray-600">
                     <li className="flex gap-x-3">
                       <CloudArrowUpIcon aria-hidden="true" className="mt-1 size-5 flex-none text-indigo-600" />
                       <span>
-                        <strong className="font-semibold text-gray-900">Push to deploy.</strong> Lorem ipsum, dolor sit amet
-                        consectetur adipisicing elit. Maiores impedit perferendis suscipit eaque, iste dolor cupiditate
-                        blanditiis ratione.
+                        <strong className="font-semibold text-gray-900">Verified Vendors.</strong>Ensuring trust and quality by verifying businesses and services before listing.
                       </span>
                     </li>
                     <li className="flex gap-x-3">
                       <LockClosedIcon aria-hidden="true" className="mt-1 size-5 flex-none text-indigo-600" />
                       <span>
-                        <strong className="font-semibold text-gray-900">SSL certificates.</strong> Anim aute id magna aliqua
-                        ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo.
+                        <strong className="font-semibold text-gray-900">Seamless Transactions.</strong>Easily connect with customers and manage bookings through a secure platform.
                       </span>
                     </li>
                     <li className="flex gap-x-3">
                       <ServerIcon aria-hidden="true" className="mt-1 size-5 flex-none text-indigo-600" />
                       <span>
-                        <strong className="font-semibold text-gray-900">Database backups.</strong> Ac tincidunt sapien
-                        vehicula erat auctor pellentesque rhoncus. Et magna sit morbi lobortis.
+                        <strong className="font-semibold text-gray-900">Effortless Listings.</strong> Instantly list your business and gain online visibility with just a few clicks.
                       </span>
                     </li>
                   </ul>
-                  <p className="mt-8">
-                    Et vitae blandit facilisi magna lacus commodo. Vitae sapien duis odio id et. Id blandit molestie auctor
-                    fermentum dignissim. Lacus diam tincidunt ac cursus in vel. Mauris varius vulputate et ultrices hac
-                    adipiscing egestas. Iaculis convallis ac tempor et ut. Ac lorem vel integer orci.
-                  </p>
-                  <h2 className="mt-16 text-2xl font-bold tracking-tight text-gray-900">No server? No problem.</h2>
-                  <p className="mt-6">
-                    Id orci tellus laoreet id ac. Dolor, aenean leo, ac etiam consequat in. Convallis arcu ipsum urna nibh.
-                    Pharetra, euismod vitae interdum mauris enim, consequat vulputate nibh. Maecenas pellentesque id sed
-                    tellus mauris, ultrices mauris. Tincidunt enim cursus ridiculus mi. Pellentesque nam sed nullam sed diam
-                    turpis ipsum eu a sed convallis diam.
-                  </p>
+                  <h2 className="mt-16 text-2xl font-bold tracking-tight text-gray-900"> ReachOut is the bridge between small businesses and a vast customer base. Get started today and experience hassle-free growth.</h2>
                 </div>
               </div>
             </div>
@@ -205,10 +186,9 @@ export default function Example() {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-2">
               <div className="max-w-xl lg:max-w-lg">
-                <h2 className="text-4xl font-semibold tracking-tight text-white">Subscribe to our newsletter</h2>
+                <h2 className="text-4xl font-semibold tracking-tight text-white">Stay Updated with ReachOut</h2>
                 <p className="mt-4 text-lg text-gray-300">
-                  Nostrud amet eu ullamco nisi aute in ad minim nostrud adipisicing velit quis. Duis tempor incididunt
-                  dolore.
+                Get exclusive updates on local businesses, special offers, and community events—delivered straight to your inbox.
                 </p>
                 <div className="mt-6 flex max-w-md gap-x-4">
                   <label htmlFor="email-address" className="sr-only">
@@ -236,18 +216,18 @@ export default function Example() {
                   <div className="rounded-md bg-white/5 p-2 ring-1 ring-white/10">
                     <CalendarDaysIcon aria-hidden="true" className="size-6 text-white" />
                   </div>
-                  <dt className="mt-4 text-base font-semibold text-white">Weekly articles</dt>
+                  <dt className="mt-4 text-base font-semibold text-white">Weekly Insights</dt>
                   <dd className="mt-2 text-base/7 text-gray-400">
-                    Non laboris consequat cupidatat laborum magna. Eiusmod non irure cupidatat duis commodo amet.
+                  Stay informed with the latest trends, business stories, and insights from the local community.
                   </dd>
                 </div>
                 <div className="flex flex-col items-start">
                   <div className="rounded-md bg-white/5 p-2 ring-1 ring-white/10">
                     <HandRaisedIcon aria-hidden="true" className="size-6 text-white" />
                   </div>
-                  <dt className="mt-4 text-base font-semibold text-white">No spam</dt>
+                  <dt className="mt-4 text-base font-semibold text-white">No Spam, Just Value</dt>
                   <dd className="mt-2 text-base/7 text-gray-400">
-                    Officia excepteur ullamco ut sint duis proident non adipisicing. Voluptate incididunt anim.
+                  We respect your inbox—only meaningful updates and helpful content, no unnecessary emails.
                   </dd>
                 </div>
               </dl>

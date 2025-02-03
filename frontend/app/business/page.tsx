@@ -17,58 +17,126 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid'
 import Listings from '../components/Listings'
 import PaginationTab from '../components/Pagination'
+import ServiceTabs from '../components/ui/Tabs'
+
+// const sortOptions = [
+//   { name: 'Most Popular', href: '#', current: true },
+//   { name: 'Best Rating', href: '#', current: false },
+//   { name: 'Newest', href: '#', current: false },
+//   { name: 'Price: Low to High', href: '#', current: false },
+//   { name: 'Price: High to Low', href: '#', current: false },
+// ]
+// const subCategories = [
+//   { name: 'Totes', href: '#' },
+//   { name: 'Backpacks', href: '#' },
+//   { name: 'Travel Bags', href: '#' },
+//   { name: 'Hip Bags', href: '#' },
+//   { name: 'Laptop Sleeves', href: '#' },
+// ]
+// const filters = [
+//   {
+//     id: 'color',
+//     name: 'Color',
+//     options: [
+//       { value: 'white', label: 'White', checked: false },
+//       { value: 'beige', label: 'Beige', checked: false },
+//       { value: 'blue', label: 'Blue', checked: true },
+//       { value: 'brown', label: 'Brown', checked: false },
+//       { value: 'green', label: 'Green', checked: false },
+//       { value: 'purple', label: 'Purple', checked: false },
+//     ],
+//   },
+//   {
+//     id: 'category',
+//     name: 'Category',
+//     options: [
+//       { value: 'new-arrivals', label: 'New Arrivals', checked: false },
+//       { value: 'sale', label: 'Sale', checked: false },
+//       { value: 'travel', label: 'Travel', checked: true },
+//       { value: 'organization', label: 'Organization', checked: false },
+//       { value: 'accessories', label: 'Accessories', checked: false },
+//     ],
+//   },
+//   {
+//     id: 'size',
+//     name: 'Size',
+//     options: [
+//       { value: '2l', label: '2L', checked: false },
+//       { value: '6l', label: '6L', checked: false },
+//       { value: '12l', label: '12L', checked: false },
+//       { value: '18l', label: '18L', checked: false },
+//       { value: '20l', label: '20L', checked: false },
+//       { value: '40l', label: '40L', checked: true },
+//     ],
+//   },
+// ]
+
+
 
 const sortOptions = [
   { name: 'Most Popular', href: '#', current: true },
-  { name: 'Best Rating', href: '#', current: false },
-  { name: 'Newest', href: '#', current: false },
+  { name: 'Top Rated', href: '#', current: false },
+  { name: 'Newest Listings', href: '#', current: false },
   { name: 'Price: Low to High', href: '#', current: false },
   { name: 'Price: High to Low', href: '#', current: false },
-]
+  { name: 'Nearest to You', href: '#', current: false },
+];
+
 const subCategories = [
-  { name: 'Totes', href: '#' },
-  { name: 'Backpacks', href: '#' },
-  { name: 'Travel Bags', href: '#' },
-  { name: 'Hip Bags', href: '#' },
-  { name: 'Laptop Sleeves', href: '#' },
-]
+  { name: 'Food & Beverages', href: '#' },
+  { name: 'Handmade Products', href: '#' },
+  { name: 'Clothing & Accessories', href: '#' },
+  { name: 'Electronics', href: '#' },
+  { name: 'Home Essentials', href: '#' },
+  { name: 'Beauty & Wellness', href: '#' },
+  { name: 'Local Services', href: '#' },
+];
+
 const filters = [
   {
-    id: 'color',
-    name: 'Color',
+    id: 'location',
+    name: 'Location',
     options: [
-      { value: 'white', label: 'White', checked: false },
-      { value: 'beige', label: 'Beige', checked: false },
-      { value: 'blue', label: 'Blue', checked: true },
-      { value: 'brown', label: 'Brown', checked: false },
-      { value: 'green', label: 'Green', checked: false },
-      { value: 'purple', label: 'Purple', checked: false },
+      { value: 'nearby', label: 'Nearby', checked: true },
+      { value: 'city', label: 'Within City', checked: false },
+      { value: 'state', label: 'Within State', checked: false },
+      { value: 'country', label: 'Nationwide', checked: false },
+    ],
+  },
+  {
+    id: 'price',
+    name: 'Price Range',
+    options: [
+      { value: 'under-500', label: 'Under ₹500', checked: false },
+      { value: '500-1000', label: '₹500 - ₹1,000', checked: false },
+      { value: '1000-5000', label: '₹1,000 - ₹5,000', checked: false },
+      { value: '5000+', label: '₹5,000 & Above', checked: false },
     ],
   },
   {
     id: 'category',
     name: 'Category',
     options: [
-      { value: 'new-arrivals', label: 'New Arrivals', checked: false },
-      { value: 'sale', label: 'Sale', checked: false },
-      { value: 'travel', label: 'Travel', checked: true },
-      { value: 'organization', label: 'Organization', checked: false },
-      { value: 'accessories', label: 'Accessories', checked: false },
+      { value: 'small-business', label: 'Small Business', checked: true },
+      { value: 'street-vendors', label: 'Street Vendors', checked: false },
+      { value: 'home-made', label: 'Home-made Items', checked: false },
+      { value: 'services', label: 'Local Services', checked: false },
     ],
   },
   {
-    id: 'size',
-    name: 'Size',
+    id: 'ratings',
+    name: 'Customer Ratings',
     options: [
-      { value: '2l', label: '2L', checked: false },
-      { value: '6l', label: '6L', checked: false },
-      { value: '12l', label: '12L', checked: false },
-      { value: '18l', label: '18L', checked: false },
-      { value: '20l', label: '20L', checked: false },
-      { value: '40l', label: '40L', checked: true },
+      { value: '4+', label: '4 Stars & Up', checked: false },
+      { value: '3+', label: '3 Stars & Up', checked: false },
+      { value: '2+', label: '2 Stars & Up', checked: false },
+      { value: 'all', label: 'All Ratings', checked: true },
     ],
   },
-]
+];
+
+export { sortOptions, subCategories, filters };
+
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
@@ -310,6 +378,7 @@ export default function Example() {
 
               {/* Product grid */}
               <div className="lg:col-span-3 text-black">
+                {/* <ServiceTabs></ServiceTabs> */}
                 <Listings></Listings>
                 <PaginationTab></PaginationTab>
               </div>

@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { PaperClipIcon } from "@heroicons/react/20/solid";
-import {ImageSlider} from "../components/ui/Carousal"
+// import {ImageSlider} from "../components/ui/Carousal"
 
 export default function Example() {
   return (
@@ -86,9 +86,9 @@ export default function Example() {
         </div>
 
         {/* Carousel Section */}
-        <div className="max-w-[400px] max-h-[400px] ml-6 overflow-hidden relative ">
+        {/* <div className="max-w-[400px] max-h-[400px] ml-6 overflow-hidden relative ">
            <ImageSlider></ImageSlider>
-        </div>
+        </div> */}
       </div>
 
       {/* Bottom Section */}

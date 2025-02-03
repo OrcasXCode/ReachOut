@@ -196,7 +196,7 @@ userRoutes.post('/signin', async (c) => {
 });
 
 
-// //forget password route
+//forget password route
 userRoutes.post('/forgetpassword',async (c)=>{
     const prisma = c.get('prisma');
     const body = await c.req.json();

@@ -3,22 +3,22 @@
 export default function Home() {
 
   const links = [
-    { name: 'Open roles', href: '#' },
-    { name: 'Internship program', href: '#' },
-    { name: 'Our values', href: '#' },
-    { name: 'Meet our leadership', href: '#' },
+    { name: 'List Your Business', href: '#' },
+    { name: 'Partner with Us', href: '#' },
+    { name: 'How It Works', href: '#' },
+    { name: 'Success Stories', href: '#' },
   ]
   const stats = [
-    { name: 'Offices worldwide', value: '12' },
-    { name: 'Full-time colleagues', value: '300+' },
-    { name: 'Hours per week', value: '40' },
-    { name: 'Paid time off', value: 'Unlimited' },
+    { name: 'Local Businesses Listed', value: '50M+' },
+    { name: 'Customers Connected', value: '500,000+' },
+    { name: 'Cities Covered', value: '150+' },
+    { name: 'Successful Stories', value: '1M+' },
   ]
 
   const userstats = [
-    { id: 1, name: 'Transactions every 24 hours', value: '44 million' },
-    { id: 2, name: 'Assets under holding', value: '$119 trillion' },
-    { id: 3, name: 'New users annually', value: '46,000' },
+    { id: 1, name: 'Vendors listed on the platform', value: '35M+' },
+    { id: 2, name: 'Businesses served annually', value: '50M+' },
+    { id: 3, name: 'New businesses joining every month', value: '90,000' },
   ]
   
 
@@ -36,30 +36,21 @@ export default function Home() {
             className="relative left-[calc(50%-11rem)] aspect-1155/678 w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-linear-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
           />
         </div>
-        <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
-          <div className="hidden sm:mb-8 sm:flex sm:justify-center">
-            <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
-              Announcing our next round of funding.{' '}
-              <a href="#" className="font-semibold text-indigo-600">
-                <span aria-hidden="true" className="absolute inset-0" />
-                Read more <span aria-hidden="true">&rarr;</span>
-              </a>
-            </div>
-          </div>
+        <div className="mx-auto max-w-4xl py-32 sm:py-48 lg:py-56">
           <div className="text-center">
             <h1 className="text-5xl font-semibold tracking-tight text-balance text-gray-900 sm:text-7xl">
-              Data to enrich your online business
+              Empowering Local Businesses & Vendors
             </h1>
             <p className="mt-8 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8">
-              Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt amet
-              fugiat veniam occaecat.
+                Get discovered, attract more customers, and grow your business with ReachOut. 
+                Whether you're a home-based entrepreneur, a local vendor, or a roadside seller, we provide the visibility and tools you need to succeed.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <a
                 href="#"
                 className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
-                Get started
+                Get Listed Now
               </a>
               <a href="#" className="text-sm/6 font-semibold text-gray-900">
                 Learn more <span aria-hidden="true">→</span>
@@ -111,10 +102,10 @@ export default function Home() {
         </div>
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:mx-0">
-            <h2 className="text-5xl font-semibold tracking-tight text-white sm:text-7xl">Work with us</h2>
+            <h2 className="text-5xl font-semibold tracking-tight text-white sm:text-7xl">Partner with ReachOut</h2>
             <p className="mt-8 text-lg font-medium text-pretty text-gray-300 sm:text-xl/8">
-              Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt amet
-              fugiat veniam occaecat fugiat.
+              Join us in revolutionizing the way local businesses connect with customers. Whether you're a vendor, service provider, 
+              or entrepreneur, ReachOut helps you grow by increasing your visibility and customer reach.
             </p>
           </div>
           <div className="mx-auto mt-10 max-w-2xl lg:mx-0 lg:max-w-none">
@@ -171,10 +162,10 @@ export default function Home() {
           </svg>
           <div className="mx-auto max-w-md text-center lg:mx-0 lg:flex-auto lg:py-32 lg:text-left">
             <h2 className="text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
-              Boost your productivity. Start using our app today.
+              Empower your business. Join ReachOut today.
             </h2>
             <p className="mt-6 text-lg/8 text-pretty text-gray-300">
-              Ac euismod vel sit maecenas id pellentesque eu sed consectetur. Malesuada adipiscing sagittis vel nulla.
+            Discover new customers and grow your business with ReachOut. Connect with local vendors and boost your presence in the market.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
               <a
@@ -201,16 +192,10 @@ export default function Home() {
       </div>
     </div>
       <div className="mx-auto max-w-2xl lg:max-w-4xl">
-        <img
-          alt=""
-          src="https://tailwindui.com/plus/img/logos/workcation-logo-indigo-600.svg"
-          className="mx-auto h-12"
-        />
         <figure className="mt-10">
           <blockquote className="text-center text-xl/8 font-semibold text-gray-900 sm:text-2xl/9">
             <p>
-              “Lorem ipsum dolor sit amet consectetur adipisicing elit. Nemo expedita voluptas culpa sapiente alias
-              molestiae. Numquam corrupti in laborum sed rerum et corporis.”
+            “ReachOut has transformed my small business. Within weeks, I started receiving more customers and growing my brand like never before!”
             </p>
           </blockquote>
           <figcaption className="mt-10">
@@ -220,11 +205,11 @@ export default function Home() {
               className="mx-auto size-10 rounded-full"
             />
             <div className="mt-4 flex items-center justify-center space-x-3 text-base">
-              <div className="font-semibold text-gray-900">Judith Black</div>
+              <div className="font-semibold text-gray-900">Amit Patel</div>
               <svg width={3} height={3} viewBox="0 0 2 2" aria-hidden="true" className="fill-gray-900">
                 <circle r={1} cx={1} cy={1} />
               </svg>
-              <div className="text-gray-600">CEO of Workcation</div>
+              <div className="text-gray-600">Owner of Patel Handicrafts</div>
             </div>
           </figcaption>
         </figure>

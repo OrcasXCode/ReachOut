@@ -59,19 +59,19 @@ export default function App() {
                 </div>
                 <div className="flex flex-col w-full divide-y sm:flex-row sm:divide-y-0 sm:divide-x sm:px-8 lg:px-12 xl:px-32 dark:divide-gray-300">
                     <div className="flex flex-col w-full divide-y dark:divide-gray-300">
-                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Billing</a>
-                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Support</a>
+                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Local Vendors</a>
+                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Home Businesses</a>
                         <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Account</a>
                     </div>
                     <div className="flex flex-col w-full divide-y dark:divide-gray-300">
                         <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Features</a>
-                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Contact us</a>
-                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">My orders</a>
+                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Listings</a>
+                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">My Insights</a>
                     </div>
                     <div className="hidden w-full divide-y sm:flex-col sm:flex dark:divide-gray-300">
-                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Enterprise</a>
-                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Privacy</a>
-                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Developers</a>
+                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Report Business</a>
+                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Privacy Policy</a>
+                        <a rel="noopener noreferrer" href="#" className="flex items-center justify-center p-4 sm:py-8 lg:py-12">Support</a>
                     </div>
                 </div>
             </div>
@@ -83,20 +83,20 @@ export default function App() {
                 <h2 className="mb-12 text-4xl font-bold leading-none text-center sm:text-5xl">Frequently Asked Questions</h2>
                 <div className="grid gap-10 md:gap-8 sm:p-3 md:grid-cols-2 lg:px-12 xl:px-32">
                     <div>
-                        <h3 className="font-semibold">Lorem ipsum dolor sit amet.</h3>
-                        <p className="mt-1 text-gray-400">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ratione, fugit? Aspernatur, ullam enim, odit eaque quia rerum ipsum voluptatem consequatur ratione, doloremque debitis? Fuga labore omnis minima, quisquam delectus culpa!</p>
+                        <h3 className="font-semibold">What is ReachOut?</h3>
+                        <p className="mt-1 text-gray-400"> ReachOut is a platform that helps local vendors, home businesses, and roadside sellers connect with more customers, offering them visibility and digital presence.</p>
                     </div>
                     <div>
-                        <h3 className="font-semibold">Lorem ipsum dolor sit amet.</h3>
-                        <p className="mt-1 text-gray-400">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ratione, fugit? Aspernatur, ullam enim, odit eaque quia rerum ipsum voluptatem consequatur ratione, doloremque debitis? Fuga labore omnis minima, quisquam delectus culpa!</p>
+                        <h3 className="font-semibold">How can I list my business on ReachOut?</h3>
+                        <p className="mt-1 text-gray-400"> You can sign up on our platform, provide basic details about your business, and submit a listing. We offer free exposure, with options for premium promotions.</p>
                     </div>
                     <div>
-                        <h3 className="font-semibold">Lorem ipsum dolor sit amet.</h3>
-                        <p className="mt-1 text-gray-400">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ratione, fugit? Aspernatur, ullam enim, odit eaque quia rerum ipsum voluptatem consequatur ratione, doloremque debitis? Fuga labore omnis minima, quisquam delectus culpa!</p>
+                        <h3 className="font-semibold">Is there a cost for listing my business?</h3>
+                        <p className="mt-1 text-gray-400">Basic listings are free. However, for better visibility, you can opt for our premium plans, which offer features like top placement, advertising, and analytics.</p>
                     </div>
                     <div>
-                        <h3 className="font-semibold">Lorem ipsum dolor sit amet.</h3>
-                        <p className="mt-1 text-gray-400">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ratione, fugit? Aspernatur, ullam enim, odit eaque quia rerum ipsum voluptatem consequatur ratione, doloremque debitis? Fuga labore omnis minima, quisquam delectus culpa!</p>
+                        <h3 className="font-semibold">Does ReachOut offer delivery services?</h3>
+                        <p className="mt-1 text-gray-400">Yes! We provide pickup and delivery services for eligible businesses</p>
                     </div>
                 </div>
             </div>
@@ -107,17 +107,10 @@ export default function App() {
               aria-hidden="true"
               className="absolute inset-x-0 top-[-10rem] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[-20rem]"
             >
-              <div
-                style={{
-                  clipPath:
-                    'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-                }}
-                className="relative left-1/2 -z-10 aspect-1155/678 w-[36.125rem] max-w-none -translate-x-1/2 rotate-[30deg] bg-linear-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-40rem)] sm:w-[72.1875rem]"
-              />
             </div>
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-4xl font-semibold tracking-tight text-balance text-gray-900 sm:text-5xl">Contact sales</h2>
-              <p className="mt-2 text-lg/8 text-gray-600">Aute magna irure deserunt veniam aliqua magna enim voluptate.</p>
+              <h2 className="text-4xl font-semibold tracking-tight text-balance text-gray-900 sm:text-5xl">Get in Touch with Our Team</h2>
+              <p className="mt-2 text-lg/8 text-gray-600">Have questions or need assistance? Reach out to us to learn how ReachOut can help grow your local business.</p>
             </div>
             <form action="#" method="POST" className="mx-auto mt-16 max-w-xl sm:mt-20">
               <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">

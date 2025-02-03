@@ -6,7 +6,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useAuthStore }  from "../lib/useAuthStore";
 import  AvatarWithUserDropdown  from "../profile/page"
-import  ListingsSearchBar  from "../components/ListingsSearchBar"
+import  ListingsSearchBar  from "./ui/ListingsSearchBar"
 import  CategoryDropDown  from "../components/CategoryDropDown"
 import  SubCategoryDropDown  from "../components/SubCategoryDropDown"
 import  Recommendation  from "../components/Recommendation"
@@ -28,7 +28,7 @@ export default function Navbar() {
   return (
            <div>
             {/* Navbar for business */}
-            {pathname=="/business"  ?  <header className="inset-x-0 top-0 z-10 fixed bg-[#ffffff] border -b border-gray-200 ">
+            {pathname.startsWith('/business')  ?  <header className="inset-x-0 top-0 z-10 fixed bg-[#ffffff] border -b border-gray-200 ">
                 <nav aria-label="Global" className="flex items-center justify-between p-6 lg:px-8">
                 <div className="flex lg:flex-1">
                     <Link href="/" className="-m-1.5 p-1.5">

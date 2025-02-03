@@ -111,7 +111,7 @@ const people = [
                 <p className="mt-1 text-xs/5 text-gray-500">xyz@gmail.com</p>
                 <p className="mt-1 text-xs/5 text-gray-500">1.5km away</p>
                 <p className="mt-1 text-xs/5 text-gray-500">Open Now</p>
-                <Link href='#' className="flex flex-row items-center justify-center gap-1.5 group">
+                <Link href='viewbusinessprofile' className="flex flex-row items-center justify-center gap-1.5 group">
                   <p className="text-xs/5 underline transition-all duration-300 ease-in-out text-blue-500 group-hover:text-blue-300 group-hover:underline-offset-4">See More</p>
                   <svg 
                       xmlns="http://www.w3.org/2000/svg" 
