@@ -16,6 +16,9 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
 }
 
+// export const config = {
+//     matcher: ["/business/:path*", "/help","/user/:path*","/forgetpassword","/verifyotp","/resetpassword"], 
+// };
 export const config = {
-    matcher: ["/business/:path*", "/help","/user/:path*","/forgetpassword","/verifyotp","/resetpassword"], 
+    matcher: ["/user/:path*","/forgetpassword","/verifyotp","/resetpassword"], 
 };

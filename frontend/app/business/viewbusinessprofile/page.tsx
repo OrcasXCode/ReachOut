@@ -1,12 +1,17 @@
 "use client"
 
 
+import WriteAReview from "@/app/components/ui/reviewmodal";
 import React, { useState } from "react";
 import { FaCheckCircle, FaPhone, FaEnvelope, FaGlobe, FaMapMarkerAlt, FaCopy, FaStar, FaChevronDown, FaChevronUp } from "react-icons/fa";
+
 
 const UserProfile = () => {
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
   const [showCopiedTooltip, setShowCopiedTooltip] = useState(false);
+  const [open, setOpen] = React.useState(false);
+ 
+  const handleWriteReview = () => setOpen(!open);
 
   const profileData = {
     companyName: "TechCorp Solutions",
@@ -463,94 +468,21 @@ const UserProfile = () => {
                               </div>
                               <div className="col-span-12 md:col-span-4 max-lg:mt-8 md:pl-8">
                                   <div className="flex items-center flex-col justify-center w-full h-full ">
-                                      <button
-                                          className="rounded-full px-6 py-4 bg-indigo-600 font-semibold text-lg text-white whitespace-nowrap mb-6 w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-700 hover:shadow-indigo-400">Write
-                                          A Review</button>
-                                      <button
+                                        {/* <button
+                                          className="rounded-full px-6 py-4 bg-indigo-600 font-semibold text-lg text-white whitespace-nowrap mb-6 w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-700 hover:shadow-indigo-400" onClick={handleWriteReview}>Write A Review
+                                        </button> */}
+                                        <WriteAReview></WriteAReview>
+                                        <button
                                           className="rounded-full px-6 py-4 bg-white font-semibold text-lg text-indigo-600 whitespace-nowrap w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-100 hover:shadow-indigo-200">See
-                                          All Reviews</button>
+                                          All Reviews
+                                        </button>
                                   </div>
                               </div>
                           </div>
                       </div>
                   </div>
                   <div className="pb-8 border-b border-gray-200 max-xl:max-w-3xl max-xl:mx-auto">
-                      <h4 className="font-manrope font-semibold text-3xl leading-10 text-black mb-6">Most helpful positive
-                          review</h4>
-                      <div className="flex sm:items-center flex-col sm:flex-row justify-between  mb-4">
-                          <div className="flex items-center gap-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"
-                                  fill="none">
-                                  <g clipPath="url(#clip0_13624_2974)">
-                                      <path
-                                          d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                                          fill="#FBBF24" />
-                                  </g>
-                                  <defs>
-                                      <clipPath id="clip0_13624_2974">
-                                          <rect width="30" height="30" fill="white" />
-                                      </clipPath>
-                                  </defs>
-                              </svg>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"
-                                  fill="none">
-                                  <g clipPath="url(#clip0_13624_2974)">
-                                      <path
-                                          d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                                          fill="#FBBF24" />
-                                  </g>
-                                  <defs>
-                                      <clipPath id="clip0_13624_2974">
-                                          <rect width="30" height="30" fill="white" />
-                                      </clipPath>
-                                  </defs>
-                              </svg>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"
-                                  fill="none">
-                                  <g clipPath="url(#clip0_13624_2974)">
-                                      <path
-                                          d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                                          fill="#FBBF24" />
-                                  </g>
-                                  <defs>
-                                      <clipPath id="clip0_13624_2974">
-                                          <rect width="30" height="30" fill="white" />
-                                      </clipPath>
-                                  </defs>
-                              </svg>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"
-                                  fill="none">
-                                  <g clipPath="url(#clip0_13624_2974)">
-                                      <path
-                                          d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                                          fill="#FBBF24" />
-                                  </g>
-                                  <defs>
-                                      <clipPath id="clip0_13624_2974">
-                                          <rect width="30" height="30" fill="white" />
-                                      </clipPath>
-                                  </defs>
-                              </svg>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"
-                                  fill="none">
-                                  <g clipPath="url(#clip0_13624_2974)">
-                                      <path
-                                          d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                                          fill="#FBBF24" />
-                                  </g>
-                                  <defs>
-                                      <clipPath id="clip0_13624_2974">
-                                          <rect width="30" height="30" fill="white" />
-                                      </clipPath>
-                                  </defs>
-                              </svg>
-                          </div>
-                          <div className="flex items-center gap-3">
-                              <h6 className="font-semibold text-lg leading-8 text-black">@john.doe</h6>
-                              <p className="font-medium text-base leading-7 text-gray-400">Nov 01, 2023</p>
-                          </div>
-                      </div>
-
+                      <h4 className="font-manrope font-semibold text-3xl leading-10 text-black mb-6">Review Summary</h4>
                       <p className="font-normal text-lg leading-8 text-gray-500 ">
                           I recently had the opportunity to explore Pagedone's UI design system, and it left a lasting
                           impression on my workflow. The system seamlessly blends user-friendly features with a robust set
@@ -559,52 +491,7 @@ const UserProfile = () => {
                       </p>
 
                   </div>
-                  <div
-                      className="flex flex-col sm:flex-row items-center justify-between pt-8  max-xl:max-w-3xl max-xl:mx-auto">
-                      <p className="font-normal text-lg py-[1px] text-black">46 reviews</p>
-                      <form>
-                          <div className="flex">
-
-                              <div className="relative ">
-                                  <div className=" absolute -left-0 px-2 top-0 py-2">
-                                      <p className="font-normal text-lg leading-8 text-gray-500">Sort by:</p>
-
-                                  </div>
-                                  <input type="text"
-                                      className="block w-60 h-11 pr-4 pl-20 py-2.5 text-lg leading-8 font-medium rounded-full cursor-pointer shadow-xs text-black bg-transparent placeholder-black focus:outline-gray-200 "
-                                      placeholder="Most Relevant"></input>
-                                  <div id="dropdown-button" data-target="dropdown"
-                                      className="dropdown-toggle flex-shrink-0 cursor-pointer z-10 inline-flex items-center py-2.5 px-4 text-base font-medium text-center text-gray-900 bg-transparent absolute right-0 top-2 pl-2 "><svg className="ml-2" width="12" height="7" viewBox="0 0 12 7" fill="none"
-                                          xmlns="http://www.w3.org/2000/svg">
-                                          <path
-                                              d="M1 1.5L4.58578 5.08578C5.25245 5.75245 5.58579 6.08579 6 6.08579C6.41421 6.08579 6.74755 5.75245 7.41421 5.08579L11 1.5"
-                                              stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round"
-                                              strokeLinejoin="round" />
-                                      </svg>
-                                  </div>
-                                  <div id="dropdown"
-                                      className="absolute top-9 right-0 z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                                      <ul className="py-2 text-sm text-gray-700 dark:text-gray-200"
-                                          aria-labelledby="dropdown-button">
-                                          <li>
-                                              <a href="#"
-                                                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Most Relevant</a>
-                                          </li>
-                                          <li>
-                                              <a href="#"
-                                                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">last week</a>
-                                          </li>
-                                          <li>
-                                              <a href="#"
-                                                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">oldest</a>
-                                          </li>
-                                          
-                                      </ul>
-                                  </div>
-                              </div>
-                          </div>
-                      </form>
-                  </div>
+           
               </div>
           </div>
         </section>
