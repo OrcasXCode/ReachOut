@@ -11,23 +11,27 @@ import Carousel from "../components/ui/Carousal";
 
 const slideData = [
   {
-    title: "Mystic Mountains",
-    button: "Explore Component",
     src: "https://images.unsplash.com/photo-1494806812796-244fe51b774d?q=80&w=3534&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
-    title: "Urban Dreams",
-    button: "Explore Component",
     src: "https://images.unsplash.com/photo-1518710843675-2540dd79065c?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
-    title: "Neon Nights",
-    button: "Explore Component",
     src: "https://images.unsplash.com/photo-1590041794748-2d8eb73a571c?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
-    title: "Desert Whispers",
-    button: "Explore Component",
+    src: "https://images.unsplash.com/photo-1679420437432-80cfbf88986c?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1494806812796-244fe51b774d?q=80&w=3534&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1518710843675-2540dd79065c?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1590041794748-2d8eb73a571c?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
     src: "https://images.unsplash.com/photo-1679420437432-80cfbf88986c?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
 ];
@@ -314,6 +318,7 @@ export default function UserProfile() {
 
 
         {/*Reviews */}
+        <hr className="mt-5 mb-5"></hr>
         <section className="py-15 relative">
             <div className="w-full max-w-7xl px-4 md:px-5 lg:px-6 mx-auto">
                 <div className="">
@@ -594,6 +599,7 @@ export default function UserProfile() {
 
 
         {/* Reports */}
+        <hr className="mt-5 mb-5"></hr>
         <section className="py-15 relative">
             <div className="w-full max-w-7xl px-4 md:px-5 lg:px-6 mx-auto">
                 <div className="">
@@ -645,6 +651,7 @@ export default function UserProfile() {
             </section>    
 
           {/* Media Gallery */}
+          <hr className="mt-5 mb-5"></hr>
           <Typography variant="h5" color="blue-gray">Business Media</Typography>
           <Typography  variant="small" className="text-gray-400 font-normal mt-1 mb-5">View your business media which you uploaded.</Typography>
           <div className="relative overflow-hidden w-full h-full py-20">

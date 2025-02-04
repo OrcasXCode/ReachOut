@@ -1,45 +1,73 @@
 "use client"
 
-
-import WriteAReview from "@/app/components/ui/reviewmodal";
 import React, { useState } from "react";
 import { FaCheckCircle, FaPhone, FaEnvelope, FaGlobe, FaMapMarkerAlt, FaCopy, FaStar, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import {Typography} from "@material-tailwind/react";
+import Carousel from "../../components/ui/Carousal";
+import { ReviewModel } from "@/app/components/ui/reviewmodal";
 
 
 const UserProfile = () => {
-  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
-  const [showCopiedTooltip, setShowCopiedTooltip] = useState(false);
-  const [open, setOpen] = React.useState(false);
- 
-  const handleWriteReview = () => setOpen(!open);
+    const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+    const [showCopiedTooltip, setShowCopiedTooltip] = useState(false);
+    const [open, setOpen] = React.useState(false);
+    
+    const handleWriteReview = () => setOpen(!open);
 
-  const profileData = {
+    const slideData = [
+    {
+        src: "https://images.unsplash.com/photo-1494806812796-244fe51b774d?q=80&w=3534&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1518710843675-2540dd79065c?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1590041794748-2d8eb73a571c?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1679420437432-80cfbf88986c?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1494806812796-244fe51b774d?q=80&w=3534&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1518710843675-2540dd79065c?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1590041794748-2d8eb73a571c?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1679420437432-80cfbf88986c?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    ];
+
+    const profileData = {
     companyName: "TechCorp Solutions",
     isVerified: true,
     profileImage: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
     email: "contact@techcorp.com",
-    phone: "+1 (555) 123-4567",
+    phone: "+91 9429084446",
     website: "www.techcorp.com",
     address: "123 Innovation Street, Tech Valley, CA 94025",
     category: "Technology",
     subCategory: "Software Development",
     rating: 4.8,
     mediaGallery: [
-      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
-      "https://images.unsplash.com/photo-1451187580459-43490279c0fa",
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
+        "https://images.unsplash.com/photo-1451187580459-43490279c0fa",
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
     ],
     businessHours: [
-      { day: "Monday", hours: "9:00 AM - 6:00 PM", isOpen: true },
-      { day: "Tuesday", hours: "9:00 AM - 6:00 PM", isOpen: true },
-      { day: "Wednesday", hours: "9:00 AM - 6:00 PM", isOpen: true },
-      { day: "Thursday", hours: "9:00 AM - 6:00 PM", isOpen: true },
-      { day: "Friday", hours: "9:00 AM - 5:00 PM", isOpen: true },
-      { day: "Saturday", hours: "Closed", isOpen: false },
-      { day: "Sunday", hours: "Closed", isOpen: false },
+        { day: "Monday", hours: "9:00 AM - 6:00 PM", isOpen: true },
+        { day: "Tuesday", hours: "9:00 AM - 6:00 PM", isOpen: true },
+        { day: "Wednesday", hours: "9:00 AM - 6:00 PM", isOpen: true },
+        { day: "Thursday", hours: "9:00 AM - 6:00 PM", isOpen: true },
+        { day: "Friday", hours: "9:00 AM - 5:00 PM", isOpen: true },
+        { day: "Saturday", hours: "Closed", isOpen: false },
+        { day: "Sunday", hours: "Closed", isOpen: false },
     ],
     about: "TechCorp Solutions is a leading software development company specializing in innovative solutions for enterprise clients. With over a decade of experience, we deliver cutting-edge technology solutions that drive business growth and digital transformation. Our team of expert developers and consultants work closely with clients to create customized solutions that meet their unique needs.",
-  };
+    };
 
   const handleCopyEmail = () => {
     navigator.clipboard.writeText(profileData.email);
@@ -67,7 +95,7 @@ const UserProfile = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8 mt-[88px]">
       <div className="max-w-7xl mx-auto">
         {/* Profile Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6 justify-between grid grid-cols-1  md:grid-cols-2">
           <div className="flex items-center space-x-4">
             <img
               src={profileData.profileImage}
@@ -88,13 +116,33 @@ const UserProfile = () => {
               </div>
             </div>
           </div>
+          <div className="flex gap-5 pt-4 justify-center md:items-center md:justify-end ">
+            <button onClick={()=>alert("Liked")} className="flex flex-row gap-2 items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
+                <path d="M7.493 18.5c-.425 0-.82-.236-.975-.632A7.48 7.48 0 0 1 6 15.125c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75A.75.75 0 0 1 15 2a2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23h-.777ZM2.331 10.727a11.969 11.969 0 0 0-.831 4.398 12 12 0 0 0 .52 3.507C2.28 19.482 3.105 20 3.994 20H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 0 1-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227Z" />
+                </svg>
+                (560)
+            </button>
+            <button onClick={()=>alert("DiLiked")} className="flex flex-row gap-2 items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
+                <path d="M15.73 5.5h1.035A7.465 7.465 0 0 1 18 9.625a7.465 7.465 0 0 1-1.235 4.125h-.148c-.806 0-1.534.446-2.031 1.08a9.04 9.04 0 0 1-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.499 4.499 0 0 0-.322 1.672v.633A.75.75 0 0 1 9 22a2.25 2.25 0 0 1-2.25-2.25c0-1.152.26-2.243.723-3.218.266-.558-.107-1.282-.725-1.282H3.622c-1.026 0-1.945-.694-2.054-1.715A12.137 12.137 0 0 1 1.5 12.25c0-2.848.992-5.464 2.649-7.521C4.537 4.247 5.136 4 5.754 4H9.77a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23ZM21.669 14.023c.536-1.362.831-2.845.831-4.398 0-1.22-.182-2.398-.52-3.507-.26-.85-1.084-1.368-1.973-1.368H19.1c-.445 0-.72.498-.523.898.591 1.2.924 2.55.924 3.977a8.958 8.958 0 0 1-1.302 4.666c-.245.403.028.959.5.959h1.053c.832 0 1.612-.453 1.918-1.227Z" />
+                </svg>
+                (56)
+            </button>
+            <button onClick={()=>alert("DiLiked")} className="flex flex-row gap-2 items-center justify-center">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
+                <path fillRule="evenodd" d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.524l3.11-.732a.75.75 0 0 1 .917.81 47.784 47.784 0 0 0 .005 10.337.75.75 0 0 1-.574.812l-3.114.733a9.75 9.75 0 0 1-6.594-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-2.202.55V21a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z" clipRule="evenodd" />
+                </svg>
+                (15)
+            </button>
+          </div>
         </div>
 
         {/* Contact Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
-            <div className="space-y-4">
+            <h2 className="text-xl font-semibold mb-[50px]">Contact Information</h2>
+            <div className="space-y-10">
               <div className="flex items-center">
                 <FaEnvelope className="w-5 h-5 text-gray-500 mr-3" />
                 <span className="text-gray-700">{profileData.email}</span>
@@ -118,6 +166,17 @@ const UserProfile = () => {
                 >
                   {profileData.phone}
                 </a>
+                <button
+                  onClick={handleCopyEmail}
+                  className="ml-2 text-blue-500 hover:text-blue-600 relative"
+                >
+                  <FaCopy className="w-4 h-4" />
+                  {showCopiedTooltip && (
+                    <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded">
+                      Copied!
+                    </span>
+                  )}
+                </button>
               </div>
               <div className="flex items-center">
                 <FaGlobe className="w-5 h-5 text-gray-500 mr-3" />
@@ -187,7 +246,7 @@ const UserProfile = () => {
         </div>
 
         {/* Media Gallery */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        {/* <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Media Gallery</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {profileData.mediaGallery.map((image, index) => (
@@ -199,7 +258,11 @@ const UserProfile = () => {
               />
             ))}
           </div>
-        </div>
+        </div> */}
+        <Typography variant="h5" color="blue-gray">Media Gallery</Typography>
+        <div className="relative overflow-hidden w-full h-full py-20">
+            <Carousel slides={slideData} />
+        </div>    
 
         {/* Customer Review */}
         <section className="py-24 relative">
@@ -468,10 +531,7 @@ const UserProfile = () => {
                               </div>
                               <div className="col-span-12 md:col-span-4 max-lg:mt-8 md:pl-8">
                                   <div className="flex items-center flex-col justify-center w-full h-full ">
-                                        {/* <button
-                                          className="rounded-full px-6 py-4 bg-indigo-600 font-semibold text-lg text-white whitespace-nowrap mb-6 w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-700 hover:shadow-indigo-400" onClick={handleWriteReview}>Write A Review
-                                        </button> */}
-                                        <WriteAReview></WriteAReview>
+                                        <ReviewModel></ReviewModel>
                                         <button
                                           className="rounded-full px-6 py-4 bg-white font-semibold text-lg text-indigo-600 whitespace-nowrap w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-100 hover:shadow-indigo-200">See
                                           All Reviews
@@ -489,13 +549,10 @@ const UserProfile = () => {
                           of design components, making it a go-to for creating visually stunning and consistent
                           interfaces.
                       </p>
-
                   </div>
-           
               </div>
           </div>
-        </section>
-                                    
+        </section>            
       </div>
     </div>
   );
