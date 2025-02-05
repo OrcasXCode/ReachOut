@@ -17,16 +17,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} flex flex-col min-h-screen`}>
-        <div>
-          <Navbar />
-          <main className="z-0"> {/* Add z-0 here to ensure children are below the navbar */}
-            {children}
-          </main>
-          <Footer />
-        </div>
-      </body>
-    </html>
+
+      <html lang="en">
+        <body className={`${inter.className} flex flex-col min-h-screen`}>
+          <div>
+            <Navbar />
+            <main className="z-0"> {/* Add z-0 here to ensure children are below the navbar */}
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </body>
+      </html>
   );
 }
