@@ -186,8 +186,16 @@ userRoutes.post('/signin', async (c) => {
         const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
         const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
 
-        c.res.headers.append('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+        c.res.headers.append(
+            'Set-Cookie',
+            `accessToken=${accessToken}; HttpOnly; Path=/; Secure; SameSite=Strict`
+        );
 
+        c.res.headers.append(
+            'Set-Cookie',
+            `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`
+        );
+        
         return c.json({ accessToken }, 200);
     } catch (error) {
         console.error(error);
@@ -441,14 +449,26 @@ userRoutes.get('/:id', async (c) => {
         }
 
         const userDetails = await prisma.user.findFirst({
-            where: { id : id }
+            where: { id : id },
+            include:{
+                businesses:true,
+            }
         });
+
+        const businessDetails = await prisma.business.findFirst({
+            where: {ownerId : id},
+            include:{
+                reports:true,
+                reviews:true,
+                businessMedia:true
+            }
+        })
 
         if (!userDetails) {
             return c.json({ error: 'User does not exist' }, 401);
         }
 
-        return c.json(userDetails);
+        return c.json(businessDetails);
     } catch (error) {
         console.error(error);
         c.status(500);

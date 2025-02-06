@@ -24,7 +24,7 @@ import {
  
 const profileMenuItems = [
   { label: "My Profile", icon: UserCircleIcon , route:'/myprofile' },
-  { label: "Edit Profile", icon: Cog6ToothIcon , route:'/editprofile' },
+  { label: "Edit Profile", icon: Cog6ToothIcon , route:'/myprofile/edit' },
   { label: "Inbox", icon: InboxArrowDownIcon , route:'/viewinbox'},
   { label: "Help", icon: LifebuoyIcon , route:'/contact'},
   { label: "Sign Out", icon: PowerIcon, route:'/signout' },

@@ -330,6 +330,18 @@ export default function OnBaording() {
     setFiles(selectedFiles);
   };
 
+  const handleRemoveFile = (fileToRemove: File) => {
+    setFiles((prevFiles) => prevFiles.filter((file) => file !== fileToRemove));
+  };
+
+  const shortenFileName = (fileName: string) => {
+    const words = fileName.split(' ');
+    if (words.length > 1) {
+      return words.slice(0, 1).join(' ') + '...';
+    }
+    return fileName;
+  };
+
   return (
     <div className="w-100vw h-100vh flex flex-col items-center p-5">
       {/* User Role Selection */}
@@ -570,8 +582,9 @@ export default function OnBaording() {
 
           {/* Business Timings & Media Upload */}
           <div className="mb-6 flex flex-col items-start gap-4 md:flex-row">
+
             <div className="w-full">
-              <form className="mx-auto grid grid-cols-1 gap-4  p-2 rounded-lg">
+              <form className="mx-auto grid grid-cols-1 gap-4 p-2 rounded-lg">
                 {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
                   <div key={day} className="flex flex-row gap-2 bg-white rounded-lg ">
                     <p className="font-medium text-gray-900 flex items-end w-[50%]">{day}</p>
@@ -601,6 +614,8 @@ export default function OnBaording() {
                 ))}
               </form>
             </div>
+
+            {/* file upload */}
             <div className="w-full">
               <div className="w-full py-9 bg-gray-50 rounded-2xl border border-gray-300 gap-3 grid border-dashed">
                 <div className="grid gap-1">
@@ -644,20 +659,28 @@ export default function OnBaording() {
                   </div>
                 </div>
                 {files.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-gray-800 text-md font-semibold mb-2">
+                  <div className="mt-4 p-3">
+                    <h3 className="text-gray-400 text-md font-semibold mb-2">
                       Uploaded Files:
                     </h3>
                     <ul className="space-y-2">
                       {files.map((file, index) => (
                         <li
                           key={index}
-                          className="p-2 bg-white rounded shadow border border-gray-200 flex items-center justify-between"
+                          className="p-2 bg-white rounded-lg shadow border border-gray-200 flex items-center justify-between"
                         >
-                          <span>{file.name}</span>
-                          <span className="text-xs text-gray-500">
-                            {(file.size / 1024).toFixed(1)} KB
-                          </span>
+                          <span className="text-sm text-gray-400">{shortenFileName(file.name)}</span>
+                          <div>
+                            <span className="text-xs text-gray-400">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </span>
+                            <button
+                              className="text-red-500 text-sm ml-2"
+                              onClick={() => handleRemoveFile(file)}
+                            >
+                              &#10005;
+                            </button>
+                          </div>
                         </li>
                       ))}
                     </ul>

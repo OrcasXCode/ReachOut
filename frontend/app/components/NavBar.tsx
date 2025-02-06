@@ -53,9 +53,9 @@ export default function Navbar() {
                     </button>
                 </div>
                 <div className="hidden lg:flex lg:gap-x-12">
-                    <CategoryDropDown></CategoryDropDown>
+                    {/* <CategoryDropDown></CategoryDropDown>
                     <SubCategoryDropDown></SubCategoryDropDown> 
-                    <Recommendation></Recommendation> 
+                    <Recommendation></Recommendation>  */}
                 </div>
               
 
@@ -96,11 +96,11 @@ export default function Navbar() {
                     </div>
                     <div className="mt-6 flow-root">
                         <div className="-my-6 divide-y divide-gray-500/10">
-                            <div className="space-y-2 py-6">
+                            {/* <div className="space-y-2 py-6">
                                 <CategoryDropDown></CategoryDropDown>
                                 <SubCategoryDropDown></SubCategoryDropDown> 
                                 <Recommendation></Recommendation> 
-                            </div>
+                            </div> */}
                             <div className="py-6">
                             {isSignedIn ? (
                                 <AvatarWithUserDropdown />

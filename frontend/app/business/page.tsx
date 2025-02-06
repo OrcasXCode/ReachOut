@@ -17,87 +17,64 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid'
 import Listings from '../components/Listings'
 import PaginationTab from '../components/Pagination'
-import ServiceTabs from '../components/ui/Tabs'
-
-// const sortOptions = [
-//   { name: 'Most Popular', href: '#', current: true },
-//   { name: 'Best Rating', href: '#', current: false },
-//   { name: 'Newest', href: '#', current: false },
-//   { name: 'Price: Low to High', href: '#', current: false },
-//   { name: 'Price: High to Low', href: '#', current: false },
-// ]
-// const subCategories = [
-//   { name: 'Totes', href: '#' },
-//   { name: 'Backpacks', href: '#' },
-//   { name: 'Travel Bags', href: '#' },
-//   { name: 'Hip Bags', href: '#' },
-//   { name: 'Laptop Sleeves', href: '#' },
-// ]
-// const filters = [
-//   {
-//     id: 'color',
-//     name: 'Color',
-//     options: [
-//       { value: 'white', label: 'White', checked: false },
-//       { value: 'beige', label: 'Beige', checked: false },
-//       { value: 'blue', label: 'Blue', checked: true },
-//       { value: 'brown', label: 'Brown', checked: false },
-//       { value: 'green', label: 'Green', checked: false },
-//       { value: 'purple', label: 'Purple', checked: false },
-//     ],
-//   },
-//   {
-//     id: 'category',
-//     name: 'Category',
-//     options: [
-//       { value: 'new-arrivals', label: 'New Arrivals', checked: false },
-//       { value: 'sale', label: 'Sale', checked: false },
-//       { value: 'travel', label: 'Travel', checked: true },
-//       { value: 'organization', label: 'Organization', checked: false },
-//       { value: 'accessories', label: 'Accessories', checked: false },
-//     ],
-//   },
-//   {
-//     id: 'size',
-//     name: 'Size',
-//     options: [
-//       { value: '2l', label: '2L', checked: false },
-//       { value: '6l', label: '6L', checked: false },
-//       { value: '12l', label: '12L', checked: false },
-//       { value: '18l', label: '18L', checked: false },
-//       { value: '20l', label: '20L', checked: false },
-//       { value: '40l', label: '40L', checked: true },
-//     ],
-//   },
-// ]
-
-
 
 const sortOptions = [
   { name: 'Most Popular', href: '#', current: true },
   { name: 'Top Rated', href: '#', current: false },
   { name: 'Newest Listings', href: '#', current: false },
-  { name: 'Price: Low to High', href: '#', current: false },
-  { name: 'Price: High to Low', href: '#', current: false },
+  { name: 'Best Service', href: '#', current: false },
   { name: 'Nearest to You', href: '#', current: false },
+  { name: 'For you', href: '#', current: false },
 ];
 
 const subCategories = [
-  { name: 'Food & Beverages', href: '#' },
-  { name: 'Handmade Products', href: '#' },
-  { name: 'Clothing & Accessories', href: '#' },
-  { name: 'Electronics', href: '#' },
-  { name: 'Home Essentials', href: '#' },
-  { name: 'Beauty & Wellness', href: '#' },
-  { name: 'Local Services', href: '#' },
+  { name: 'Food', href: '#' },
+  { name: 'Health', href: '#' },
+  { name: 'Education', href: '#' },
+  { name: 'Entertainment', href: '#' },
+  { name: 'Technology', href: '#' },
+  { name: 'Fashion', href: '#' },
+  { name: 'Travel', href: '#' },
+  { name: 'Finance', href: '#' },
+  { name: 'Beauty', href: '#' },
+  { name: 'Sports', href: '#' },
 ];
 
+
 const filters = [
+  {
+    id: 'category',
+    name: 'Explore Categories',
+    options: [
+      { value: 'BEAUTY', label: 'Beauty', checked: false },
+      { value: 'FOOD', label: 'Food', checked: false },
+      { value: 'HEALTH', label: 'Health', checked: false },
+      { value: 'EDUCATION', label: 'Education', checked: false },
+      { value: 'ENTERTAINMENT', label: 'Entertainment', checked: false },
+      { value: 'AUTOMOBILE', label: 'Automobile', checked: false },
+      { value: 'HOME_SERVICES', label: 'Home Services', checked: false },
+      { value: 'FITNESS', label: 'Fitness', checked: false },
+      { value: 'TECHNOLOGY', label: 'Technology', checked: false },
+      { value: 'FASHION', label: 'Fashion', checked: false },
+      { value: 'TRAVEL', label: 'Travel', checked: false },
+      { value: 'EVENTS', label: 'Events', checked: false },
+      { value: 'ART', label: 'Art', checked: false },
+      { value: 'PETS', label: 'Pets', checked: false },
+      { value: 'FINANCE', label: 'Finance', checked: false },
+      { value: 'REAL_ESTATE', label: 'Real Estate', checked: false },
+      { value: 'HOSPITALITY', label: 'Hospitality', checked: false },
+      { value: 'RETAIL', label: 'Retail', checked: false },
+      { value: 'WELLNESS', label: 'Wellness', checked: false },
+      { value: 'SPORTS', label: 'Sports', checked: false },
+      { value: 'MEDIA', label: 'Media', checked: false },
+      { value: 'OTHER', label: 'Other', checked: false },
+    ],
+  },  
   {
     id: 'location',
     name: 'Location',
     options: [
-      { value: 'nearby', label: 'Nearby', checked: true },
+      { value: 'nearby', label: 'Nearby (~5km)', checked: true },
       { value: 'city', label: 'Within City', checked: false },
       { value: 'state', label: 'Within State', checked: false },
       { value: 'country', label: 'Nationwide', checked: false },
@@ -105,21 +82,22 @@ const filters = [
   },
   {
     id: 'price',
-    name: 'Price Range',
+    name: 'Time Range',
     options: [
-      { value: 'under-500', label: 'Under ₹500', checked: false },
-      { value: '500-1000', label: '₹500 - ₹1,000', checked: false },
-      { value: '1000-5000', label: '₹1,000 - ₹5,000', checked: false },
-      { value: '5000+', label: '₹5,000 & Above', checked: false },
+      { value: 'morning', label: 'Morning [ 6:00 AM to 12:00 PM ]', checked: false },
+      { value: 'afternoon', label: 'Afternoon [ 12:00 PM to 5:00 PM ]', checked: false },
+      { value: 'evening', label: 'Evening [ 5:00 PM to 8:00 PM ]', checked: false },
+      { value: 'night', label: 'Night [ 8:00 PM to 6:00 AM ]', checked: false },
+      { value: 'weekends-and-holidays', label: 'Weekends & Holidays', checked: false },
     ],
   },
   {
-    id: 'category',
-    name: 'Category',
+    id: 'business-type',
+    name: 'Business Type',
     options: [
       { value: 'small-business', label: 'Small Business', checked: true },
       { value: 'street-vendors', label: 'Street Vendors', checked: false },
-      { value: 'home-made', label: 'Home-made Items', checked: false },
+      { value: 'home-businesses', label: 'Home Businesses', checked: false },
       { value: 'services', label: 'Local Services', checked: false },
     ],
   },
@@ -250,7 +228,7 @@ export default function Example() {
 
         <main className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-baseline justify-between border-b border-gray-200 pt-30 pb-6">
-            <h4 className="text-2xl font-bold tracking-tight text-gray-900">Listings</h4>
+            <h4 className="text-2xl font-bold tracking-tight text-gray-900">Market Place</h4>
 
             <div className="flex items-center">
               <Menu as="div" className="relative inline-block text-left">
@@ -309,7 +287,7 @@ export default function Example() {
             <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
               {/* Filters */}
               <form className="hidden lg:block">
-                <h3 className="sr-only">Categories</h3>
+                <h3 className="text-sm  mb-3 font-medium text-gray-400">Frequently Chosen</h3>
                 <ul role="list" className="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
                   {subCategories.map((category) => (
                     <li key={category.name}>
@@ -378,7 +356,6 @@ export default function Example() {
 
               {/* Product grid */}
               <div className="lg:col-span-3 text-black">
-                {/* <ServiceTabs></ServiceTabs> */}
                 <Listings></Listings>
                 <PaginationTab></PaginationTab>
               </div>
