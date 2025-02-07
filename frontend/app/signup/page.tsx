@@ -37,6 +37,7 @@ export default function SignUp() {
   const [email,setEmail] = useState("");
   const [phoneNumber,setPhoneNumber] = useState("");
   const [password,setPassword] = useState("");
+  const [role,setRole] = useState("USER");
   const [error,setError] = useState<string | null>(null);
 
   const handleSignUp = async(event:React.FormEvent)=>{
@@ -49,7 +50,8 @@ export default function SignUp() {
           lastName,
           email,
           phoneNumber,
-          password
+          password,
+          role
         },
         {withCredentials : true}
       );
@@ -59,6 +61,7 @@ export default function SignUp() {
         secure:true,
         sameSite:"Strict"
       })
+      if(response) alert("SignUp Successfull");
     }
     catch(err:any){
       setError(err.response?.data?.error || "Something Went Wrong");

@@ -1,6 +1,5 @@
-"use client";
-
-import React from "react";
+"use client"
+import React, {useState,useEffect} from "react";
 import {
   Typography,
   Rating
@@ -8,6 +7,7 @@ import {
 import Link from "next/link";
 import Image from "next/image"
 import Carousel from "../components/ui/Carousal";
+import axios from 'axios';
 
 const slideData = [
   {
@@ -37,10 +37,49 @@ const slideData = [
 ];
 
 export default function UserProfile() {
+
+  const [userRole, setUserRole] = useState<string | null>("USER");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userDetails, setUserDetails] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Fetch userId from /me endpoint
+        const meResponse = await axios.get("http://localhost:8787/api/v1/user/me", {
+          withCredentials: true,
+        });
+        const userId = meResponse.data.userId;
+        setUserId(userId);
+
+        if (!userId) {
+          console.error("User ID not found");
+          return;
+        }
+
+        const userResponse = await axios.get(`http://localhost:8787/api/v1/user/${userId}`, {
+          withCredentials: true,
+        });
+
+        setUserDetails(userResponse.data);
+        setUserRole(userResponse.data.role || "USER");
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    console.log("Updated userDetails:", userDetails);
+  }, [userDetails]);
+
   return (
     <section className="px-8 py-20 container mx-auto mt-5">
       <div className="flex flex-col mt-8">
-        <div className="min-w-0 flex-1">
+
+        {userRole=='BUSINESS' ? <div className="min-w-0 flex-1">
             <h2 className="text-2xl/7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight mb-5">
               Anva Tech Labs
             </h2>
@@ -73,7 +112,9 @@ export default function UserProfile() {
                 15
               </div>
             </div>
-        </div>
+        </div> 
+         : null }
+        
 
         {/* User Details */}
         <hr className="mt-5 mb-5"></hr>
@@ -89,7 +130,7 @@ export default function UserProfile() {
             >
               First Name
             </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">Roberts</p>
+            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">{userDetails?.firstName || "Loading..."}</p>
           </div>
           <div className="w-full">
             <Typography
@@ -99,7 +140,7 @@ export default function UserProfile() {
             >
               Last Name
             </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">Roberts</p>
+            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">{userDetails?.lastName || "Loading..."}</p>
           </div>
         </div>
         <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
@@ -111,7 +152,7 @@ export default function UserProfile() {
             >
               Email
             </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">roberts@gmail.com</p>
+            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">{userDetails?.email || "Loading..."}</p>
           </div>
           <div className="w-full">
             <Typography
@@ -121,7 +162,7 @@ export default function UserProfile() {
             >
               Recovery Email
             </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">contactroberts@gmail.com</p>
+            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">{userDetails?.email || "Loading..."}</p>
           </div>
         </div>
         <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
@@ -134,9 +175,7 @@ export default function UserProfile() {
               Location
             </Typography>
             <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">
-              41-A 10003
-              Near New Seatle Road
-              USA - 90001
+              Sample Location
             </p>
           </div>
           <div className="w-full">
@@ -147,7 +186,7 @@ export default function UserProfile() {
             >
               Phone Number
             </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">+91 9429084446</p>
+            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">+91 {userDetails?.phoneNumber || "Loading..."}</p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-4 md:flex-row">
@@ -169,494 +208,496 @@ export default function UserProfile() {
             >
               Account Type
             </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">Business</p>
+            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">{userDetails?.role || "Loading..."}</p>
           </div>
         </div>
 
         </div>
 
         {/* Business Details */}
-        <hr className="mt-5 mb-5"></hr>
-        <Typography variant="h5" color="blue-gray">Business Details</Typography>
-        <Typography  variant="small" className="text-gray-400 font-normal mt-1 mb-5">View your business information below.</Typography>
-        <div>
-        <div className="mb-6 flex flex-col items-end gap-4 md:flex-row mt-5">
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Business Name
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">Anva Tech Labs</p>
-          </div>
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Verified
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">-</p>
-          </div>
-        </div>
-        <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Business Email
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">anvatechlabs@gmail.com</p>
-          </div>
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Recovery Email
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">contactroberts@gmail.com</p>
-          </div>
-        </div>
-        <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Business Location
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">
-            Pentagon Building , California
-            </p>
-          </div>
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Business Phone Number
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">+91 6284339948</p>
-          </div>
-        </div>
-        <div className="mb-6 flex flex-col items-start gap-4 md:flex-row">
-          <div className="flex-1 max-w-[50%]">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              About
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200 ">Anva Tech Labs is a leading software development company specializing in innovative solutions for enterprise clients. With over a decade of experience, we deliver cutting-edge technology solutions that drive business growth and digital transformation. Our team of expert developers and consultants work closely with clients to create customized solutions that meet their unique needs.</p>
-          </div>
-          <div className="w-[50%]">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Rating
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">4.3</p>
-          </div>
-        </div>
-        <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Likes
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">560</p>
-          </div>
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Dislikes
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">56</p>
-          </div>
-        </div>
-        <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Website
-            </Typography>
-            <a href="#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline ease-in-out">Visit Site</a>
-          </div>
-          <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="text-sm text-gray-400 mb-2 font-semibold"
-            >
-              Reports
-            </Typography>
-            <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">15</p>
-          </div>
-        </div>
-        </div>
-
-
-        {/*Reviews */}
-        <hr className="mt-5 mb-5"></hr>
-        <section className="py-15 relative">
-            <div className="w-full max-w-7xl px-4 md:px-5 lg:px-6 mx-auto">
-                <div className="">
-                    <h2 className="font-manrope font-bold text-3xl sm:text-4xl leading-10 text-black mb-8 text-center">
-                        Customer Insights</h2>
-                    <div className="grid grid-cols-12 mb-11">
-                        <div className="col-span-12 xl:col-span-4 flex items-center">
-                            <div className="box flex flex-col gap-y-4 w-full max-xl:max-w-3xl mx-auto">
-                                <div className="flex items-center w-full">
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">5</p>
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <g clipPath="url(#clip0_12042_8589)">
-                                            <path
-                                                d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                                                fill="#FBBF24" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_12042_8589">
-                                                <rect width="20" height="20" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                    <p className="h-2 w-full sm:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
-                                        <span className="h-full w-[30%] rounded-[30px] bg-indigo-500 flex"></span>
-                                    </p>
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">30</p>
-                                </div>
-                                <div className="flex items-center w-full">
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">4</p>
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <g clipPath="url(#clip0_12042_8589)">
-                                            <path
-                                                d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                                                fill="#FBBF24" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_12042_8589">
-                                                <rect width="20" height="20" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                    <p className="h-2 w-full xl:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
-                                        <span className="h-full w-[40%] rounded-[30px] bg-indigo-500 flex"></span>
-                                    </p>
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">40</p>
-                                </div>
-                                <div className="flex items-center">
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">3</p>
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <g clipPath="url(#clip0_12042_8589)">
-                                            <path
-                                                d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                                                fill="#FBBF24" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_12042_8589">
-                                                <rect width="20" height="20" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                    <p className="h-2 w-full xl:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
-                                        <span className="h-full w-[20%] rounded-[30px] bg-indigo-500 flex"></span>
-                                    </p>
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">20</p>
-                                </div>
-                                <div className="flex items-center">
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">2</p>
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <g clipPath="url(#clip0_12042_8589)">
-                                            <path
-                                                d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                                                fill="#FBBF24" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_12042_8589">
-                                                <rect width="20" height="20" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                    <p className="h-2 w-full xl:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
-                                        <span className="h-full w-[16%] rounded-[30px] bg-indigo-500 flex"></span>
-                                    </p>
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">16</p>
-                                </div>
-                                <div className="flex items-center">
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">1</p>
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <g clipPath="url(#clip0_12042_8589)">
-                                            <path
-                                                d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                                                fill="#FBBF24" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_12042_8589">
-                                                <rect width="20" height="20" fill="white" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                    <p className="h-2 w-full xl:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
-                                        <span className="h-full w-[8%] rounded-[30px] bg-indigo-500 flex"></span>
-                                    </p>
-                                    <p className="font-medium text-lg py-[1px] text-black mr-[2px]">8</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-span-12 max-xl:mt-8 xl:col-span-8 xl:pl-8 w-full min-h-[230px]">
-                            <div
-                                className="grid grid-cols-12 h-full px-8 max-lg:py-8 rounded-3xl bg-gray-100 w-full max-xl:max-w-3xl max-xl:mx-auto">
-                                <div className="col-span-12 md:col-span-8 flex items-center">
-                                    <div className="flex flex-col sm:flex-row items-center max-lg:justify-center w-full h-full">
-                                        <div
-                                            className="sm:pr-3 sm:border-r border-gray-200 flex items-center justify-center flex-col">
-                                            <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">4.3</h2>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                            </div>
-                                            <p className="font-normal text-lg leading-8 text-gray-400">46 Ratings</p>
-                                        </div>
-
-                                        <div
-                                            className="sm:pl-3 sm:border-l border-gray-200 flex items-center justify-center flex-col">
-                                            <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">4.8</h2>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
-                                                    viewBox="0 0 36 36" fill="none">
-                                                    <g clipPath="url(#clip0_13624_3137)">
-                                                        <path
-                                                            d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
-                                                            fill="#FBBF24" />
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_13624_3137">
-                                                            <rect width="36" height="36" fill="white" />
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                            </div>
-                                            <p className="font-normal text-lg leading-8 text-gray-400">Last Month</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-span-12 md:col-span-4 max-lg:mt-8 md:pl-8">
-                                    <div className="flex items-center flex-col justify-center w-full h-full ">
-                                        <Link href="/reviews"><button
-                                            className="rounded-full px-6 py-4 bg-white font-semibold text-lg text-indigo-600 whitespace-nowrap w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-100 hover:shadow-indigo-200">
-                                            See All Reviews
-                                          </button>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </section>              
-
-
-        {/* Reports */}
-        <hr className="mt-5 mb-5"></hr>
-        <section className="py-15 relative">
-            <div className="w-full max-w-7xl px-4 md:px-5 lg:px-6 mx-auto">
-                <div className="">
-                    <h2 className="font-manrope font-bold text-3xl sm:text-4xl leading-10 text-black mb-8 text-center">Reports & Flags</h2>
-                    <div className="grid grid-cols-12 mb-11 ">
-                        <div className="col-span-12 xl:col-span-4 flex items-center">
-                          <div className="box flex flex-col gap-y-4 w-full max-xl:max-w-3xl mx-auto">
-                              <Image 
-                                src='./report.svg' 
-                                alt="Report Flag" 
-                                width={300} 
-                                height={300}
-                              ></Image>
-                          </div>
-                       </div>
-                        <div className="col-span-12 max-xl:mt-8 xl:col-span-8 xl:pl-8 w-full min-h-[230px]">
-                            <div
-                                className="grid grid-cols-12 h-full px-8 max-lg:py-8 rounded-3xl bg-gray-100 w-full max-xl:max-w-3xl max-xl:mx-auto">
-                                <div className="col-span-12 md:col-span-8 flex items-center ">
-                                    <div className="flex flex-col sm:flex-row items-center max-lg:justify-center w-full h-full justify-around">
-                                        <div
-                                            className="sm:pr-3 border-gray-200 flex items-center justify-center flex-col">
-                                            <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">10</h2>
-                                            {/* Can Add SVG */}
-                                            <p className="font-normal text-lg leading-8 text-gray-400">Service Report</p>
-                                        </div>
-                                        <div
-                                            className="sm:pl-3  border-gray-200 flex items-center justify-center flex-col">
-                                            <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">0</h2>
-                                            {/* Can Add SVG */}
-                                            <p className="font-normal text-lg leading-8 text-gray-400">Behavioural Report</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-span-12 md:col-span-4 max-lg:mt-8 md:pl-8">
-                                    <div className="flex items-center flex-col justify-center w-full h-full ">
-                                        <Link href="/reviews"><button
-                                            className="rounded-full px-6 py-4 bg-white font-semibold text-lg text-indigo-600 whitespace-nowrap w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-100 hover:shadow-indigo-200">
-                                            View All Reports
-                                          </button>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </section>    
-
-          {/* Media Gallery */}
+        {userRole=="BUSINESS" ? <div>
           <hr className="mt-5 mb-5"></hr>
-          <Typography variant="h5" color="blue-gray">Business Media</Typography>
-          <Typography  variant="small" className="text-gray-400 font-normal mt-1 mb-5">View your business media which you uploaded.</Typography>
-          <div className="relative overflow-hidden w-full h-full py-20">
-              <Carousel slides={slideData} />
-          </div>                             
+          <Typography variant="h5" color="blue-gray">Business Details</Typography>
+          <Typography  variant="small" className="text-gray-400 font-normal mt-1 mb-5">View your business information below.</Typography>
+          <div>
+          <div className="mb-6 flex flex-col items-end gap-4 md:flex-row mt-5">
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Business Name
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">Anva Tech Labs</p>
+            </div>
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Verified
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">-</p>
+            </div>
+          </div>
+          <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Business Email
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">anvatechlabs@gmail.com</p>
+            </div>
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Recovery Email
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">contactroberts@gmail.com</p>
+            </div>
+          </div>
+          <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Business Location
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">
+              Pentagon Building , California
+              </p>
+            </div>
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Business Phone Number
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">+91 6284339948</p>
+            </div>
+          </div>
+          <div className="mb-6 flex flex-col items-start gap-4 md:flex-row">
+            <div className="flex-1 max-w-[50%]">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                About
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200 ">Anva Tech Labs is a leading software development company specializing in innovative solutions for enterprise clients. With over a decade of experience, we deliver cutting-edge technology solutions that drive business growth and digital transformation. Our team of expert developers and consultants work closely with clients to create customized solutions that meet their unique needs.</p>
+            </div>
+            <div className="w-[50%]">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Rating
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">4.3</p>
+            </div>
+          </div>
+          <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Likes
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">560</p>
+            </div>
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Dislikes
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">56</p>
+            </div>
+          </div>
+          <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Website
+              </Typography>
+              <a href="#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline ease-in-out">Visit Site</a>
+            </div>
+            <div className="w-full">
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="text-sm text-gray-400 mb-2 font-semibold"
+              >
+                Reports
+              </Typography>
+              <p className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200">15</p>
+            </div>
+          </div>
+          </div>
+
+
+          {/*Reviews */}
+          <hr className="mt-5 mb-5"></hr>
+          <section className="py-15 relative">
+              <div className="w-full max-w-7xl px-4 md:px-5 lg:px-6 mx-auto">
+                  <div className="">
+                      <h2 className="font-manrope font-bold text-3xl sm:text-4xl leading-10 text-black mb-8 text-center">
+                          Customer Insights</h2>
+                      <div className="grid grid-cols-12 mb-11">
+                          <div className="col-span-12 xl:col-span-4 flex items-center">
+                              <div className="box flex flex-col gap-y-4 w-full max-xl:max-w-3xl mx-auto">
+                                  <div className="flex items-center w-full">
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">5</p>
+                                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                          xmlns="http://www.w3.org/2000/svg">
+                                          <g clipPath="url(#clip0_12042_8589)">
+                                              <path
+                                                  d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
+                                                  fill="#FBBF24" />
+                                          </g>
+                                          <defs>
+                                              <clipPath id="clip0_12042_8589">
+                                                  <rect width="20" height="20" fill="white" />
+                                              </clipPath>
+                                          </defs>
+                                      </svg>
+                                      <p className="h-2 w-full sm:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
+                                          <span className="h-full w-[30%] rounded-[30px] bg-indigo-500 flex"></span>
+                                      </p>
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">30</p>
+                                  </div>
+                                  <div className="flex items-center w-full">
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">4</p>
+                                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                          xmlns="http://www.w3.org/2000/svg">
+                                          <g clipPath="url(#clip0_12042_8589)">
+                                              <path
+                                                  d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
+                                                  fill="#FBBF24" />
+                                          </g>
+                                          <defs>
+                                              <clipPath id="clip0_12042_8589">
+                                                  <rect width="20" height="20" fill="white" />
+                                              </clipPath>
+                                          </defs>
+                                      </svg>
+                                      <p className="h-2 w-full xl:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
+                                          <span className="h-full w-[40%] rounded-[30px] bg-indigo-500 flex"></span>
+                                      </p>
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">40</p>
+                                  </div>
+                                  <div className="flex items-center">
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">3</p>
+                                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                          xmlns="http://www.w3.org/2000/svg">
+                                          <g clipPath="url(#clip0_12042_8589)">
+                                              <path
+                                                  d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
+                                                  fill="#FBBF24" />
+                                          </g>
+                                          <defs>
+                                              <clipPath id="clip0_12042_8589">
+                                                  <rect width="20" height="20" fill="white" />
+                                              </clipPath>
+                                          </defs>
+                                      </svg>
+                                      <p className="h-2 w-full xl:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
+                                          <span className="h-full w-[20%] rounded-[30px] bg-indigo-500 flex"></span>
+                                      </p>
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">20</p>
+                                  </div>
+                                  <div className="flex items-center">
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">2</p>
+                                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                          xmlns="http://www.w3.org/2000/svg">
+                                          <g clipPath="url(#clip0_12042_8589)">
+                                              <path
+                                                  d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
+                                                  fill="#FBBF24" />
+                                          </g>
+                                          <defs>
+                                              <clipPath id="clip0_12042_8589">
+                                                  <rect width="20" height="20" fill="white" />
+                                              </clipPath>
+                                          </defs>
+                                      </svg>
+                                      <p className="h-2 w-full xl:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
+                                          <span className="h-full w-[16%] rounded-[30px] bg-indigo-500 flex"></span>
+                                      </p>
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">16</p>
+                                  </div>
+                                  <div className="flex items-center">
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">1</p>
+                                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                          xmlns="http://www.w3.org/2000/svg">
+                                          <g clipPath="url(#clip0_12042_8589)">
+                                              <path
+                                                  d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
+                                                  fill="#FBBF24" />
+                                          </g>
+                                          <defs>
+                                              <clipPath id="clip0_12042_8589">
+                                                  <rect width="20" height="20" fill="white" />
+                                              </clipPath>
+                                          </defs>
+                                      </svg>
+                                      <p className="h-2 w-full xl:min-w-[278px] rounded-[30px] bg-gray-200 ml-5 mr-3">
+                                          <span className="h-full w-[8%] rounded-[30px] bg-indigo-500 flex"></span>
+                                      </p>
+                                      <p className="font-medium text-lg py-[1px] text-black mr-[2px]">8</p>
+                                  </div>
+                              </div>
+                          </div>
+                          <div className="col-span-12 max-xl:mt-8 xl:col-span-8 xl:pl-8 w-full min-h-[230px]">
+                              <div
+                                  className="grid grid-cols-12 h-full px-8 max-lg:py-8 rounded-3xl bg-gray-100 w-full max-xl:max-w-3xl max-xl:mx-auto">
+                                  <div className="col-span-12 md:col-span-8 flex items-center">
+                                      <div className="flex flex-col sm:flex-row items-center max-lg:justify-center w-full h-full">
+                                          <div
+                                              className="sm:pr-3 sm:border-r border-gray-200 flex items-center justify-center flex-col">
+                                              <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">4.3</h2>
+                                              <div className="flex items-center gap-3 mb-4">
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                              </div>
+                                              <p className="font-normal text-lg leading-8 text-gray-400">46 Ratings</p>
+                                          </div>
+
+                                          <div
+                                              className="sm:pl-3 sm:border-l border-gray-200 flex items-center justify-center flex-col">
+                                              <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">4.8</h2>
+                                              <div className="flex items-center gap-3 mb-4">
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                                      viewBox="0 0 36 36" fill="none">
+                                                      <g clipPath="url(#clip0_13624_3137)">
+                                                          <path
+                                                              d="M17.1033 2.71738C17.4701 1.97413 18.5299 1.97413 18.8967 2.71738L23.0574 11.1478C23.2031 11.4429 23.4846 11.6475 23.8103 11.6948L33.1139 13.0467C33.9341 13.1659 34.2616 14.1739 33.6681 14.7524L26.936 21.3146C26.7003 21.5443 26.5927 21.8753 26.6484 22.1997L28.2376 31.4656C28.3777 32.2825 27.5203 32.9055 26.7867 32.5198L18.4653 28.145C18.174 27.9919 17.826 27.9919 17.5347 28.145L9.21334 32.5198C8.47971 32.9055 7.62228 32.2825 7.76239 31.4656L9.35162 22.1997C9.40726 21.8753 9.29971 21.5443 9.06402 21.3146L2.33193 14.7524C1.73841 14.1739 2.06593 13.1659 2.88615 13.0467L12.1897 11.6948C12.5154 11.6475 12.7969 11.4429 12.9426 11.1478L17.1033 2.71738Z"
+                                                              fill="#FBBF24" />
+                                                      </g>
+                                                      <defs>
+                                                          <clipPath id="clip0_13624_3137">
+                                                              <rect width="36" height="36" fill="white" />
+                                                          </clipPath>
+                                                      </defs>
+                                                  </svg>
+                                              </div>
+                                              <p className="font-normal text-lg leading-8 text-gray-400">Last Month</p>
+                                          </div>
+                                      </div>
+                                  </div>
+                                  <div className="col-span-12 md:col-span-4 max-lg:mt-8 md:pl-8">
+                                      <div className="flex items-center flex-col justify-center w-full h-full ">
+                                          <Link href="/reviews"><button
+                                              className="rounded-full px-6 py-4 bg-white font-semibold text-lg text-indigo-600 whitespace-nowrap w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-100 hover:shadow-indigo-200">
+                                              See All Reviews
+                                            </button>
+                                          </Link>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              </section>              
+
+
+          {/* Reports */}
+          <hr className="mt-5 mb-5"></hr>
+          <section className="py-15 relative">
+              <div className="w-full max-w-7xl px-4 md:px-5 lg:px-6 mx-auto">
+                  <div className="">
+                      <h2 className="font-manrope font-bold text-3xl sm:text-4xl leading-10 text-black mb-8 text-center">Reports & Flags</h2>
+                      <div className="grid grid-cols-12 mb-11 ">
+                          <div className="col-span-12 xl:col-span-4 flex items-center">
+                            <div className="box flex flex-col gap-y-4 w-full max-xl:max-w-3xl mx-auto">
+                                <Image 
+                                  src='./report.svg' 
+                                  alt="Report Flag" 
+                                  width={300} 
+                                  height={300}
+                                ></Image>
+                            </div>
+                        </div>
+                          <div className="col-span-12 max-xl:mt-8 xl:col-span-8 xl:pl-8 w-full min-h-[230px]">
+                              <div
+                                  className="grid grid-cols-12 h-full px-8 max-lg:py-8 rounded-3xl bg-gray-100 w-full max-xl:max-w-3xl max-xl:mx-auto">
+                                  <div className="col-span-12 md:col-span-8 flex items-center ">
+                                      <div className="flex flex-col sm:flex-row items-center max-lg:justify-center w-full h-full justify-around">
+                                          <div
+                                              className="sm:pr-3 border-gray-200 flex items-center justify-center flex-col">
+                                              <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">10</h2>
+                                              {/* Can Add SVG */}
+                                              <p className="font-normal text-lg leading-8 text-gray-400">Service Report</p>
+                                          </div>
+                                          <div
+                                              className="sm:pl-3  border-gray-200 flex items-center justify-center flex-col">
+                                              <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">0</h2>
+                                              {/* Can Add SVG */}
+                                              <p className="font-normal text-lg leading-8 text-gray-400">Behavioural Report</p>
+                                          </div>
+                                      </div>
+                                  </div>
+                                  <div className="col-span-12 md:col-span-4 max-lg:mt-8 md:pl-8">
+                                      <div className="flex items-center flex-col justify-center w-full h-full ">
+                                          <Link href="/reviews"><button
+                                              className="rounded-full px-6 py-4 bg-white font-semibold text-lg text-indigo-600 whitespace-nowrap w-full text-center shadow-sm shadow-transparent transition-all duration-500 hover:bg-indigo-100 hover:shadow-indigo-200">
+                                              View All Reports
+                                            </button>
+                                          </Link>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              </section>    
+
+            {/* Media Gallery */}
+            <hr className="mt-5 mb-5"></hr>
+            <Typography variant="h5" color="blue-gray">Business Media</Typography>
+            <Typography  variant="small" className="text-gray-400 font-normal mt-1 mb-5">View your business media which you uploaded.</Typography>
+            <div className="relative overflow-hidden w-full h-full py-20">
+                <Carousel slides={slideData} />
+            </div>  
+        </div>   : null}                        
       </div>
     </section>
   );

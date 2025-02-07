@@ -2,7 +2,7 @@
 
 import {ChangeEventHandler,useState} from "react"
 import axios from "axios";
-import Cookies from "js-cookie"
+import toast from "react-hot-toast";
 
 interface LabelledInputType{
   label: string,
@@ -40,17 +40,26 @@ export default function Example() {
     event.preventDefault();
 
     try{
+      
       const response = await axios.post(
         "http://localhost:8787/api/v1/user/forgetpassword",
         {email},
         {withCredentials: true}
       )
 
-      Cookies.set("accessToken",response.data.accessToken,{
-        expires: 7,
-        secure: true,
-        sameSite: "Strict"
-      })
+      // Cookies.set("accessToken",response.data.accessToken,{
+      //   expires: 7,
+      //   secure: true,
+      //   sameSite: "Strict"
+      // })
+      toast.success("OTP Sent");
+      localStorage.setItem('email',email);
+
+    
+      // Redirect after state update
+      setTimeout(() => {
+        window.location.href = "/verifyotp";
+      }, 1000);
     }
     catch(err:any){
       setError(err.response?.data?.error || "Something went wrong");

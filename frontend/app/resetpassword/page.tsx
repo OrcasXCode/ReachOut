@@ -49,11 +49,43 @@ export default function ResetPassword() {
         {withCredentials: true}
       )
 
-      Cookies.set("accessToken",response.data.accessToken,{
-        expires: 7,
-        secure: true,
-        sameSite: "Strict"
-      })
+      // Cookies.set("accessToken",response.data.accessToken,{
+      //   expires: 7,
+      //   secure: true,console.log("Reset Password Page Loaded");
+
+const handleResetPassword = async (event:React.FormEvent)=>{
+  console.log("Reset Password Button Clicked");
+  event.preventDefault();
+
+  try{
+    console.log("Attempting to Reset Password");
+    const resetToken = Cookies.get("resetToken")
+    const response = await axios.post(
+      "http://localhost:8787/api/v1/user/resetpassword",
+      {newPassword,confirmnewPassword,resetToken},
+      {withCredentials: true}
+    )
+
+    console.log("Password Reset Successful");
+    console.log(response);
+    // Cookies.set("accessToken",response.data.accessToken,{
+    //   expires: 7,
+    //   secure: true,
+    //   sameSite: "Strict"
+    // })
+    localStorage.removeItem('resetToken');
+    window.location.href = '/signin';
+  }
+  catch(err:any){
+    console.error("Error Resetting Password");
+    console.error(err);
+    setError(err.response?.data?.error || "Something went wrong");
+  }
+}
+      //   sameSite: "Strict"
+      // })
+      localStorage.removeItem('resetToken');
+      window.location.href = '/signin';
     }
     catch(err:any){
       setError(err.response?.data?.error || "Something went wrong");

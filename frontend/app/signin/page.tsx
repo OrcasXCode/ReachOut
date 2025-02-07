@@ -5,6 +5,7 @@ import axios from "axios";
 import { ChangeEventHandler, useState } from "react";
 import Cookies from "js-cookie"; 
 import { useAuthStore } from "../lib/useAuthStore";
+import {toast} from 'react-hot-toast';
 
 interface LabelledInputType {
   label: string;
@@ -12,6 +13,7 @@ interface LabelledInputType {
   type?: string;
   onChange: ChangeEventHandler<HTMLInputElement>;
 }
+
 
 function LabelledInput({ label, placeholder, type = "text", onChange }: LabelledInputType) {
   return (
@@ -29,10 +31,11 @@ function LabelledInput({ label, placeholder, type = "text", onChange }: Labelled
 }
 
 export default function SignIn() {
-  const setIsSignedIn = useAuthStore((state) => state.setIsSignedIn);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const { setIsSignedIn } = useAuthStore();
+
 
   const handleSignIn = async (event: React.FormEvent) => {
     event.preventDefault(); 
@@ -41,16 +44,23 @@ export default function SignIn() {
       const response = await axios.post(
         "http://localhost:8787/api/v1/user/signin",
         { email, password },
-        { withCredentials: true } 
+        { withCredentials: true}
       );
 
       Cookies.set("accessToken", response.data.accessToken, {
         expires: 7, 
         secure: true, 
-        sameSite: "Strict", 
+        sameSite: "Lax", 
+        path:"/"
       });
 
       setIsSignedIn(true);
+      toast.success("SignIn Successful");
+    
+      // Redirect after state update
+      setTimeout(() => {
+        window.location.href = "/business";
+      }, 1000);
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong");
     }

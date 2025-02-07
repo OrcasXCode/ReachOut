@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
@@ -7,9 +7,9 @@ import Link from 'next/link'
 import { useAuthStore }  from "../lib/useAuthStore";
 import  AvatarWithUserDropdown  from "../profile/page"
 import  ListingsSearchBar  from "./ui/ListingsSearchBar"
-import  CategoryDropDown  from "../components/CategoryDropDown"
-import  SubCategoryDropDown  from "../components/SubCategoryDropDown"
-import  Recommendation  from "../components/Recommendation"
+// import  CategoryDropDown  from "../components/CategoryDropDown"
+// import  SubCategoryDropDown  from "../components/SubCategoryDropDown"
+// import  Recommendation  from "../components/Recommendation"
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 
@@ -64,9 +64,9 @@ export default function Navbar() {
                         <ListingsSearchBar></ListingsSearchBar>
                     </div>
                         {isSignedIn ? (
-                                    <div>
+                                    // <div>
                                     <   AvatarWithUserDropdown></AvatarWithUserDropdown>
-                                    </div>
+                                    // </div>
                                 ) : (
                                     <Link href="/signin">Sign in</Link>
                         )} 
