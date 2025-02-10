@@ -4,6 +4,8 @@
 import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid';
 import { useState, useRef ,useEffect} from 'react';
 import axios from 'axios';
+import {toast} from 'react-hot-toast';
+
 
 export default function EditProfile() {
     const [files, setFiles] = useState<{ [key: string]: File }>({});
@@ -16,6 +18,7 @@ export default function EditProfile() {
     const [lastName,setLastName] = useState<string | null>(null);
     const [email,setEmail] = useState<string | null>(null);
     const [phoneNumber,setPhoneNumber] = useState<string | null>(null);
+    const [isOpen, setIsOpen] = useState(false);
 
     // Handle file addition
     const addFile = (file: File) => {
@@ -102,6 +105,7 @@ export default function EditProfile() {
             setLastName(userData.lastName || "");
             setEmail(userData.email || "");
             setPhoneNumber(userData.phoneNumber || "");
+            setUserRole(userData.role || "");
         } catch (error) {
           console.error("Error fetching user details:", error);
         }
@@ -110,6 +114,7 @@ export default function EditProfile() {
       fetchUserData();
     }, []);
 
+    //update user details
     const updateDetailsHandler = async () => {
         if (!userId) {
             console.error("User ID is missing");
@@ -138,6 +143,31 @@ export default function EditProfile() {
             }));
 
             alert("Profile updated successfully!");
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert("Failed to update profile. Please try again.");
+        }
+    };
+
+    //delete user account
+    const deleteAccountHandler = async () => {
+        if (!userId) {
+            console.error("User ID is missing");
+            return;
+        }
+
+        try {
+            await axios.delete(
+                `http://localhost:8787/api/v1/user/${userId}`,
+                { withCredentials: true }
+            );
+
+            setTimeout(()=>{
+                window.location.href="/signin"
+            },1000)
+
+            toast.success("Account Deleted");
+
         } catch (error) {
             console.error("Error updating profile:", error);
             alert("Failed to update profile. Please try again.");
@@ -308,7 +338,7 @@ export default function EditProfile() {
                 </div>
 
                 {/* Business Details */}
-                {userRole === "Business" && (
+                {userRole === "BUSINESS" && (
                     <div className="border-b border-gray-900/10 pb-12">
                         <h2 className="text-base/7 font-semibold text-gray-900">Business Information</h2>
                         <p className="mt-1 text-sm/6 text-gray-600">Use your correct business information to avoid any further inconvenience.</p>
@@ -842,6 +872,107 @@ export default function EditProfile() {
                     >
                         Save
                     </button>
+                </div>
+
+                {/* Delete Account */}
+                <button onClick={() => setIsOpen(true)} className="py-2 px-4 bg-red-500 text-white rounded-md">
+                    Delete Account
+                </button>
+
+                {isOpen && (
+                     <div
+                     className="fixed inset-0 p-4 flex flex-wrap justify-center items-center w-full h-full z-[1000] before:fixed before:inset-0 before:w-full before:h-full before:bg-[rgba(0,0,0,0.5)] overflow-auto font-[sans-serif]"
+                   >
+                     <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-6 relative">
+                       {/* Close Icon */}
+                        <button onClick={() => setIsOpen(false)} className="float-right">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-3.5 cursor-pointer shrink-0 fill-gray-400 hover:fill-red-500 float-right"
+                                viewBox="0 0 320.591 320.591"                          
+                            >
+                                <path
+                                d="M30.391 318.583a30.37 30.37 0 0 1-21.56-7.288c-11.774-11.844-11.774-30.973 0-42.817L266.643 10.665c12.246-11.459 31.462-10.822 42.921 1.424 10.362 11.074 10.966 28.095 1.414 39.875L51.647 311.295a30.366 30.366 0 0 1-21.256 7.288z"
+                                data-original="#000000"
+                                />
+                                <path
+                                d="M287.9 318.583a30.37 30.37 0 0 1-21.257-8.806L8.83 51.963C-2.078 39.225-.595 20.055 12.143 9.146c11.369-9.736 28.136-9.736 39.504 0l259.331 257.813c12.243 11.462 12.876 30.679 1.414 42.922-.456.487-.927.958-1.414 1.414a30.368 30.368 0 0 1-23.078 7.288z"
+                                data-original="#000000"
+                            />
+                        </svg>
+                        </button>
+               
+                       {/* Modal Content */}
+                       <div className="my-8 text-center">
+                         <svg
+                           xmlns="http://www.w3.org/2000/svg"
+                           className="w-14 fill-red-500 inline"
+                           viewBox="0 0 286.054 286.054"
+                         >
+                           <path
+                             fill="#e2574c"
+                             d="M143.027 0C64.04 0 0 64.04 0 143.027c0 78.996 64.04 143.027 143.027 143.027 78.996 0 143.027-64.022 143.027-143.027C286.054 64.04 222.022 0 143.027 0zm0 259.236c-64.183 0-116.209-52.026-116.209-116.209S78.844 26.818 143.027 26.818s116.209 52.026 116.209 116.209-52.026 116.209-116.209 116.209zm.009-196.51c-10.244 0-17.995 5.346-17.995 13.981v79.201c0 8.644 7.75 13.972 17.995 13.972 9.994 0 17.995-5.551 17.995-13.972V76.707c-.001-8.43-8.001-13.981-17.995-13.981zm0 124.997c-9.842 0-17.852 8.01-17.852 17.86 0 9.833 8.01 17.843 17.852 17.843s17.843-8.01 17.843-17.843c-.001-9.851-8.001-17.86-17.843-17.86z"
+                             data-original="#e2574c"
+                           />
+                         </svg>
+               
+                         <h4 className="text-lg text-gray-800 font-semibold mt-6">
+                           Your account will be deleted permanently!
+                         </h4>
+                         <p className="text-sm text-gray-500 mt-2">Are you sure to proceed?</p>
+                       </div>
+               
+                       {/* Buttons */}
+                       <div className="flex max-sm:flex-col gap-4">
+                         <button
+                           type="button"
+                           className="px-5 py-2.5 rounded-lg w-full tracking-wide text-gray-800 text-sm border-none outline-none bg-gray-200 hover:bg-gray-300"
+                           onClick={() => setIsOpen(false)}
+                         >
+                           I am not sure
+                         </button>
+                         <button
+                           type="button"
+                           className="px-5 py-2.5 rounded-lg w-full tracking-wide text-white text-sm border-none outline-none bg-red-500 hover:bg-red-600"
+                           onClick={deleteAccountHandler}
+                         >
+                           Remove my account
+                         </button>
+                       </div>
+                     </div>
+                   </div>
+                )}
+
+                <div id="hs-scale-animation-modal" className="hs-overlay hidden size-full fixed top-0 start-0 z-[80] overflow-x-hidden overflow-y-auto pointer-events-none" role="dialog" tabIndex={-1} aria-labelledby="hs-scale-animation-modal-label">
+                <div className="hs-overlay-animation-target hs-overlay-open:scale-100 hs-overlay-open:opacity-100 scale-95 opacity-0 ease-in-out transition-all duration-200 sm:max-w-lg sm:w-full m-3 sm:mx-auto min-h-[calc(100%-3.5rem)] flex items-center">
+                    <div className="w-full flex flex-col bg-white border shadow-sm rounded-xl pointer-events-auto">
+                    <div className="flex justify-between items-center py-3 px-4 border-b">
+                        <h3 id="hs-scale-animation-modal-label" className="font-bold text-gray-800">
+                        Modal title
+                        </h3>
+                        <button type="button" className="size-8 inline-flex justify-center items-center gap-x-2 rounded-full border border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none focus:bg-gray-200 disabled:opacity-50 disabled:pointer-events-none" aria-label="Close" data-hs-overlay="#hs-scale-animation-modal">
+                        <span className="sr-only">Close</span>
+                        <svg className="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 6 6 18"></path>
+                            <path d="m6 6 12 12"></path>
+                        </svg>
+                        </button>
+                    </div>
+                    <div className="p-4 overflow-y-auto">
+                        <p className="mt-1 text-gray-800">
+                        This is a wider card with supporting text below as a natural lead-in to additional content.
+                        </p>
+                    </div>
+                    <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t">
+                        <button type="button" className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none" data-hs-overlay="#hs-scale-animation-modal">
+                        Close
+                        </button>
+                        <button type="button" className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
+                        Save changes
+                        </button>
+                    </div>
+                    </div>
+                </div>
                 </div>
             </div>
         </form>

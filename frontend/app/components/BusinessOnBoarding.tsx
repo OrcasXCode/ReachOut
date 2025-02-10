@@ -304,27 +304,23 @@ export const CustomRadio = (props: any) => {
   );
 };
 
-export default function OnBaording() {
-  const [selectedRole, setSelectedRole] = useState<string>("User");
-  const [selectedCategories, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string[]>([]);
-  const [checkedSubCategories, setCheckedSubCategories] = useState<string[]>([]);
+export default function OnBoarding() {
+  const [step, setStep] = useState<number>(1);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+    setSelectedSubCategories([]);
+  };
 
   const handleSubCategoryClick = (value: string) => {
-    setCheckedSubCategories((prev) =>
+    setSelectedSubCategories((prev) =>
       prev.includes(value) ? prev.filter((sub) => sub !== value) : [...prev, value]
     );
   };
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
-    const filteredSubCategories =
-      Categories.find((cat) => cat.value === value)?.subcategories.map((sub) => sub.value) || [];
-    setSelectedSubCategory(filteredSubCategories);
-    setCheckedSubCategories([]); 
-  };
-
-  const [files, setFiles] = useState<File[]>([]);
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     setFiles(selectedFiles);
@@ -335,63 +331,46 @@ export default function OnBaording() {
   };
 
   const shortenFileName = (fileName: string) => {
-    const words = fileName.split(' ');
+    const words = fileName.split(" ");
     if (words.length > 1) {
-      return words.slice(0, 1).join(' ') + '...';
+      return words.slice(0, 1).join(" ") + "...";
     }
     return fileName;
   };
 
+  const handleNext = () => {
+    if (step === 1 && !selectedCategory) {
+      alert("Please select a category.");
+      return;
+    }
+    if (step === 2 && selectedSubCategories.length === 0) {
+      alert("Please select at least one subcategory.");
+      return;
+    }
+    setStep((prev) => prev + 1);
+  };
+
   return (
     <div className="w-100vw h-100vh flex flex-col items-center p-5">
-      {/* User Role Selection */}
-      <div className="flex flex-col items-center justify-center h-screen w-full">
-        <div className="bg-white p-7 rounded-lg">
-          <h2 className="font-bold text-gray-400 text-sm mb-2">Account Type</h2>
-          <RadioGroup
-            description=""
-            label=""
-            value={selectedRole}
-            onChange={(val) => setSelectedRole(val as unknown as string)}
-            className="flex flex-col gap-4"
-          >
-            <div className="flex gap-5 items-center justify-around">
-              <CustomRadio value="User">User</CustomRadio>
-              <div className="bg-gray-500 w-px h-5"></div>
-              <CustomRadio value="Business">Business</CustomRadio>
-            </div>
-          </RadioGroup>
-          <div className="flex justify-end mt-5">
-            <button
-              className="border-2 border-gray-400 hover:bg-black hover:text-white transition-all duration-300 ease-in-out p-2 px-7 rounded-full"
-              onClick={() => alert(`Selected Role: ${selectedRole}`)}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Select Category */}
-      <div className="w-full h-screen flex flex-col  items-center justify-center">
-          <div className="w-full h-screen flex flex-col items-center justify-center p-5">
+      {/* Step 1: Select Category */}
+      {step === 1 && (
+        <div className="w-full h-screen flex flex-col items-center justify-center">
           <div className="w-full max-w-5xl rounded-md">
             <h2 className="text-lg font-semibold mb-3">Select Category</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {Categories.map((category) => (
                 <label
                   key={category.value}
-                  className={`flex items-center gap-2 p-3 rounded-full shadow-sm cursor-pointer transition-all duration-300 ease-in-out 
-                    ${
-                      selectedCategories === category.value
-                        ? "bg-black text-white"
-                        : "bg-white text-gray-300 hover:bg-gray-200"
+                  className={`flex items-center gap-2 p-3 rounded-full shadow-sm cursor-pointer transition-all duration-300 ease-in-out ${
+                    selectedCategory === category.value
+                      ? "bg-black text-white"
+                      : "bg-white text-gray-300 hover:bg-gray-200"
                   }`}
                 >
                   <input
                     type="radio"
                     value={category.value}
-                    checked={selectedCategories === category.value}
+                    checked={selectedCategory === category.value}
                     onChange={() => handleCategoryChange(category.value)}
                     className="w-4 h-4 text-black accent-black"
                   />
@@ -399,75 +378,61 @@ export default function OnBaording() {
                 </label>
               ))}
             </div>
-
-            {/* Display Selected Category */}
-            {/* <div className="mt-5 p-3 bg-white space-y-3 rounded-md shadow-md">
-              <h3 className="text-md font-medium">Selected Category:</h3>
-              <p className="text-blue-600 font-semibold capitalize">
-                {selectedCategories ? selectedCategories : "None"}
-              </p>
-            </div> */}
             <div className="flex justify-end mt-5">
               <button
                 className="border-2 border-gray-400 hover:bg-black hover:text-white transition-all duration-300 ease-in-out p-2 px-7 rounded-full"
-                onClick={() => alert(`Selected Role: ${selectedRole}`)}
+                onClick={handleNext}
               >
                 Next
               </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-
-      {/* Select SubCategory */}
-      <div className="w-full h-screen flex flex-col  items-center justify-center">
-          <div className="w-full h-screen flex flex-col items-center justify-center p-5">
-            <div className="w-full max-w-5xl rounded-md">
-                  <h2 className="text-lg font-semibold mb-3">Select Sub Category</h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {selectedSubCategory.map((subCategory,index) => (
-                      <label
-                        key={index}
-                        className={`flex items-center gap-2 p-3 rounded-full shadow-sm cursor-pointer transition-all duration-300 ease-in-out bg-white ${
-                          checkedSubCategories.includes(subCategory) ? "bg-black text-white" : "bg-white text-black"
-                        }`}
-                        onClick={() => handleSubCategoryClick(subCategory)}
-                      >
-                        <input
-                          type="radio"
-                          value={subCategory}
-                          onClick={() => handleSubCategoryClick(subCategory)}
-                          checked={checkedSubCategories.includes(subCategory)}
-                          readOnly
-                          className="w-4 h-4 text-black accent-black"
-                        />
-                        <span className="text-black">{subCategory}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {/* <div className="mt-5 p-3 bg-white space-y-3 rounded-md shadow-md">
-                    <h3 className="text-md font-medium">Selected Sub Category:</h3>
-                    <p className="text-blue-600 font-semibold capitalize">
-                      {selectedCategories ? selectedCategories : "None"}
-                    </p>
-                  </div> */}
-                  <div className="flex justify-end mt-5">
-                    <button
-                      className="border-2 border-gray-400 hover:bg-black hover:text-white transition-all duration-300 ease-in-out p-2 px-7 rounded-full"
-                      onClick={() => alert(`Selected Role: ${selectedRole}`)}
-                    >
-                      Next
-                    </button>
-                  </div>
+      {/* Step 2: Select Subcategory */}
+      {step === 2 && (
+        <div className="w-full h-screen flex flex-col items-center justify-center">
+          <div className="w-full max-w-5xl rounded-md">
+            <h2 className="text-lg font-semibold mb-3">Select Sub Category</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {Categories.find((cat) => cat.value === selectedCategory)?.subcategories.map(
+                (subCategory) => (
+                  <label
+                    key={subCategory.value}
+                    className={`flex items-center gap-2 p-3 rounded-full shadow-sm cursor-pointer transition-all duration-300 ease-in-out ${
+                      selectedSubCategories.includes(subCategory.value)
+                        ? "bg-black text-white"
+                        : "bg-white text-gray-300 hover:bg-gray-200"
+                    }`}
+                  >
+                    <input
+                      type="checkbox" // Use checkbox for multiple selections
+                      value={subCategory.value}
+                      checked={selectedSubCategories.includes(subCategory.value)}
+                      onChange={() => handleSubCategoryClick(subCategory.value)}
+                      className="w-4 h-4 text-black accent-black"
+                    />
+                    <span className="text-gray-400">{subCategory.label}</span>
+                  </label>
+                )
+              )}
+            </div>
+            <div className="flex justify-end mt-5">
+              <button
+                className="border-2 border-gray-400 hover:bg-black hover:text-white transition-all duration-300 ease-in-out p-2 px-7 rounded-full"
+                onClick={handleNext}
+              >
+                Next
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-           
-      </div>
-
-      {/*Create Business Profile  */}
-      <section className="px-8 py-20 container mx-auto">
+      {/* Step 3: Business Profile */}
+      {step === 3 && (
+        <section className="px-8 py-20 container mx-auto">
         <Typography variant="h5" color="blue-gray">
           Business Information
         </Typography>
@@ -693,8 +658,7 @@ export default function OnBaording() {
 
         </div>   
       </section>
+      )}
     </div>
   );
 }
-
-

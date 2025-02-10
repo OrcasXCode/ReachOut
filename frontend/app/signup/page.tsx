@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { ChangeEventHandler, useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
-
+import BusinessOnBoarding from '../components/BusinessOnBoarding'
+import UserOnBoarding from '../components/UserOnBoarding'
 
 interface LabelledInputType{
   label: string;
@@ -39,9 +40,17 @@ export default function SignUp() {
   const [password,setPassword] = useState("");
   const [role,setRole] = useState("USER");
   const [error,setError] = useState<string | null>(null);
+  const [showUserOnBoarding,setShowUserOnBoarding] = useState(false);
+  const [showBusinessOnBoarding,setShowBusinessOnBoarding] = useState(false);
 
   const handleSignUp = async(event:React.FormEvent)=>{
     event.preventDefault();
+    if(role=="USER"){
+      setShowUserOnBoarding(true);
+    }
+    if(role=="BUSINESS"){
+      setShowBusinessOnBoarding(true);
+    }
     try{
       const response = await axios.post(
         "http://localhost:8787/api/v1/user/signup",
@@ -56,16 +65,29 @@ export default function SignUp() {
         {withCredentials : true}
       );
 
+      localStorage.setItem('firstName',firstName);
+      localStorage.setItem('firstName',lastName);
+      localStorage.setItem('firstName',email);
+      localStorage.setItem('firstName',phoneNumber);
+      localStorage.setItem('firstName',password);
+      localStorage.setItem('firstName',role);
+
       Cookies.set("accessToken",response.data.accessToken,{
         expires: 1,
         secure:true,
         sameSite:"Strict"
       })
-      if(response) alert("SignUp Successfull");
     }
     catch(err:any){
       setError(err.response?.data?.error || "Something Went Wrong");
     }
+  }
+
+  if(showBusinessOnBoarding){
+    return <BusinessOnBoarding></BusinessOnBoarding>
+  }
+  if(showUserOnBoarding){
+    return <UserOnBoarding></UserOnBoarding>
   }
 
   return (
@@ -99,6 +121,16 @@ export default function SignUp() {
               <LabelledInput label="New Password" placeholder="••••••••" type="password" onChange={(e)=>setPassword(e.target.value)}></LabelledInput>
 
               {error && <p className="text-red-500 text-sm">{error}</p>}
+
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+              >
+                <option value="USER">User</option>
+                <option value="BUSINESS">Business</option>
+              </select>
 
 
             <div>
