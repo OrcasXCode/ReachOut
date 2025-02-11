@@ -365,17 +365,36 @@ businessRoutes.get('/viewprofile/:id', async (c) => {
 businessRoutes.get('/bulk', async (c) => {
     const prisma = c.get('prisma');
     const query = c.req.query();
-    
-    const categoryId = query.categoryId || undefined;
-    const subCategoryId = query.subCategoryId || undefined;
 
+    const categoryId = query.categoryId || undefined;
+    
     try {
-        const bulkBusinesses = await prisma.category.findMany({
-            where: categoryId ? { id: categoryId } : {}, // If no categoryId, return all
+        const categories = await prisma.category.findMany({
+            where: categoryId ? { id: categoryId } : {},  
             include: {
-                Business: true
+                Business: {
+                    include: {
+                        subCategories: {
+                            include: { subCategory: { select: { id: true, name: true } } } // Fetch subCategory ID + name
+                        }
+                    }
+                }
             }
         });
+
+        const bulkBusinesses = categories.map(category => ({
+            categoryId: category.id,
+            categoryName: category.name,
+            businesses: category.Business.map(business => ({
+                id: business.id,
+                name: business.name,
+                about: business.about,
+                subCategories: business.subCategories.map(sub => ({
+                    id: sub.subCategory.id,  // Fetch subCategory ID
+                    name: sub.subCategory.name // Fetch subCategory Name
+                }))
+            }))
+        }));
 
         return c.json({ bulkBusinesses }, 200);
     } catch (error) {
@@ -383,6 +402,8 @@ businessRoutes.get('/bulk', async (c) => {
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
+
+
 
 
 

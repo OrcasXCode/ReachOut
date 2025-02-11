@@ -21,6 +21,7 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/solid";
 import { useAuthStore } from "../lib/useAuthStore";
+import axios from 'axios';
  
 const profileMenuItems = [
   { label: "My Profile", icon: UserCircleIcon , route:'/myprofile' },
@@ -36,11 +37,28 @@ export default function AvatarWithUserDropdown() {
   const { setIsSignedIn } = useAuthStore();
   
 
-  const handleSignOut = () => {
-    Cookies.remove("accessToken", { path: "/" });
-    setIsSignedIn(false);
-    setIsMenuOpen(false);
-    window.location.href = "/";
+  const handleSignOut = async () => {
+    try {
+      const response = await axios.post('http://localhost:8787/api/v1/user/signout', {}, {
+        withCredentials: true, 
+      });
+  
+      if (response.status === 200) {
+        alert("Signout successful");
+  
+        setIsSignedIn(false);
+  
+        localStorage.removeItem("auth-store"); // Clear Zustand's persisted state
+        setTimeout(()=>{
+          window.location.href = '/signin';
+        },1000)
+      } else {
+        alert("Signout failed. Please try again.");
+      }
+    } catch (err: any) {
+      console.error("Error during sign-out:", err);
+      alert("An error occurred during sign-out. Please try again.");
+    }
   };
 
   return (

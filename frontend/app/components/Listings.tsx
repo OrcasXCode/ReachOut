@@ -6,14 +6,14 @@ import SubCategoryChip from "../components/ui/SubCategoryChip";
 import BusinessRating from "../components/ui/BusinessRating";
 import OpenCloseTag from "../components/ui/OpenClose";
 import Carousel from "../components/ui/Slider";
-import {useState,useEffect} from 'react'
+import {useState,useEffect, Key} from 'react'
 import Link from "next/link";
 import axios from 'axios';
 
 type BusinessStatus = "Open" | "Closed";
 
 
-export default function Listings() {
+export default function Listings({ categoryId }: { categoryId: string }) {
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -22,26 +22,40 @@ export default function Listings() {
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
-       
-        const response = await axios.get("http://localhost:8787/api/v1/business/bulk", {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          "http://localhost:8787/api/v1/business/bulk",
+          { withCredentials: true }
+        );
 
-        if (!Array.isArray(response.data)) {
+        if (!response.data || !Array.isArray(response.data.bulkBusinesses)) {
           throw new Error("Unexpected API response format");
         }
 
-        const businessList = response.data.flatMap((category: any) => category.Business || []);
+        // Extract businesses
+        const businessList = response.data.bulkBusinesses.flatMap(
+          (category: { categoryId: string; categoryName: string; businesses: any[] }) =>
+            category.businesses.map((business) => ({
+              ...business,
+              categoryId: category.categoryId,
+              categoryName: category.categoryName,
+            }))
+        );
 
-        setFetchedBusinesses(businessList);
+        // If categoryId is provided, filter the businesses
+        const filteredBusinesses = categoryId
+          ? businessList.filter((business: { categoryId: string; }) => business.categoryId === categoryId)
+          : businessList;
+
+        console.log("Fetched Businesses:", filteredBusinesses);
+        setFetchedBusinesses(filteredBusinesses);
       } catch (err: any) {
-        console.log(err.response?.data?.message || "Failed to fetch businesses");
-      } 
+        console.log(err.response?.data?.message || "Error fetching businesses", err);
+      }
     };
 
     fetchBusinesses();
-  }, []);
-
+  }, [categoryId]);
+  
   const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
 
   const toggleExpand = (id: string) => {
@@ -56,13 +70,15 @@ export default function Listings() {
             <div className="col-span-2 sm:col-span-1">
              <div className="flex flex-row  items-center justify-between mb-2">
               <h1 className="font-semibold text-gray-900">{business.name}</h1>
-              <div> <BusinessRating></BusinessRating></div>
+              <div>
+                <BusinessRating value={(business.totalRating ?? 0) + 1} />
+              </div>
              </div>
-              <CategoryChip tag="Beauty"></CategoryChip>
+             <CategoryChip tag={business.categoryName}></CategoryChip>
               <div className="flex flex-row gap-2 mt-2">
-                <SubCategoryChip tag="Mehndi"></SubCategoryChip>
-                <SubCategoryChip tag="Bridal"></SubCategoryChip>
-                <SubCategoryChip tag="Nail Art"></SubCategoryChip>
+                {business.subCategories.map((sub: { id: Key | null | undefined; name: string; }) => (
+                  <SubCategoryChip key={sub.id} tag={sub.name}></SubCategoryChip>
+                ))}
               </div>
               <div>
                 <div
@@ -104,7 +120,7 @@ export default function Listings() {
                     />
                 </svg>
               </Link>
-           </div> */}
+           </div>  */}
           </div>
       </li>
     ))}

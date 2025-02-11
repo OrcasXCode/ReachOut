@@ -108,22 +108,23 @@ userRoutes.post('/signup', async (c) => {
     }
 });
 
-// userRoutes.post("/signup",async(c)=>{
-//     const prisma = c.get('prisma');
-//     try{
-//         const body = await c.req.json();
-//         const {firstName,lastName,email,phoneNumber,password,role,} = body;
-//     }
-//     catch(error){
-//         console.log(error);
-//         c.status(500);
-//         return c.json({
-//             error: 'Internal Server Error'
-//         })
-//     }
-// })
 
+//signout route
+userRoutes.post('/signout', async (c) => {
+    const prisma = c.get('prisma');
+    try {
+        c.header('Set-Cookie', 'accessToken=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Strict');
 
+        c.header('Set-Cookie', 'refreshToken=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Strict', { append: true });
+
+        // Return a success response
+        return c.json({ message: 'Logged out successfully' },200);
+    } catch (error) {
+        console.error('Error during sign-out:', error);
+
+        return c.json({ error: 'Internal Server Error' },500);
+    }
+});
 //signin route
 userRoutes.post('/signin', async (c) => {
     const prisma = c.get('prisma');

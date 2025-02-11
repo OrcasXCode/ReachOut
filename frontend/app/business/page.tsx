@@ -28,16 +28,16 @@ const sortOptions = [
 ];
 
 const subCategories = [
-  { name: 'Food', href: '#' },
-  { name: 'Health', href: '#' },
-  { name: 'Education', href: '#' },
-  { name: 'Entertainment', href: '#' },
-  { name: 'Technology', href: '#' },
-  { name: 'Fashion', href: '#' },
-  { name: 'Travel', href: '#' },
-  { name: 'Art', href: '#' },
-  { name: 'Beauty', href: '#' },
-  { name: 'Sports', href: '#' },
+  { name: 'Food', href: '#' , id: ''},
+  { name: 'Health', href: '#' ,id: ''},
+  { name: 'Education', href: '#',id: '' },
+  { name: 'Entertainment', href: '#',id: '' },
+  { name: 'Technology', href: '#',id: '' },
+  { name: 'Fashion', href: '#',id: '' },
+  { name: 'Travel', href: '#',id: '' },
+  { name: 'Art', href: '#',id: '334c6fa1-37b5-4e81-b0f1-7ec0d4feb34b' },
+  { name: 'Beauty', href: '#',id: '' },
+  { name: 'Sports', href: '#',id: '' },
 ];
 
 
@@ -121,7 +121,12 @@ function classNames(...classes: string[]) {
 }
 
 export default function Example() {
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const handleCategoryClick = (categoryName: string) => {
+    setSelectedCategoryId(categoryName);
+  };
+  
 
   return (
     <div className="bg-white">
@@ -291,7 +296,12 @@ export default function Example() {
                 <ul role="list" className="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
                   {subCategories.map((category) => (
                     <li key={category.name}>
-                      <a href={category.href}>{category.name}</a>
+                      <button
+                        onClick={() => handleCategoryClick(category.id)}
+                        className={`cursor-pointer ${selectedCategoryId == category.id ? "text-blue-500 font-bold" : ""}`}
+                      >
+                        {category.name}
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -356,7 +366,7 @@ export default function Example() {
 
               {/* Product grid */}
               <div className="lg:col-span-3 text-black">
-                <Listings></Listings>
+                <Listings categoryId={selectedCategoryId || ""}></Listings>
                 <PaginationTab></PaginationTab>
               </div>
             </div>
