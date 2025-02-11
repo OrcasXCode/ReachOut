@@ -14,10 +14,19 @@ export default function EditProfile() {
     const [userRole, setUserRole] = useState<string | null>("USER");
     const [userId, setUserId] = useState<string | null>(null);
     const [userDetails, setUserDetails] = useState<any>(null);
+    const [userBusinessDetails, setUserBusinessDetails] = useState<any>(null);
     const [firstName,setFirstName] = useState<string | null>(null);
     const [lastName,setLastName] = useState<string | null>(null);
     const [email,setEmail] = useState<string | null>(null);
     const [phoneNumber,setPhoneNumber] = useState<string | null>(null);
+    const [name,setName] = useState<string | null>(null);
+    const [businessEmail,setBusinessEmail] = useState<string | null>(null);
+    const [businessPhoneNumber,setBusinessPhoneNumber] = useState<string | null>(null);
+    const [address,setAddress] = useState<string | null>(null);
+    const [verified,setVerified] = useState<string | null>(null);
+    const [totalRating,setTotalRating] = useState<string | null>(null);
+    const [website,setWebsite] = useState<string | null>(null);
+    const [about,setAbout] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
     // Handle file addition
@@ -106,6 +115,21 @@ export default function EditProfile() {
             setEmail(userData.email || "");
             setPhoneNumber(userData.phoneNumber || "");
             setUserRole(userData.role || "");
+
+            if (userData?.role === "BUSINESS") {
+                const business = userData?.businesses[0]; 
+                setUserBusinessDetails(business);  
+            
+                setName(business?.name || "");  
+                setAddress(business?.address || "");  
+                setBusinessEmail(business?.businessEmail || "");  
+                setAbout(business?.about || "");  
+                setWebsite(business?.website || "");  
+                setVerified(business?.verified || "");  
+                setTotalRating(business?.totalRating || "");  
+                setBusinessPhoneNumber(business?.phoneNumber || "");  
+            }
+
         } catch (error) {
           console.error("Error fetching user details:", error);
         }
@@ -113,6 +137,7 @@ export default function EditProfile() {
   
       fetchUserData();
     }, []);
+
 
     //update user details
     const updateDetailsHandler = async () => {
@@ -350,12 +375,14 @@ export default function EditProfile() {
                                 </label>
                                 <div className="mt-2">
                                     <input
-                                        id="first-name"
-                                        name="first-name"
+                                        id="name"
+                                        name="name"
                                         type="text"
                                         autoComplete="given-name"
                                         className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                    />
+                                        value={name || ""}
+                                        onChange={(e)=>setName(e.target.value)}
+                                    ></input>
                                 </div>
                             </div>
                 
@@ -370,8 +397,10 @@ export default function EditProfile() {
                                     type="text"
                                     autoComplete="family-name"
                                     disabled={true}
-                                    placeholder="Bronze"
+                                    placeholder={String(verified) || ""}
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    value={verified || ""}
+                                    onChange={(e)=>setVerified(e.target.value)}
                                 />
                                 </div>
                             </div>
@@ -417,6 +446,8 @@ export default function EditProfile() {
                                     type="email"
                                     autoComplete="email"
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    value={website || ""}
+                                    onChange={(e)=>setWebsite(e.target.value)}
                                 />
                                 </div>
                             </div>
@@ -434,6 +465,8 @@ export default function EditProfile() {
                                     placeholder="4.3"
                                     autoComplete="email"
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    value={totalRating || ""}
+                                    onChange={(e)=>setTotalRating(e.target.value)}
                                 />
                                 </div>
                             </div>
@@ -449,6 +482,8 @@ export default function EditProfile() {
                                     rows={3}
                                     autoComplete="street-address"
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    value={about || ""}
+                                    onChange={(e)=>setAbout(e.target.value)}
                                 />
                                 </div>
                             </div>
@@ -464,6 +499,8 @@ export default function EditProfile() {
                                     rows={3}
                                     autoComplete="street-address"
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    value={address || ""}
+                                    onChange={(e)=>setAddress(e.target.value)}
                                 />
                                 </div>
                             </div>

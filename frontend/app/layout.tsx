@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "./components/NavBar";
 import Footer from "./components/Footer";
 import {Toaster} from "react-hot-toast"
+import { SignupProvider } from "./context/SignUpContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-
+    <SignupProvider>
       <html lang="en">
         <body className={`${inter.className} flex flex-col min-h-screen`}>
           <div>
@@ -31,5 +32,6 @@ export default function RootLayout({
           </div>
         </body>
       </html>
+    </SignupProvider>
   );
 }

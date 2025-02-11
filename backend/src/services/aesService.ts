@@ -32,9 +32,8 @@ export class AES {
       };
     }
   
-    // Decrypts data using AES-GCM
     static async decrypt(encryptedData: string, iv: string, secret: string) {
-      const key = await this.hashKey(secret); // Hash the secret to get a 256-bit key
+      const key = await this.hashKey(secret); 
       const importedKey = await crypto.subtle.importKey(
         "raw",
         key,

@@ -34,23 +34,20 @@ businessRoutes.use('*', async (c, next) => {
 
 //global middelware
 businessRoutes.use('/*', async (c, next) => {
-    const jwt = c.req.header('Authorization') || " ";
-    if (!jwt) {
+    const cookies = c.req.header("Cookie") || "";
+    const accessToken = cookies.split("; ").find(row=>row.startsWith("accessToken="))?.split("=")[1];
+
+    if (!accessToken) {
         c.status(401);
         return c.json({ error: 'Unauthorized' });
     }
 
-    const token = jwt.split(' ')[1];
-    if (!token) {
-        c.status(401);
-        return c.json({ error: 'Token Missing' });
-    }
 
     try {
-        const payload = await verify(token, c.env.JWT_SECRET);
+        const payload = await verify(accessToken, c.env.JWT_SECRET);
         if (!payload || !payload.id) {
-        c.status(401);
-        return c.json({ error: 'Unauthorized' });
+            c.status(401);
+            return c.json({ error: 'Unauthorized' });
         }
 
         c.set('userId', payload.id as string);
@@ -365,46 +362,28 @@ businessRoutes.get('/viewprofile/:id', async (c) => {
 
 
 //get all business with filters and search
-//!Pending to check
 businessRoutes.get('/bulk', async (c) => {
     const prisma = c.get('prisma');
     const query = c.req.query();
-    const userId = c.get('userId');
-
-    const categoryId = query.categoryId ? query.categoryId : undefined;
-    const subCategoryId = query.subCategoryId ? query.subCategoryId : undefined;
+    
+    const categoryId = query.categoryId || undefined;
+    const subCategoryId = query.subCategoryId || undefined;
 
     try {
-        const userBusiness = await prisma.user.findUnique({
-            where: {
-                id: userId
-            },
+        const bulkBusinesses = await prisma.category.findMany({
+            where: categoryId ? { id: categoryId } : {}, // If no categoryId, return all
             include: {
-                businesses: {
-                    where: {
-                        ...(categoryId && { categoryId }),  
-                        ...(subCategoryId && {
-                            subCategories: {
-                                some: {
-                                    subCategoryId: subCategoryId 
-                                }
-                            }
-                        })
-                    },
-                    include: {
-                        category: true,
-                        subCategories: true
-                    }
-                }
+                Business: true
             }
         });
 
-        return c.json({ userBusiness }, 200);
+        return c.json({ bulkBusinesses }, 200);
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
+
 
 
 //liking a business
@@ -758,7 +737,6 @@ businessRoutes.put('/updatebusinesstimings/:id', async (c) => {
     }
 });
 
-  
 
 
 //add business medias

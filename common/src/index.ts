@@ -25,11 +25,12 @@ export const forgetpasswordinput=z.object({
 export type ForgetPasswordInput=z.infer<typeof forgetpasswordinput>
 
 
-export const verifyotpinput=z.object({
-    email:z.string().email(),
-    otp:z.string().min(6)
-})
-export type VerifyOtpInput=z.infer<typeof verifyotpinput>
+export const verifyotpinput = z.object({
+    emailHash: z.string().length(64).regex(/^[a-f0-9]{64}$/i, "Invalid SHA-256 hash"),
+    otp: z.string().length(6, "OTP must be exactly 6 digits").regex(/^\d{6}$/, "OTP must be numeric"),
+});
+export type VerifyOtpInput = z.infer<typeof verifyotpinput>;
+
 
 export const resetpasswordinput=z.object({
     resetToken:z.string(),

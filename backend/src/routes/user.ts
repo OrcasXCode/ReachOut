@@ -97,7 +97,8 @@ userRoutes.post('/signup', async (c) => {
         const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
         const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");        
 
-        c.res.headers.append('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+        c.res.headers.append('Set-Cookie', `refreshToken=${refreshToken}; HttpOnly; Path=/;  SameSite=Strict`);
+        c.res.headers.append('Set-Cookie', `refreshToken=${accessToken}; HttpOnly; Path=/;  SameSite=Strict`);
 
         return c.json({ accessToken }, 200);
     } catch (error) {
@@ -107,35 +108,21 @@ userRoutes.post('/signup', async (c) => {
     }
 });
 
-//global middelware
-userRoutes.use('/*', async (c, next) => {
-    const jwt = c.req.header('Authorization') || " ";
-    if (!jwt) {
-        c.status(401);
-        return c.json({ error: 'Unauthorized' });
-    }
+// userRoutes.post("/signup",async(c)=>{
+//     const prisma = c.get('prisma');
+//     try{
+//         const body = await c.req.json();
+//         const {firstName,lastName,email,phoneNumber,password,role,} = body;
+//     }
+//     catch(error){
+//         console.log(error);
+//         c.status(500);
+//         return c.json({
+//             error: 'Internal Server Error'
+//         })
+//     }
+// })
 
-    const token = jwt.split(' ')[1];
-    if (!token) {
-        c.status(401);
-        return c.json({ error: 'Token Missing' });
-    }
-
-    try {
-        const payload = await verify(token, c.env.JWT_SECRET);
-        if (!payload || !payload.id) {
-        c.status(401);
-        return c.json({ error: 'Unauthorized' });
-        }
-
-        c.set('userId', payload.id as string);
-        await next();
-    } catch (error) {
-        console.log(error);
-        c.status(500);
-        return c.json({ error: 'Internal Server Error' });
-    }
-});
 
 //signin route
 userRoutes.post('/signin', async (c) => {
@@ -188,12 +175,12 @@ userRoutes.post('/signin', async (c) => {
 
         c.res.headers.append(
             'Set-Cookie',
-            `accessToken=${accessToken}; HttpOnly; Path=/; Secure; SameSite=Strict`
+            `accessToken=${accessToken}; HttpOnly; Path=/; SameSite=Strict`
         );
 
         c.res.headers.append(
             'Set-Cookie',
-            `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`
+            `refreshToken=${refreshToken}; HttpOnly; Path=/; SameSite=Strict`
         );
         
         return c.json({ accessToken }, 200);
@@ -201,6 +188,41 @@ userRoutes.post('/signin', async (c) => {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
+});
+
+//global middelware
+userRoutes.use('/*', async (c, next) => {
+    const cookies = c.req.header("Cookie") || "";
+    const accessToken = cookies.split("; ").find(row=>row.startsWith("accessToken="))?.split("=")[1];
+
+    if (!accessToken) {
+        c.status(401);
+        return c.json({ error: 'Unauthorized' });
+    }
+
+
+    try {
+        const payload = await verify(accessToken, c.env.JWT_SECRET);
+        if (!payload || !payload.id) {
+            c.status(401);
+            return c.json({ error: 'Unauthorized' });
+        }
+
+        c.set('userId', payload.id as string);
+        await next();
+    } catch (error) {
+        console.log(error);
+        c.status(500);
+        return c.json({ error: 'Internal Server Error' });
+    }
+});
+
+userRoutes.get('/me', async (c) => {
+    const userId = c.get('userId');  // Extract userId from middleware
+    if (!userId) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+    return c.json({ userId });
 });
 
 
@@ -282,7 +304,7 @@ userRoutes.post('/forgetpassword',async (c)=>{
             },
             body: JSON.stringify({ otp })
         });
-        
+
         return c.json({message:'OTP sent to your email',otp},200)
     }
     catch(error){
@@ -294,92 +316,61 @@ userRoutes.post('/forgetpassword',async (c)=>{
     }
 })
 
-//verify otp route
-userRoutes.post('/verifyotp',async (c)=>{
+//verify-otp
+userRoutes.post('/verifyotp', async (c) => {
     const body = await c.req.json();
     const prisma = c.get('prisma');
 
-    const parsed=verifyotpinput.safeParse(body);
-    if(!parsed.success){
+    const parsed = verifyotpinput.safeParse(body);
+    if (!parsed.success) {
         return c.json({
-            error:'Invalid input',
-            details:parsed.error.errors
-        },400)
+            error: 'Invalid input',
+            details: parsed.error.errors
+        }, 400);
     }
 
-    const {email,otp} = parsed.data;
+    const { emailHash, otp } = parsed.data;
 
-    try{
-
-        const secretKey = c.env.AES_SECRET_KEY;
-        if(!secretKey) {
-            return c.json({
-                error: 'AES Secret Key is not set',
-            },403)
-        }
-        
-        const emailHash = crypto.createHash("sha256").update(email).digest("hex");
-
-        const getUser=await prisma.user.findUnique({
-            where:{
-                emailHash,
-            },
-            select:{
-                email:true,
-                emailIV:true
-            }
-        })
-
-        if(!getUser){
-            return c.json({
-                error:'You have not SignedUp Yet',
-                details:'Please create a account first and then try again later'
-            },404)
-        }
-
-        const decryptedEmail = await AES.decrypt(getUser.email,getUser.emailIV,secretKey);
-        if(decryptedEmail!==email){
-            return c.json({
-                error:'Email has been tampered with',
-            },403)
-        }
-
+    try {
         const otpUser = await prisma.oTP.findFirst({
-            where:{
-                emailHash
-            },
-            select:{
-                otp:true,
-                expiresAt:true,
-            }
-        })
+            where: { emailHash },
+            select: { otp: true, expiresAt: true }
+        });
 
-        if(otpUser?.otp!==otp){
-            return c.json({
-                error:'OTP did not match',
-            },404)
-        }
-        if(otpUser.expiresAt<new Date()){
-            return c.json({
-                error:'OTP expired',
-                details:'Try to Resend it and try again later!'
-            })
+        if (!otpUser) {
+            return c.json({ error: 'OTP not found' }, 404);
         }
 
+        if (otpUser.otp !== otp) {
+            return c.json({ error: 'OTP did not match' }, 400);
+        }
+
+        if (otpUser.expiresAt.getTime() < Date.now()) {  // ⏳ Fixed Expiry Check
+            return c.json({
+                error: 'OTP expired',
+                details: 'Try to resend it and try again later!'
+            }, 400);
+        }
+
+        // 🔥 Generate Reset Token
         const resetToken = jwt.sign({ emailHash }, c.env.JWT_SECRET, { expiresIn: '15m' });
 
+        // 🍪 Set secure HttpOnly cookie
+        c.res.headers.append(
+            'Set-Cookie',
+            `accessToken=${resetToken}; HttpOnly; Path=/; SameSite=Strict`
+        );
+
+        // ✅ Delete OTP after verification
         await prisma.oTP.delete({ where: { emailHash } });
 
         return c.json({ message: 'OTP verified', resetToken }, 200);
+    } catch (error) {
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
     }
-    catch(error){
-        console.log(error);
-        c.status(500);
-        return c.json({
-            error:'Internal Server Error'
-        })
-    }
-})
+});
+
 
 //reset password route
 userRoutes.post('/resetpassword',async (c)=>{
@@ -450,25 +441,24 @@ userRoutes.get('/:id', async (c) => {
 
         const userDetails = await prisma.user.findFirst({
             where: { id : id },
-            include:{
-                businesses:true,
-            }
+            include:{businesses:true}
         });
-
-        const businessDetails = await prisma.business.findFirst({
-            where: {ownerId : id},
-            include:{
-                reports:true,
-                reviews:true,
-                businessMedia:true
-            }
-        })
 
         if (!userDetails) {
             return c.json({ error: 'User does not exist' }, 401);
         }
 
-        return c.json(businessDetails);
+        const secretKey = c.env.AES_SECRET_KEY;
+        // Await the decryption process
+        const decryptedEmail = await AES.decrypt(userDetails.email,userDetails.emailIV, secretKey);
+        const decryptedPhoneNumber = await AES.decrypt(userDetails.phoneNumber,userDetails.phoneNumberIV, secretKey);
+
+        return c.json({
+            ...userDetails,
+            email: decryptedEmail.toString(),
+            phoneNumber: decryptedPhoneNumber.toString(),
+        });
+
     } catch (error) {
         console.error(error);
         c.status(500);

@@ -1,10 +1,9 @@
 "use client"
 import Link from 'next/link'
 import { ChangeEventHandler, useState } from "react";
-import axios from "axios";
-import Cookies from "js-cookie";
 import BusinessOnBoarding from '../components/BusinessOnBoarding'
 import UserOnBoarding from '../components/UserOnBoarding'
+import {useSignup} from '../context/SignUpContext'
 
 interface LabelledInputType{
   label: string;
@@ -39,56 +38,28 @@ export default function SignUp() {
   const [phoneNumber,setPhoneNumber] = useState("");
   const [password,setPassword] = useState("");
   const [role,setRole] = useState("USER");
-  const [error,setError] = useState<string | null>(null);
   const [showUserOnBoarding,setShowUserOnBoarding] = useState(false);
   const [showBusinessOnBoarding,setShowBusinessOnBoarding] = useState(false);
+  const { updateSignupData, signupData } = useSignup();
 
   const handleSignUp = async(event:React.FormEvent)=>{
     event.preventDefault();
-    if(role=="USER"){
-      setShowUserOnBoarding(true);
-    }
-    if(role=="BUSINESS"){
-      setShowBusinessOnBoarding(true);
-    }
-    try{
-      const response = await axios.post(
-        "http://localhost:8787/api/v1/user/signup",
-        {
-          firstName,
-          lastName,
-          email,
-          phoneNumber,
-          password,
-          role
-        },
-        {withCredentials : true}
-      );
 
-      localStorage.setItem('firstName',firstName);
-      localStorage.setItem('firstName',lastName);
-      localStorage.setItem('firstName',email);
-      localStorage.setItem('firstName',phoneNumber);
-      localStorage.setItem('firstName',password);
-      localStorage.setItem('firstName',role);
+    updateSignupData({
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      password,
+      role
+    })
 
-      Cookies.set("accessToken",response.data.accessToken,{
-        expires: 1,
-        secure:true,
-        sameSite:"Strict"
-      })
-    }
-    catch(err:any){
-      setError(err.response?.data?.error || "Something Went Wrong");
-    }
+    if(role=="USER") setShowUserOnBoarding(true);
+    if(role=="BUSINESS") setShowBusinessOnBoarding(true); 
   }
 
-  if(showBusinessOnBoarding){
-    return <BusinessOnBoarding></BusinessOnBoarding>
-  }
-  if(showUserOnBoarding){
-    return <UserOnBoarding></UserOnBoarding>
-  }
+  if(showBusinessOnBoarding) return <BusinessOnBoarding></BusinessOnBoarding>
+  if(showUserOnBoarding) return <UserOnBoarding></UserOnBoarding>
 
   return (
     <>
@@ -120,7 +91,6 @@ export default function SignUp() {
 
               <LabelledInput label="New Password" placeholder="••••••••" type="password" onChange={(e)=>setPassword(e.target.value)}></LabelledInput>
 
-              {error && <p className="text-red-500 text-sm">{error}</p>}
 
               <select
                 id="role"

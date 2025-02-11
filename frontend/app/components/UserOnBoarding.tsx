@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Typography } from "@material-tailwind/react";
 
 const Categories = [
   { value: "beauty", label: "Beauty" },
@@ -23,7 +22,7 @@ const Categories = [
   { value: "hospitality", label: "Hospitality" },
 ];
 
-export default function OnBoarding() {
+export default function UserOnBoarding() {
   const [step, setStep] = useState<number>(1);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);

@@ -35,7 +35,7 @@ const subCategories = [
   { name: 'Technology', href: '#' },
   { name: 'Fashion', href: '#' },
   { name: 'Travel', href: '#' },
-  { name: 'Finance', href: '#' },
+  { name: 'Art', href: '#' },
   { name: 'Beauty', href: '#' },
   { name: 'Sports', href: '#' },
 ];
