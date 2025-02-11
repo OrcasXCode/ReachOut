@@ -23,8 +23,8 @@ export default function EditProfile() {
     const [businessEmail,setBusinessEmail] = useState<string | null>(null);
     const [businessPhoneNumber,setBusinessPhoneNumber] = useState<string | null>(null);
     const [address,setAddress] = useState<string | null>(null);
-    const [verified,setVerified] = useState<string | null>(null);
-    const [totalRating,setTotalRating] = useState<string | null>(null);
+    const [verified,setVerified] = useState<boolean | null>(false);
+    const [totalRating,setTotalRating] = useState<number | null>(0);
     const [website,setWebsite] = useState<string | null>(null);
     const [about,setAbout] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
@@ -108,6 +108,7 @@ export default function EditProfile() {
             });
     
             const userData = userResponse.data;
+            console.log(userData);
             setUserDetails(userData);
 
             setFirstName(userData.firstName || "");
@@ -115,19 +116,18 @@ export default function EditProfile() {
             setEmail(userData.email || "");
             setPhoneNumber(userData.phoneNumber || "");
             setUserRole(userData.role || "");
+            setBusinessEmail(userData.businessEmail || "");
+            setBusinessPhoneNumber(userData.businessPhoneNumber || "");
 
             if (userData?.role === "BUSINESS") {
                 const business = userData?.businesses[0]; 
                 setUserBusinessDetails(business);  
-            
                 setName(business?.name || "");  
                 setAddress(business?.address || "");  
-                setBusinessEmail(business?.businessEmail || "");  
                 setAbout(business?.about || "");  
                 setWebsite(business?.website || "");  
-                setVerified(business?.verified || "");  
-                setTotalRating(business?.totalRating || "");  
-                setBusinessPhoneNumber(business?.phoneNumber || "");  
+                setVerified(business?.verified || false);
+                setTotalRating(business?.totalRating || 0);
             }
 
         } catch (error) {
@@ -137,6 +137,11 @@ export default function EditProfile() {
   
       fetchUserData();
     }, []);
+
+    useEffect(()=>{
+        console.log(verified);
+        console.log(totalRating);
+    },[])
 
 
     //update user details
@@ -300,22 +305,22 @@ export default function EditProfile() {
                         </div>
                         </div>
 
-                        <div className="col-span-full">
-                        <label htmlFor="street-address" className="block text-sm/6 font-medium text-gray-900">
-                            Street address
-                        </label>
-                        <div className="mt-2">
-                            <textarea
-                            id="street-address"
-                            name="street-address"
-                            rows={3}
-                            autoComplete="street-address"
-                            className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            />
-                        </div>
-                        </div>
+                        {/* <div className="col-span-full">
+                            <label htmlFor="street-address" className="block text-sm/6 font-medium text-gray-900">
+                                Street address
+                            </label>
+                            <div className="mt-2">
+                                <textarea
+                                id="street-address"
+                                name="street-address"
+                                rows={3}
+                                autoComplete="street-address"
+                                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                />
+                            </div>
+                        </div> */}
 
-                        <div className="sm:col-span-2 sm:col-start-1">
+                        {/* <div className="sm:col-span-2 sm:col-start-1">
                         <label htmlFor="city" className="block text-sm/6 font-medium text-gray-900">
                             City
                         </label>
@@ -358,7 +363,7 @@ export default function EditProfile() {
                             className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                             />
                         </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 
@@ -397,10 +402,8 @@ export default function EditProfile() {
                                     type="text"
                                     autoComplete="family-name"
                                     disabled={true}
-                                    placeholder={String(verified) || ""}
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                    value={verified || ""}
-                                    onChange={(e)=>setVerified(e.target.value)}
+                                    value={String(verified) || ""}
                                 />
                                 </div>
                             </div>
@@ -416,6 +419,8 @@ export default function EditProfile() {
                                     type="email"
                                     autoComplete="email"
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    value={businessEmail || ""}
+                                    onChange={(e)=>setBusinessEmail(e.target.value)}
                                 />
                                 </div>
                             </div>
@@ -426,11 +431,13 @@ export default function EditProfile() {
                                 </label>
                                 <div className="mt-2">
                                 <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
+                                    id="businessPhoneNumber"
+                                    name="businessPhoneNumber"
+                                    type="text"
                                     autoComplete="email"
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                    value={businessPhoneNumber || ""}
+                                    onChange={(e)=>setBusinessPhoneNumber(e.target.value)}
                                 />
                                 </div>
                             </div>
@@ -458,15 +465,12 @@ export default function EditProfile() {
                                 </label>
                                 <div className="mt-2">
                                 <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
+                                    id="totalRating"
+                                    name="totalRating"
+                                    type="text"
                                     disabled={true}
-                                    placeholder="4.3"
-                                    autoComplete="email"
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                    value={totalRating || ""}
-                                    onChange={(e)=>setTotalRating(e.target.value)}
+                                    value={String(totalRating) || ""}
                                 />
                                 </div>
                             </div>

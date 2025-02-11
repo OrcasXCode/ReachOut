@@ -1,7 +1,8 @@
 "use client"
 import Link from 'next/link'
 import { ChangeEventHandler, useState } from "react";
-import BusinessOnBoarding from '../components/BusinessOnBoarding'
+// import BusinessOnBoarding from '../components/BusinessOnBoarding'
+import BusinessOnBoarding from '../components/demo'
 import UserOnBoarding from '../components/UserOnBoarding'
 import {useSignup} from '../context/SignUpContext'
 
@@ -38,43 +39,38 @@ export default function SignUp() {
   const [phoneNumber,setPhoneNumber] = useState("");
   const [password,setPassword] = useState("");
   const [role,setRole] = useState("USER");
-  const [showUserOnBoarding,setShowUserOnBoarding] = useState(false);
+  // const [showUserOnBoarding,setShowUserOnBoarding] = useState(false);
   const [showBusinessOnBoarding,setShowBusinessOnBoarding] = useState(false);
-  const { updateSignupData, signupData } = useSignup();
+  const { updateSignupData ,submitSignup} = useSignup();
 
-  const handleSignUp = async(event:React.FormEvent)=>{
+  const handleSignUp = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    updateSignupData({
+  
+    const updatedData = {
       firstName,
       lastName,
       email,
       phoneNumber,
       password,
-      role
-    })
+      role,
+    };
+  
+    updateSignupData(updatedData);
 
-    if(role=="USER") setShowUserOnBoarding(true);
-    if(role=="BUSINESS") setShowBusinessOnBoarding(true); 
-  }
+    if (role === "USER"){
+      console.log("Updated signupData before API call:", updatedData);
+      submitSignup(updatedData);
+    }
+    if (role === "BUSINESS") setShowBusinessOnBoarding(true);
+  };
+  
 
   if(showBusinessOnBoarding) return <BusinessOnBoarding></BusinessOnBoarding>
-  if(showUserOnBoarding) return <UserOnBoarding></UserOnBoarding>
+  // if(showUserOnBoarding) return <UserOnBoarding></UserOnBoarding>
 
   return (
     <>
       <div className="flex min-h-full flex-1 flex-row  justify-center px-6 py-[160px] lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm relative pt-[100px]">
-            <div className="flex flex-col items-start justify-items-start place-content-start">
-                <h2 className="mt-10 text-center text-4xl/9 font-bold tracking-tight text-gray-900">
-                    Get
-                </h2>
-                <h2 className="mt-5 text-center text-6xl/9 font-bold tracking-tight text-gray-900">
-                    Discovered
-                </h2>
-            </div>
-        </div>
-
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form onSubmit={handleSignUp} className="space-y-6">
             <div className="flex flex-row gap-2.5">

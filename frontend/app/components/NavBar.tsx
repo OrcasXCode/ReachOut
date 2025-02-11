@@ -148,7 +148,7 @@ export default function Navbar() {
 
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-x-5 items-center justify-center">
                     <div className="w-full max-w-[300px] min-w-[100px]">
-                        <div className="relative">
+                        {/* <div className="relative">
                             <input
                                 className="w-full bg-slate-800 placeholder:text-slate-400 text-white text-sm border border-slate-200 rounded-full pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
                                 placeholder="" 
@@ -162,7 +162,7 @@ export default function Navbar() {
                             </svg>
                                 Search
                             </button> 
-                        </div>
+                        </div> */}
                     </div>
                         {isSignedIn ? (
                                     <div>

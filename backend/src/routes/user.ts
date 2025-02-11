@@ -125,6 +125,8 @@ userRoutes.post('/signout', async (c) => {
         return c.json({ error: 'Internal Server Error' },500);
     }
 });
+
+
 //signin route
 userRoutes.post('/signin', async (c) => {
     const prisma = c.get('prisma');
@@ -318,59 +320,59 @@ userRoutes.post('/forgetpassword',async (c)=>{
 })
 
 //verify-otp
-userRoutes.post('/verifyotp', async (c) => {
-    const body = await c.req.json();
-    const prisma = c.get('prisma');
+// userRoutes.post('/verifyotp', async (c) => {
+//     const body = await c.req.json();
+//     const prisma = c.get('prisma');
 
-    const parsed = verifyotpinput.safeParse(body);
-    if (!parsed.success) {
-        return c.json({
-            error: 'Invalid input',
-            details: parsed.error.errors
-        }, 400);
-    }
+//     const parsed = verifyotpinput.safeParse(body);
+//     if (!parsed.success) {
+//         return c.json({
+//             error: 'Invalid input',
+//             details: parsed.error.errors
+//         }, 400);
+//     }
 
-    const { emailHash, otp } = parsed.data;
+//     const { emailHash, otp } = parsed.data;
 
-    try {
-        const otpUser = await prisma.oTP.findFirst({
-            where: { emailHash },
-            select: { otp: true, expiresAt: true }
-        });
+//     try {
+//         const otpUser = await prisma.oTP.findFirst({
+//             where: { emailHash },
+//             select: { otp: true, expiresAt: true }
+//         });
 
-        if (!otpUser) {
-            return c.json({ error: 'OTP not found' }, 404);
-        }
+//         if (!otpUser) {
+//             return c.json({ error: 'OTP not found' }, 404);
+//         }
 
-        if (otpUser.otp !== otp) {
-            return c.json({ error: 'OTP did not match' }, 400);
-        }
+//         if (otpUser.otp !== otp) {
+//             return c.json({ error: 'OTP did not match' }, 400);
+//         }
 
-        if (otpUser.expiresAt.getTime() < Date.now()) {  // ⏳ Fixed Expiry Check
-            return c.json({
-                error: 'OTP expired',
-                details: 'Try to resend it and try again later!'
-            }, 400);
-        }
+//         if (otpUser.expiresAt.getTime() < Date.now()) {  // ⏳ Fixed Expiry Check
+//             return c.json({
+//                 error: 'OTP expired',
+//                 details: 'Try to resend it and try again later!'
+//             }, 400);
+//         }
 
-        // 🔥 Generate Reset Token
-        const resetToken = jwt.sign({ emailHash }, c.env.JWT_SECRET, { expiresIn: '15m' });
+//         // 🔥 Generate Reset Token
+//         const resetToken = jwt.sign({ emailHash }, c.env.JWT_SECRET, { expiresIn: '15m' });
 
-        // 🍪 Set secure HttpOnly cookie
-        c.res.headers.append(
-            'Set-Cookie',
-            `accessToken=${resetToken}; HttpOnly; Path=/; SameSite=Strict`
-        );
+//         // 🍪 Set secure HttpOnly cookie
+//         c.res.headers.append(
+//             'Set-Cookie',
+//             `accessToken=${resetToken}; HttpOnly; Path=/; SameSite=Strict`
+//         );
 
-        // ✅ Delete OTP after verification
-        await prisma.oTP.delete({ where: { emailHash } });
+//         // ✅ Delete OTP after verification
+//         await prisma.oTP.delete({ where: { emailHash } });
 
-        return c.json({ message: 'OTP verified', resetToken }, 200);
-    } catch (error) {
-        console.error(error);
-        return c.json({ error: 'Internal Server Error' }, 500);
-    }
-});
+//         return c.json({ message: 'OTP verified', resetToken }, 200);
+//     } catch (error) {
+//         console.error(error);
+//         return c.json({ error: 'Internal Server Error' }, 500);
+//     }
+// });
 
 
 //reset password route
@@ -440,24 +442,39 @@ userRoutes.get('/:id', async (c) => {
             },403)
         }
 
+        const secretKey = c.env.AES_SECRET_KEY;
+
+        const businessDetails = await prisma.business.findFirst({
+            where:{ownerId:id}
+        })
+        if(!businessDetails) return c.json({error:'User does not exists'},401);
+        const decryptedBusinessEmail = await AES.decrypt(businessDetails?.businessEmail,businessDetails?.businessEmailIV,secretKey);
+        const decryptedBusinessPhoneNumber = await AES.decrypt(businessDetails?.phoneNumber,businessDetails?.phoneNumberIV,secretKey);
+
         const userDetails = await prisma.user.findFirst({
             where: { id : id },
-            include:{businesses:true}
+            include:{
+                businesses:true,
+            }
         });
+
 
         if (!userDetails) {
             return c.json({ error: 'User does not exist' }, 401);
         }
 
-        const secretKey = c.env.AES_SECRET_KEY;
+        
         // Await the decryption process
         const decryptedEmail = await AES.decrypt(userDetails.email,userDetails.emailIV, secretKey);
         const decryptedPhoneNumber = await AES.decrypt(userDetails.phoneNumber,userDetails.phoneNumberIV, secretKey);
+
 
         return c.json({
             ...userDetails,
             email: decryptedEmail.toString(),
             phoneNumber: decryptedPhoneNumber.toString(),
+            businessEmail: decryptedBusinessEmail.toString(),
+            businessPhoneNumber: decryptedBusinessPhoneNumber.toString(),
         });
 
     } catch (error) {

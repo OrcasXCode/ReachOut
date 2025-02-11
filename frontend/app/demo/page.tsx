@@ -54,7 +54,7 @@ interface File{
 
 export default function OnBoarding() {
 
-  const {updateBusinessData, submitSignup, submitCreateBusiness , signupData } = useSignup();
+  const {updateSignupData, submitSignup, submitCreateBusiness } = useSignup();
   const [step, setStep] = useState<number>(1);
   const [name,setName] = useState<string | null>(null);
   const [email,setEmail] = useState<string | null>(null);
@@ -70,24 +70,24 @@ export default function OnBoarding() {
 
   const [businessDetails, setBusinessDetails] = useState({
     name: "",
-    businessEmail: "",
+    email: "",
     address: "",
-    verified: false,
+    verified: "False",
     phoneNumber: "",
     website: "",
     about: "",
-    totalRating: 0,
-    categoryId: "",
+    totalrating: "0.0",
+    categoryId: null as string | null,
     subCategoryIds: [] as string[],
-    mediaUrls: [] as { type: string; url: string }[],
+    mediaUrls: [] as File[],
     businessHours: [
-      { dayofWeek: "MONDAY", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "TUESDAY", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "WEDNESDAY", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "THURSDAY", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "FRIDAY", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "SATURDAY", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "SUNDAY", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "Monday", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "Tuesday", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "Wednesday", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "Thursday", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "Friday", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "Saturday", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "Sunday", openingTime: "21:00", closingTime: "12:00" },
     ],
   });
 
@@ -111,31 +111,32 @@ export default function OnBoarding() {
   // Handle form submission
   const handleSubmit = async () => {
     try {
-      const updatedBusinessData = {
-        name: businessDetails.name,
-        businessEmail: businessDetails.businessEmail,
-        address: businessDetails.address,
-        verified:businessDetails.verified,
-        phoneNumber: businessDetails.phoneNumber,
-        website: businessDetails.website,
-        about: businessDetails.about,
-        totalRating: businessDetails.totalRating,
-         categoryId: businessDetails.categoryId ?? null,
-        subCategoryIds: businessDetails.subCategoryIds,
-        mediaUrls: [],
-        businessHours: businessDetails.businessHours,
-      }
-      updateBusinessData(updatedBusinessData);
+      // Update the context with the latest business details
+      updateSignupData({
+        businesses: {
+          name: businessDetails.name,
+          businessEmail: businessDetails.email,
+          address: businessDetails.address,
+          verified: Boolean(businessDetails.verified),
+          phoneNumber: businessDetails.phoneNumber,
+          website: businessDetails.website,
+          about: businessDetails.about,
+          totalRating: businessDetails.totalrating,
+          categoryId: businessDetails.categoryId || undefined,
+          subCategoryIds: businessDetails.subCategoryIds,
+          mediaUrls: [],
+          businessHours: businessDetails.businessHours,
+        },
+      });
 
-      await submitSignup(signupData);
+      // Optionally, you can call submitSignup if needed
+      await submitSignup();
 
-      await submitCreateBusiness(updatedBusinessData);
+      // Call the submitCreateBusiness function
+      await submitCreateBusiness();
 
       console.log("Business created successfully!");
       alert("Business created successfully!");
-      setTimeout(()=>{
-        window.location.href="/business"
-      },1000)
     } catch (error) {
       console.error("Error creating business:", error);
       alert("Failed to create business. Please try again.");
@@ -342,7 +343,7 @@ export default function OnBoarding() {
                 className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
                 placeholder=""
                 required
-                onChange={(e) => handleInputChange("businessEmail", e.target.value)}
+                onChange={(e) => handleInputChange("email", e.target.value)}
               />
             </div>
             <div className="w-full">
@@ -410,7 +411,7 @@ export default function OnBoarding() {
                   placeholder="0.0"
                   required
                   disabled={true}
-                  onChange={(e) => handleInputChange("totalRating", e.target.value)}
+                  onChange={(e) => handleInputChange("totalrating", e.target.value)}
                 />
             </div>
           </div>
@@ -577,15 +578,13 @@ export default function OnBoarding() {
                   )}
                 </div>
               </div> */}
-                <div className="w-full">
-                    <div className="flex justify-end mt-5">
-                        <button
-                            className="border-2 border-gray-400 hover:bg-black hover:text-white transition-all duration-300 ease-in-out p-2 px-7 rounded-full"
-                            onClick={handleSubmit}
-                        >
-                            Submit
-                        </button>
-                    </div>
+                <div className="flex justify-end mt-5">
+                    <button
+                        className="border-2 border-gray-400 hover:bg-black hover:text-white transition-all duration-300 ease-in-out p-2 px-7 rounded-full"
+                        onClick={handleSubmit}
+                    >
+                        Next
+                    </button>
                 </div>
           </div>
         </div>   
