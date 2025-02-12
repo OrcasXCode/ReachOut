@@ -44,44 +44,47 @@ function LabelledInput({type="text",onChange}:LabelledInputType){
   )
 }
 
+async function hashEmail(email: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(email);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+
 export default function App() {
 
   const [otp,setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const email = localStorage.getItem('email');
+  const email = localStorage.getItem("email")?.trim();
 
-
-  const handleVerifyOtp = async (event:React.FormEvent)=>{
+  const handleVerifyOtp = async (event: React.FormEvent) => {
     event.preventDefault();
-    try{
-      const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+    try {
+      if (!email) {
+        setError("Email not found. Please try again.");
+        return;
+      }
+      
+      const emailHash = await hashEmail(email); 
       const response = await axios.post("http://localhost:8787/api/v1/user/verifyotp", {
-        emailHash, otp
-    });
-
-      // Cookies.set("accessToken", response.data.accessToken, {
-      //   expires: 7, 
-      //   secure: true, 
-      //   sameSite: "Strict", 
-      // });
+        emailHash,
+        otp
+      });
+  
       const resetToken = response.data.resetToken;
-      localStorage.setItem('resetToken', resetToken);  // Store the token securely
-
-      // Redirect to the reset password page
+      localStorage.setItem("resetToken", resetToken);
+  
       toast.success("OTP verified successfully");
-      window.location.href = '/resetpassword';
-      // Cookies.set("resetToken", response.data.accessToken, {
-      //   expires: 7, 
-      //   secure: true, 
-      //   sameSite: "Strict", 
-      // });
-    }
-    catch(err:any){
+      window.location.href = "/resetpassword";
+    } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong");
-      console.log(error);
+      console.log(err);
     }
-  }
-
+  };
+  
   return (
     <div className="flex flex-col items-center justify-center flex-wrap md:flex-nowrap gap-4 h-screen w-screen">
       <form onSubmit={handleVerifyOtp}>

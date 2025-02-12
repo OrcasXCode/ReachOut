@@ -11,6 +11,8 @@ DATABASE_URL="prisma://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsI
 JWT_SECRET="jaidwarkadhish"
 REFRESH_SECRET="jaidwarkadhish"
 AES_SECRET_KEY="jaidwarkadhish"
+UPSTASH_REDIS_URL="https://charmed-grackle-14250.upstash.io"
+UPSTASH_REDIS_TOKEN="ATeqAAIjcDExOTJmODVmNDNjNzY0MDI0YTQ1NWU5NGM5NmU2MTI3MHAxMA"
 
 [build]
 # Use external_modules under [build] section, and it should be under the proper configuration

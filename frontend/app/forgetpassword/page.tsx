@@ -31,7 +31,7 @@ function LabelledInput({label,placeholder,type="text",onChange}:LabelledInputTyp
   )
 }
 
-export default function Example() {
+export default function ForgetPassword() {
 
   const [email,setEmail] = useState("");
   const [error,setError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export default function Example() {
     event.preventDefault();
 
     try{
-      
+      console.log("Sending Email",email);
       const response = await axios.post(
         "http://localhost:8787/api/v1/user/forgetpassword",
         {email},
@@ -54,9 +54,6 @@ export default function Example() {
       // })
       toast.success("OTP Sent");
       localStorage.setItem('email',email);
-
-    
-      // Redirect after state update
       setTimeout(() => {
         window.location.href = "/verifyotp";
       }, 1000);

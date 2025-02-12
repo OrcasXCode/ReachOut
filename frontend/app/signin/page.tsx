@@ -18,14 +18,24 @@ interface LabelledInputType {
 function LabelledInput({ label, placeholder, type = "text", onChange }: LabelledInputType) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-900">{label}</label>
-      <input
-        onChange={onChange}
-        type={type}
-        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
-        placeholder={placeholder}
-        required
-      />
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-medium text-gray-900">{label}</label>
+        {label==='Password' ? 
+        <div className="text-sm">
+          <a href="/forgetpassword" className="font-semibold text-indigo-600 hover:text-indigo-500">
+            Forgot password?
+          </a>
+        </div> : null}
+      </div>
+      <div className="mt-2">
+        <input
+          onChange={onChange}
+          type={type}
+          className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
+          placeholder={placeholder}
+          required
+        />
+      </div>
     </div>
   );
 }

@@ -9,15 +9,18 @@ import Carousel from "../components/ui/Slider";
 import {useState,useEffect, Key} from 'react'
 import Link from "next/link";
 import axios from 'axios';
+import { useSearchParams } from "next/navigation";
 
 type BusinessStatus = "Open" | "Closed";
 
 
-export default function Listings({ categoryId }: { categoryId: string }) {
+export default function Listings() {
 
   const [isExpanded, setIsExpanded] = useState(false);
 
   const [fetchedbusiness, setFetchedBusinesses] = useState<any[]>([]);
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get("categoryId") || "";
 
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -26,12 +29,11 @@ export default function Listings({ categoryId }: { categoryId: string }) {
           "http://localhost:8787/api/v1/business/bulk",
           { withCredentials: true }
         );
-
+  
         if (!response.data || !Array.isArray(response.data.bulkBusinesses)) {
           throw new Error("Unexpected API response format");
         }
-
-        // Extract businesses
+  
         const businessList = response.data.bulkBusinesses.flatMap(
           (category: { categoryId: string; categoryName: string; businesses: any[] }) =>
             category.businesses.map((business) => ({
@@ -40,19 +42,22 @@ export default function Listings({ categoryId }: { categoryId: string }) {
               categoryName: category.categoryName,
             }))
         );
-
-        // If categoryId is provided, filter the businesses
+  
         const filteredBusinesses = categoryId
-          ? businessList.filter((business: { categoryId: string; }) => business.categoryId === categoryId)
+          ? businessList.filter(
+              (business: { categoryId: string }) =>
+                String(business.categoryId).trim().toLowerCase() ===
+                String(categoryId).trim().toLowerCase()
+            )
           : businessList;
-
+  
         console.log("Fetched Businesses:", filteredBusinesses);
         setFetchedBusinesses(filteredBusinesses);
       } catch (err: any) {
         console.log(err.response?.data?.message || "Error fetching businesses", err);
       }
     };
-
+  
     fetchBusinesses();
   }, [categoryId]);
   

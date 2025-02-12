@@ -17,6 +17,9 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid'
 import Listings from '../components/Listings'
 import PaginationTab from '../components/Pagination'
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+
 
 const sortOptions = [
   { name: 'Most Popular', href: '#', current: true },
@@ -36,7 +39,7 @@ const subCategories = [
   { name: 'Fashion', href: '#',id: '' },
   { name: 'Travel', href: '#',id: '' },
   { name: 'Art', href: '#',id: '334c6fa1-37b5-4e81-b0f1-7ec0d4feb34b' },
-  { name: 'Beauty', href: '#',id: '' },
+  { name: 'Beauty', href: '#',id: 'e80c709c-cc6d-41ae-b551-0ce92594b1e1' },
   { name: 'Sports', href: '#',id: '' },
 ];
 
@@ -122,10 +125,23 @@ function classNames(...classes: string[]) {
 
 export default function Example() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const handleCategoryClick = (categoryName: string) => {
-    setSelectedCategoryId(categoryName);
+  // const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  // const handleCategoryClick = (categoryName: string) => {
+  //   setSelectedCategoryId(categoryName);
+  // };
+  const router = useRouter();
+  const searchParams = useSearchParams(); // For reading query params
+
+  const handleCategoryChange = (categoryId: string) => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    if (categoryId) {
+      currentParams.set("categoryId", categoryId);
+    } else {
+      currentParams.delete("categoryId");
+    }
+    router.push(`?${currentParams.toString()}`);
   };
+
   
 
   return (
@@ -268,11 +284,11 @@ export default function Example() {
                   </div>
                 </MenuItems>
               </Menu>
-
+{/* 
               <button type="button" className="-m-2 ml-5 p-2 text-gray-400 hover:text-gray-500 sm:ml-7">
                 <span className="sr-only">View grid</span>
                 <Squares2X2Icon aria-hidden="true" className="size-5" />
-              </button>
+              </button> */}
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(true)}
@@ -296,12 +312,12 @@ export default function Example() {
                 <ul role="list" className="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
                   {subCategories.map((category) => (
                     <li key={category.name}>
-                      <button
-                        onClick={() => handleCategoryClick(category.id)}
-                        className={`cursor-pointer ${selectedCategoryId == category.id ? "text-blue-500 font-bold" : ""}`}
+                      <Link
+                        href={`?categoryId=${category.id}`}
+                        className="cursor-pointer"
                       >
                         {category.name}
-                      </button>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -366,7 +382,7 @@ export default function Example() {
 
               {/* Product grid */}
               <div className="lg:col-span-3 text-black">
-                <Listings categoryId={selectedCategoryId || ""}></Listings>
+                <Listings></Listings>
                 <PaginationTab></PaginationTab>
               </div>
             </div>

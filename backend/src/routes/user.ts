@@ -26,8 +26,6 @@ export const userRoutes = new Hono<{
   };
 }>();
 
-
-//Defining the PrismClient Globallly so that we dont need to define it in every route
 userRoutes.use('*', async (c, next) => {
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
@@ -36,6 +34,7 @@ userRoutes.use('*', async (c, next) => {
     c.set('prisma', prisma);
     await next();
 });
+
 
 //signup route
 userRoutes.post('/signup', async (c) => {
@@ -108,7 +107,6 @@ userRoutes.post('/signup', async (c) => {
     }
 });
 
-
 //signout route
 userRoutes.post('/signout', async (c) => {
     const prisma = c.get('prisma');
@@ -126,108 +124,71 @@ userRoutes.post('/signout', async (c) => {
     }
 });
 
-
 //signin route
-userRoutes.post('/signin', async (c) => {
-    const prisma = c.get('prisma');
-    const body = await c.req.json();
+// userRoutes.post('/signin', async (c) => {
+//     const prisma = c.get('prisma');
+//     const body = await c.req.json();
 
-    const parsed = signininput.safeParse(body);
-    if (!parsed.success) {
-        return c.json({
-            error: 'Invalid input',
-            details: parsed.error.errors
-        }, 400);
-    }
+//     const parsed = signininput.safeParse(body);
+//     if (!parsed.success) {
+//         return c.json({
+//             error: 'Invalid input',
+//             details: parsed.error.errors
+//         }, 400);
+//     }
 
-    const { email, password } = parsed.data;
+//     const { email, password } = parsed.data;
 
-    try {
-        const secretKey = c.env.AES_SECRET_KEY;
-        if (!secretKey) return c.json({ error: 'Encryption key not found' }, 500);
+//     try {
+//         const secretKey = c.env.AES_SECRET_KEY;
+//         if (!secretKey) return c.json({ error: 'Encryption key not found' }, 500);
 
-        const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+//         const emailHash = crypto.createHash("sha256").update(email).digest("hex");
 
-        const user = await prisma.user.findUnique({
-            where: { emailHash },
-            select: {
-                id: true,
-                password: true,
-                email: true,
-                emailIV: true
-            }
-        });
+//         const user = await prisma.user.findUnique({
+//             where: { emailHash },
+//             select: {
+//                 id: true,
+//                 password: true,
+//                 email: true,
+//                 emailIV: true
+//             }
+//         });
 
-        if (!user) {
-            return c.json({ error: 'Incorrect Credentials' }, 403);
-        }
+//         if (!user) {
+//             return c.json({ error: 'Incorrect Credentials' }, 403);
+//         }
 
-        const decryptedEmail = await AES.decrypt(user.email, user.emailIV, secretKey);
-        if (decryptedEmail !== email) {
-            return c.json({ error: 'Incorrect Credentials' }, 403);
-        }
-
-
-        if(user.password!==password){
-            return c.json({ error: 'Password does not match' }, 403);
-        }
+//         const decryptedEmail = await AES.decrypt(user.email, user.emailIV, secretKey);
+//         if (decryptedEmail !== email) {
+//             return c.json({ error: 'Incorrect Credentials' }, 403);
+//         }
 
 
-        const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
-        const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
+//         if(user.password!==password){
+//             return c.json({ error: 'Password does not match' }, 403);
+//         }
 
-        c.res.headers.append(
-            'Set-Cookie',
-            `accessToken=${accessToken}; HttpOnly; Path=/; SameSite=Strict`
-        );
 
-        c.res.headers.append(
-            'Set-Cookie',
-            `refreshToken=${refreshToken}; HttpOnly; Path=/; SameSite=Strict`
-        );
+//         const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
+//         const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
+
+//         c.res.headers.append(
+//             'Set-Cookie',
+//             `accessToken=${accessToken}; HttpOnly; Path=/; SameSite=Strict`
+//         );
+
+//         c.res.headers.append(
+//             'Set-Cookie',
+//             `refreshToken=${refreshToken}; HttpOnly; Path=/; SameSite=Strict`
+//         );
         
-        return c.json({ accessToken }, 200);
-    } catch (error) {
-        console.error(error);
-        return c.json({ error: 'Internal Server Error' }, 500);
-    }
-});
-
-//global middelware
-userRoutes.use('/*', async (c, next) => {
-    const cookies = c.req.header("Cookie") || "";
-    const accessToken = cookies.split("; ").find(row=>row.startsWith("accessToken="))?.split("=")[1];
-
-    if (!accessToken) {
-        c.status(401);
-        return c.json({ error: 'Unauthorized' });
-    }
-
-
-    try {
-        const payload = await verify(accessToken, c.env.JWT_SECRET);
-        if (!payload || !payload.id) {
-            c.status(401);
-            return c.json({ error: 'Unauthorized' });
-        }
-
-        c.set('userId', payload.id as string);
-        await next();
-    } catch (error) {
-        console.log(error);
-        c.status(500);
-        return c.json({ error: 'Internal Server Error' });
-    }
-});
-
-userRoutes.get('/me', async (c) => {
-    const userId = c.get('userId');  // Extract userId from middleware
-    if (!userId) {
-        return c.json({ error: "Unauthorized" }, 401);
-    }
-    return c.json({ userId });
-});
-
+//         return c.json({ accessToken }, 200);
+//     } catch (error) {
+//         console.error(error);
+//         return c.json({ error: 'Internal Server Error' }, 500);
+//     }
+// });
 
 //forget password route
 userRoutes.post('/forgetpassword',async (c)=>{
@@ -255,7 +216,7 @@ userRoutes.post('/forgetpassword',async (c)=>{
 
         const emailHash =  crypto.createHash("sha256").update(email).digest("hex");
 
-        const user= await prisma.user.findUnique({
+        const user= await prisma.user.findFirst({
             where:{
                 emailHash
             },
@@ -290,15 +251,22 @@ userRoutes.post('/forgetpassword',async (c)=>{
         const expiresAt=new Date(Date.now()+10*60*1000);
         const encryptedEmail = await AES.encrypt(email,secretKey);
 
-        await prisma.oTP.create({
-            data: {
-              emailHash,  
-              email: encryptedEmail.encrypted, 
-              emailIV: encryptedEmail.iv, 
-              otp,
-              expiresAt
+        await prisma.oTP.upsert({
+            where:{
+                emailHash:emailHash
+            },
+            update: { 
+                otp, 
+                expiresAt 
+            },
+            create: { 
+                email: encryptedEmail.encrypted, 
+                emailIV: encryptedEmail.iv, 
+                emailHash, 
+                otp, 
+                expiresAt 
             }
-          });
+        });
           
         const response = await fetch('https://cfw-react-emails.omp164703.workers.dev/send/email/otp-email', {
             method: 'POST',
@@ -307,6 +275,10 @@ userRoutes.post('/forgetpassword',async (c)=>{
             },
             body: JSON.stringify({ otp })
         });
+
+        // const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
+         
+        // c.res.headers.append('Set-Cookie', `refreshToken=${accessToken}; HttpOnly; Path=/;  SameSite=Strict`);
 
         return c.json({message:'OTP sent to your email',otp},200)
     }
@@ -319,111 +291,172 @@ userRoutes.post('/forgetpassword',async (c)=>{
     }
 })
 
-//verify-otp
-// userRoutes.post('/verifyotp', async (c) => {
-//     const body = await c.req.json();
-//     const prisma = c.get('prisma');
+// Verify OTP Route (Same as before)
+userRoutes.post('/verifyotp', async (c) => {
+    const body = await c.req.json();
+    const prisma = c.get('prisma');
 
-//     const parsed = verifyotpinput.safeParse(body);
-//     if (!parsed.success) {
-//         return c.json({
-//             error: 'Invalid input',
-//             details: parsed.error.errors
-//         }, 400);
+    try {
+        const otpUser = await prisma.oTP.findFirst({
+            where: { emailHash: body.emailHash },
+            select: { otp: true, expiresAt: true }
+        });
+
+        if (!otpUser) {
+            return c.json({ error: 'OTP not found' }, 404);
+        }
+
+        if (otpUser.otp !== body.otp) {
+            return c.json({ error: 'OTP did not match' }, 400);
+        }
+
+        if (otpUser.expiresAt.getTime() < Date.now()) {  
+            return c.json({
+                error: 'OTP expired',
+                details: 'Try to resend it and try again later!'
+            }, 400);
+        }
+
+        const resetToken = jwt.sign({ emailHash: body.emailHash }, c.env.JWT_SECRET, { expiresIn: '15m' });
+
+        c.res.headers.append(
+            "Set-Cookie",
+            `resetToken=${resetToken}; HttpOnly; Secure; Path=/; SameSite=Strict`
+        );
+
+        // Delete OTP after successful verification
+        await prisma.oTP.delete({ where: { emailHash: body.emailHash } });
+
+        return c.json({ message: 'OTP verified' }, 200);
+    } catch (error) {
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
+    }
+});
+
+// Reset Password Route with Cookie-Based Token Retrieval
+userRoutes.post('/resetpassword', async (c) => {
+    const body = await c.req.json();
+    const prisma = c.get('prisma');
+
+    const parsed = resetpasswordinput.safeParse(body);
+    if (!parsed.success) {
+        return c.json({
+            error: 'Invalid Inputs',
+            details: parsed.error.errors
+        }, 400);
+    }
+
+    const { newPassword, confirmnewPassword } = parsed.data;
+
+    try {
+        // Get resetToken from HTTP-only cookies
+        const resetToken = c.req.header('Cookie')?.split('; ').find(row => row.startsWith('resetToken='))?.split('=')[1];
+
+        if (!resetToken) {
+            return c.json({ error: 'Reset token is missing' }, 401);
+        }
+
+        const decoded = jwt.verify(resetToken, c.env.JWT_SECRET) as { emailHash: string };
+        const { emailHash } = decoded;
+
+        const user = await prisma.user.findUnique({ where: { emailHash } });
+
+        if (!user) {
+            return c.json({ error: 'User does not exist' }, 404);
+        }
+
+        if (newPassword !== confirmnewPassword) {
+            return c.json({ error: 'Passwords do not match' }, 400);
+        }
+
+        await prisma.user.update({
+            where: { emailHash },
+            data: { password: newPassword }
+        });
+
+        // Clear the resetToken cookie after successful password reset
+        c.res.headers.append(
+            "Set-Cookie",
+            `resetToken=; HttpOnly; Secure; Path=/; SameSite=Strict; Max-Age=0`
+        );
+
+        return c.json({ message: 'Password reset successfully' }, 200);
+    } catch (error) {
+        console.log(error);
+        return c.json({ error: 'Invalid or expired token' }, 400);
+    }
+});
+
+
+
+//global middelware
+// userRoutes.use('/*', async (c, next) => {
+//     const cookies = c.req.header("Cookie") || "";
+//     const accessToken = cookies.split("; ").find(row=>row.startsWith("accessToken="))?.split("=")[1];
+
+//     if (!accessToken) {
+//         c.status(401);
+//         return c.json({ error: 'Unauthorized' });
 //     }
 
-//     const { emailHash, otp } = parsed.data;
 
 //     try {
-//         const otpUser = await prisma.oTP.findFirst({
-//             where: { emailHash },
-//             select: { otp: true, expiresAt: true }
-//         });
-
-//         if (!otpUser) {
-//             return c.json({ error: 'OTP not found' }, 404);
+//         const payload = await verify(accessToken, c.env.JWT_SECRET);
+//         if (!payload || !payload.id) {
+//             c.status(401);
+//             return c.json({ error: 'Unauthorized' });
 //         }
 
-//         if (otpUser.otp !== otp) {
-//             return c.json({ error: 'OTP did not match' }, 400);
-//         }
-
-//         if (otpUser.expiresAt.getTime() < Date.now()) {  // ⏳ Fixed Expiry Check
-//             return c.json({
-//                 error: 'OTP expired',
-//                 details: 'Try to resend it and try again later!'
-//             }, 400);
-//         }
-
-//         // 🔥 Generate Reset Token
-//         const resetToken = jwt.sign({ emailHash }, c.env.JWT_SECRET, { expiresIn: '15m' });
-
-//         // 🍪 Set secure HttpOnly cookie
-//         c.res.headers.append(
-//             'Set-Cookie',
-//             `accessToken=${resetToken}; HttpOnly; Path=/; SameSite=Strict`
-//         );
-
-//         // ✅ Delete OTP after verification
-//         await prisma.oTP.delete({ where: { emailHash } });
-
-//         return c.json({ message: 'OTP verified', resetToken }, 200);
+//         c.set('userId', payload.id as string);
+//         await next();
 //     } catch (error) {
-//         console.error(error);
-//         return c.json({ error: 'Internal Server Error' }, 500);
+//         console.log(error);
+//         c.status(500);
+//         return c.json({ error: 'Internal Server Error' });
+//     }
+// });
+// userRoutes.use('/*', async (c, next) => {
+//     const publicRoutes = ['/forgetpassword', '/verifyotp','/signup','/signin','/signout'];
+//     if (publicRoutes.includes(c.req.path)) {
+//         return await next(); 
+//     }
+
+//     const cookies = c.req.header("Cookie") || "";
+//     const accessToken = cookies.split("; ").find(row => row.startsWith("accessToken="))?.split("=")[1];
+
+//     if (!accessToken) {
+//         c.status(401);
+//         return c.json({ error: 'Unauthorized' });
+//     }
+
+//     try {
+//         const payload = await verify(accessToken, c.env.JWT_SECRET);
+//         if (!payload || !payload.id) {
+//             c.status(401);
+//             return c.json({ error: 'Unauthorized' });
+//         }
+
+//         c.set('userId', payload.id as string);
+//         await next();
+//     } catch (error) {
+//         console.log(error);
+//         c.status(500);
+//         return c.json({ error: 'Internal Server Error' });
 //     }
 // });
 
 
-//reset password route
-userRoutes.post('/resetpassword',async (c)=>{
-    const body =await c.req.json();
-    const prisma= c.get('prisma');
-
-    const parsed = resetpasswordinput.safeParse(body);
-    if(!parsed.success){
-        return c.json({
-            error: 'Invalid Inputs',
-            details : parsed.error.errors
-        })
+//getting userId
+userRoutes.get('/me', async (c) => {
+    const userId = c.get('userId');  // Extract userId from middleware
+    if (!userId) {
+        return c.json({ error: "Unauthorized" }, 401);
     }
+    return c.json({ userId });
+});
 
-    const { resetToken, newPassword, confirmnewPassword } = parsed.data;
 
-    try{
-        const decoded = jwt.verify(resetToken, c.env.JWT_SECRET) as { emailHash: string };
-        const { emailHash } = decoded;
-
-        const user = await prisma.user.findUnique({
-            where:{emailHash}
-        })
-        if(!user){
-            return c.json({
-                error:'User does not exits',
-            })
-        }
-        if(newPassword!==confirmnewPassword){
-            return c.json({
-                error:'Both the password does not match . Please try again later'
-            })
-        }
-        await prisma.user.update({
-            where:{emailHash},
-            data:{
-                password:newPassword
-            }
-        })
-        return c.json({
-            message:'Password reset successfully',
-            details:emailHash
-        },200)
-    }
-    catch(error){
-        console.log(error);
-        c.status(500);
-        return c.json({error : 'Internal Server Error'})
-    }
-})
 
 //getting user profile route
 userRoutes.get('/:id', async (c) => {
