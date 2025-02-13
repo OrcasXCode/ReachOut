@@ -7,6 +7,8 @@ import {editBusinessTimings} from "@omsureja/reachout"
 import {editBusinessDetails} from "@omsureja/reachout"
 import {AES} from '../services/aesService'
 import crypto from 'crypto'
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
 
 
 export const businessRoutes = new Hono<{
@@ -21,6 +23,15 @@ export const businessRoutes = new Hono<{
     }
 }>()
 
+const s3 = new S3Client({
+    region: "ap-south-1",
+    credentials: {
+      accessKeyId: "AKIATX3PIHYN2QXFDS6W",
+      secretAccessKey: "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",
+    },
+  });
+  
+
 businessRoutes.use('*', async (c, next) => {
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
@@ -29,7 +40,6 @@ businessRoutes.use('*', async (c, next) => {
     c.set('prisma', prisma);
     await next();
 });
-
 
 
 //global middelware
@@ -405,8 +415,6 @@ businessRoutes.get('/bulk', async (c) => {
 
 
 
-
-
 //liking a business
 businessRoutes.put('/like/:id',async (c)=>{
     const prisma = c.get('prisma');
@@ -764,55 +772,80 @@ businessRoutes.put('/updatebusinesstimings/:id', async (c) => {
 businessRoutes.put('/uploadbusinessmedia/:id', async (c) => {
     const prisma = c.get('prisma');
     const userId = c.get('userId');
-    const body = await c.req.json();
     const businessId = c.req.param('id');
 
+    if (!userId) return c.json({ error: 'Provide a user ID' }, 401);
+    if (!businessId) return c.json({ error: 'Business ID is required' }, 400);
+
     try {
-        if (!userId) {
-            return c.json({ error: 'Provide a user ID' }, 401);
-        }
-
-        const { mediaUrls } = body;
-
-        if (!businessId || !Array.isArray(mediaUrls) || mediaUrls.length === 0) {
-            return c.json({ error: 'Invalid input: businessId and mediaUrls are required' }, 400);
-        }
-
-        const business = await prisma.business.findUnique({
+        const business = await prisma.business.findFirst({
             where: { id: businessId },
-            select: { ownerId : true },
+            select: { ownerId: true },
         });
 
-        
-        if (!business) {
-            return c.json({ error: 'Business not found' }, 404);
+        console.log(business);
+        if (!business) return c.json({ error: 'Business not found' }, 404);
+        if (userId !== business.ownerId) {
+            return c.json({ error: 'You are not the owner of this business' }, 401);
         }
 
-        if(userId !== business.ownerId){
-            return c.json({
-                error: 'You are not the owner of this business',
-            },401)
+        // Parse formData instead of JSON
+        const body = await c.req.formData();
+        const files = body.getAll("files") as File[];
+
+        if (!files || files.length === 0) {
+            return c.json({ error: 'No files provided' }, 400);
         }
 
-        if (!mediaUrls.every(media => media.type && media.url)) {
-            return c.json({ error: 'Invalid media format: Each media item must have type and url' }, 400);
-        }
+        // Upload each file to S3 and store URLs
+        const uploadedMedia = await Promise.all(files.map(async (file) => {
+            const fileBuffer = await file.arrayBuffer();
+            const fileKey = `business-media/${businessId}/${Date.now()}-${file.name}`;
 
-        const createdMedia = await prisma.media.createMany({
-            data: mediaUrls.map(media => ({
-                type: media.type,
-                url: media.url,
-                businessMediaId: businessId
-            }))
-        });
+            const command = new PutObjectCommand({
+                Bucket: "myprojectuploads",
+                Key: fileKey,
+                Body: Buffer.from(fileBuffer),
+                ContentType: file.type,
+            });
+
+            await s3.send(command);
+            return {
+                type: file.type,
+                url: `https://myprojectuploads.s3.amazonaws.com/${fileKey}`,
+                businessMediaId: businessId,
+            };
+        }));
+
+        // Save uploaded media details in DB
+        await prisma.media.createMany({ data: uploadedMedia });
 
         return c.json({
             message: 'Business media uploaded successfully',
-            uploadedMediaCount: createdMedia.count
+            uploadedMediaCount: uploadedMedia.length,
         }, 200);
 
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
+});
+
+
+
+businessRoutes.get('/me', async (c) => {
+    const userId = c.get('userId');  
+    const prisma =c.get('prisma');
+    const businessId = await prisma.business.findFirst({
+        where:{
+            ownerId : userId
+        },
+        select:{
+            id:true
+        }
+    })
+    if (!businessId) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+    return c.json({ businessId });
 });

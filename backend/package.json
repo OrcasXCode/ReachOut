@@ -5,6 +5,7 @@
     "deploy": "wrangler deploy --minify"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.744.0",
     "@noble/hashes": "^1.7.1",
     "@omsureja/reachout": "^1.1.9",
     "@prisma/client": "6.2.1",

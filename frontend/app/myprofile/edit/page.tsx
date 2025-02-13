@@ -28,6 +28,7 @@ export default function EditProfile() {
     const [website,setWebsite] = useState<string | null>(null);
     const [about,setAbout] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [businessId,setBusinessId] = useState<string | null>(null);
 
     // Handle file addition
     const addFile = (file: File) => {
@@ -35,14 +36,14 @@ export default function EditProfile() {
         setFiles((prevFiles) => ({ ...prevFiles, [objectURL]: file }));
     };
 
-    // Handle file input change
-    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            for (const file of e.target.files) {
-                addFile(file);
-            }
-        }
-    };
+    // // Handle file input change
+    // const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     if (e.target.files) {
+    //         for (const file of e.target.files) {
+    //             addFile(file);
+    //         }
+    //     }
+    // };
 
     // Handle file drop
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -69,18 +70,76 @@ export default function EditProfile() {
     };
 
     // Handle file deletion
-    const handleDelete = (objectURL: string) => {
-        const newFiles = { ...files };
-        delete newFiles[objectURL];
-        setFiles(newFiles);
-    };
+    // const handleDelete = (objectURL: string) => {
+    //     const newFiles = { ...files };
+    //     delete newFiles[objectURL];
+    //     setFiles(newFiles);
+    // };
 
     // Handle form submission
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-        alert(`Submitted Files:\n${JSON.stringify(Object.values(files).map(f => f.name))}`);
-        console.log(files);
+    useEffect(()=>{
+        const fetchBusinessData = async()=>{
+            const meResponse = await axios.get("http://localhost:8787/api/v1/business/me", {
+                withCredentials: true,
+            });
+            const businessId = meResponse.data.businessId.id;
+            setBusinessId(businessId);
+        }
+        fetchBusinessData();
+    },[])
+
+    const handleSubmit = async () => {
+        if (Object.keys(files).length === 0) {
+            alert("No files selected");
+            return;
+        }
+    
+        const formData = new FormData();
+        Object.values(files).forEach((file) => {
+            formData.append("files", file);
+        });
+    
+        try {
+            console.log("Entered File API");
+            const response = await axios.put(
+                `http://localhost:8787/api/v1/business/uploadbusinessmedia/${businessId}`,
+                formData, // Pass formData directly
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    }
+                }
+            );
+            console.log("Exited",response);
+            alert("Files uploaded successfully");
+            setFiles({}); // Clear selected files after upload
+        } catch (error) {
+            console.error("Error uploading files:", error);
+        }
     };
+    
+
+
+    const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!event.target.files) return;
+    
+        const newFiles = Array.from(event.target.files);
+        setFiles((prevFiles) => ({
+            ...prevFiles,
+            ...Object.fromEntries(newFiles.map((file) => [URL.createObjectURL(file), file])),
+        }));
+    };
+    const handleDelete = (objectURL: string) => {
+        setFiles((prevFiles) => {
+            const updatedFiles = { ...prevFiles };
+            delete updatedFiles[objectURL];
+            return updatedFiles;
+        });
+    };
+    
+    
+
 
     // Handle cancel
     const handleCancel = () => {
@@ -102,13 +161,12 @@ export default function EditProfile() {
                 console.error("User ID not found");
                 return;
             }
-    
+
             const userResponse = await axios.get(`http://localhost:8787/api/v1/user/${userId}`, {
                 withCredentials: true,
             });
     
             const userData = userResponse.data;
-            console.log(userData);
             setUserDetails(userData);
 
             setFirstName(userData.firstName || "");
@@ -137,12 +195,6 @@ export default function EditProfile() {
   
       fetchUserData();
     }, []);
-
-    useEffect(()=>{
-        console.log(verified);
-        console.log(totalRating);
-    },[])
-
 
     //update user details
     const updateDetailsHandler = async () => {

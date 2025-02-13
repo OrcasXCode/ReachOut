@@ -125,70 +125,70 @@ userRoutes.post('/signout', async (c) => {
 });
 
 //signin route
-// userRoutes.post('/signin', async (c) => {
-//     const prisma = c.get('prisma');
-//     const body = await c.req.json();
+userRoutes.post('/signin', async (c) => {
+    const prisma = c.get('prisma');
+    const body = await c.req.json();
 
-//     const parsed = signininput.safeParse(body);
-//     if (!parsed.success) {
-//         return c.json({
-//             error: 'Invalid input',
-//             details: parsed.error.errors
-//         }, 400);
-//     }
+    const parsed = signininput.safeParse(body);
+    if (!parsed.success) {
+        return c.json({
+            error: 'Invalid input',
+            details: parsed.error.errors
+        }, 400);
+    }
 
-//     const { email, password } = parsed.data;
+    const { email, password } = parsed.data;
 
-//     try {
-//         const secretKey = c.env.AES_SECRET_KEY;
-//         if (!secretKey) return c.json({ error: 'Encryption key not found' }, 500);
+    try {
+        const secretKey = c.env.AES_SECRET_KEY;
+        if (!secretKey) return c.json({ error: 'Encryption key not found' }, 500);
 
-//         const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+        const emailHash = crypto.createHash("sha256").update(email).digest("hex");
 
-//         const user = await prisma.user.findUnique({
-//             where: { emailHash },
-//             select: {
-//                 id: true,
-//                 password: true,
-//                 email: true,
-//                 emailIV: true
-//             }
-//         });
+        const user = await prisma.user.findUnique({
+            where: { emailHash },
+            select: {
+                id: true,
+                password: true,
+                email: true,
+                emailIV: true
+            }
+        });
 
-//         if (!user) {
-//             return c.json({ error: 'Incorrect Credentials' }, 403);
-//         }
+        if (!user) {
+            return c.json({ error: 'Incorrect Credentials' }, 403);
+        }
 
-//         const decryptedEmail = await AES.decrypt(user.email, user.emailIV, secretKey);
-//         if (decryptedEmail !== email) {
-//             return c.json({ error: 'Incorrect Credentials' }, 403);
-//         }
-
-
-//         if(user.password!==password){
-//             return c.json({ error: 'Password does not match' }, 403);
-//         }
+        const decryptedEmail = await AES.decrypt(user.email, user.emailIV, secretKey);
+        if (decryptedEmail !== email) {
+            return c.json({ error: 'Incorrect Credentials' }, 403);
+        }
 
 
-//         const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
-//         const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
+        if(user.password!==password){
+            return c.json({ error: 'Password does not match' }, 403);
+        }
 
-//         c.res.headers.append(
-//             'Set-Cookie',
-//             `accessToken=${accessToken}; HttpOnly; Path=/; SameSite=Strict`
-//         );
 
-//         c.res.headers.append(
-//             'Set-Cookie',
-//             `refreshToken=${refreshToken}; HttpOnly; Path=/; SameSite=Strict`
-//         );
+        const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
+        const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
+
+        c.res.headers.append(
+            'Set-Cookie',
+            `accessToken=${accessToken}; HttpOnly; Path=/; SameSite=Strict`
+        );
+
+        c.res.headers.append(
+            'Set-Cookie',
+            `refreshToken=${refreshToken}; HttpOnly; Path=/; SameSite=Strict`
+        );
         
-//         return c.json({ accessToken }, 200);
-//     } catch (error) {
-//         console.error(error);
-//         return c.json({ error: 'Internal Server Error' }, 500);
-//     }
-// });
+        return c.json({ accessToken }, 200);
+    } catch (error) {
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
+    }
+});
 
 //forget password route
 userRoutes.post('/forgetpassword',async (c)=>{
@@ -391,65 +391,35 @@ userRoutes.post('/resetpassword', async (c) => {
 
 
 //global middelware
-// userRoutes.use('/*', async (c, next) => {
-//     const cookies = c.req.header("Cookie") || "";
-//     const accessToken = cookies.split("; ").find(row=>row.startsWith("accessToken="))?.split("=")[1];
+userRoutes.use('/*', async (c, next) => {
+    const cookies = c.req.header("Cookie") || "";
+    const accessToken = cookies.split("; ").find(row=>row.startsWith("accessToken="))?.split("=")[1];
 
-//     if (!accessToken) {
-//         c.status(401);
-//         return c.json({ error: 'Unauthorized' });
-//     }
+    if (!accessToken) {
+        c.status(401);
+        return c.json({ error: 'Unauthorized' });
+    }
 
+    try {
+        const payload = await verify(accessToken, c.env.JWT_SECRET);
+        if (!payload || !payload.id) {
+            c.status(401);
+            return c.json({ error: 'Unauthorized' });
+        }
 
-//     try {
-//         const payload = await verify(accessToken, c.env.JWT_SECRET);
-//         if (!payload || !payload.id) {
-//             c.status(401);
-//             return c.json({ error: 'Unauthorized' });
-//         }
-
-//         c.set('userId', payload.id as string);
-//         await next();
-//     } catch (error) {
-//         console.log(error);
-//         c.status(500);
-//         return c.json({ error: 'Internal Server Error' });
-//     }
-// });
-// userRoutes.use('/*', async (c, next) => {
-//     const publicRoutes = ['/forgetpassword', '/verifyotp','/signup','/signin','/signout'];
-//     if (publicRoutes.includes(c.req.path)) {
-//         return await next(); 
-//     }
-
-//     const cookies = c.req.header("Cookie") || "";
-//     const accessToken = cookies.split("; ").find(row => row.startsWith("accessToken="))?.split("=")[1];
-
-//     if (!accessToken) {
-//         c.status(401);
-//         return c.json({ error: 'Unauthorized' });
-//     }
-
-//     try {
-//         const payload = await verify(accessToken, c.env.JWT_SECRET);
-//         if (!payload || !payload.id) {
-//             c.status(401);
-//             return c.json({ error: 'Unauthorized' });
-//         }
-
-//         c.set('userId', payload.id as string);
-//         await next();
-//     } catch (error) {
-//         console.log(error);
-//         c.status(500);
-//         return c.json({ error: 'Internal Server Error' });
-//     }
-// });
+        c.set('userId', payload.id as string);
+        await next();
+    } catch (error) {
+        console.log(error);
+        c.status(500);
+        return c.json({ error: 'Internal Server Error' });
+    }
+});
 
 
 //getting userId
 userRoutes.get('/me', async (c) => {
-    const userId = c.get('userId');  // Extract userId from middleware
+    const userId = c.get('userId');  
     if (!userId) {
         return c.json({ error: "Unauthorized" }, 401);
     }
@@ -466,56 +436,60 @@ userRoutes.get('/:id', async (c) => {
 
     try {
         if (!id) {
-            return c.json({ error: 'Id is required' }, 401);
+            return c.json({ error: 'Id is required' }, 400);
         }
 
-        if(!userId){
-            return c.json({
-                error: 'User is not authenticated',
-            },403)
+        if (!userId) {
+            return c.json({ error: 'User is not authenticated' }, 403);
         }
 
         const secretKey = c.env.AES_SECRET_KEY;
-
-        const businessDetails = await prisma.business.findFirst({
-            where:{ownerId:id}
-        })
-        if(!businessDetails) return c.json({error:'User does not exists'},401);
-        const decryptedBusinessEmail = await AES.decrypt(businessDetails?.businessEmail,businessDetails?.businessEmailIV,secretKey);
-        const decryptedBusinessPhoneNumber = await AES.decrypt(businessDetails?.phoneNumber,businessDetails?.phoneNumberIV,secretKey);
-
-        const userDetails = await prisma.user.findFirst({
-            where: { id : id },
-            include:{
-                businesses:true,
-            }
-        });
-
-
-        if (!userDetails) {
-            return c.json({ error: 'User does not exist' }, 401);
+        if (!secretKey) {
+            return c.json({ error: 'Server misconfiguration: Missing AES secret key' }, 500);
         }
 
-        
-        // Await the decryption process
-        const decryptedEmail = await AES.decrypt(userDetails.email,userDetails.emailIV, secretKey);
-        const decryptedPhoneNumber = await AES.decrypt(userDetails.phoneNumber,userDetails.phoneNumberIV, secretKey);
+        const businessDetails = await prisma.business.findFirst({ where: { ownerId: id } });
 
+        if (!businessDetails) return c.json({ error: 'User does not exist' }, 404);
+
+        const userDetails = await prisma.user.findFirst({
+            where: { id: id },
+            include: { businesses: true },
+        });
+
+        if (!userDetails) {
+            return c.json({ error: 'User does not exist' }, 404);
+        }
+
+        let decryptedEmail = "";
+        let decryptedPhoneNumber = "";
+        let decryptedBusinessEmail = "";
+        let decryptedBusinessPhoneNumber = "";
+
+        try {
+            decryptedEmail = await AES.decrypt(userDetails.email, userDetails.emailIV, secretKey) || "";
+            decryptedPhoneNumber = await AES.decrypt(userDetails.phoneNumber, userDetails.phoneNumberIV, secretKey) || "";
+            decryptedBusinessEmail = await AES.decrypt(businessDetails.businessEmail, businessDetails.businessEmailIV, secretKey) || "";
+            decryptedBusinessPhoneNumber = await AES.decrypt(businessDetails.phoneNumber, businessDetails.phoneNumberIV, secretKey) || "";
+        } catch (decryptError) {
+            console.error("Decryption failed:", decryptError);
+            return c.json({ error: 'Failed to decrypt user data' }, 500);
+        }
 
         return c.json({
             ...userDetails,
-            email: decryptedEmail.toString(),
-            phoneNumber: decryptedPhoneNumber.toString(),
-            businessEmail: decryptedBusinessEmail.toString(),
-            businessPhoneNumber: decryptedBusinessPhoneNumber.toString(),
+            email: decryptedEmail,
+            phoneNumber: decryptedPhoneNumber,
+            businessEmail: decryptedBusinessEmail,
+            businessPhoneNumber: decryptedBusinessPhoneNumber,
         });
 
     } catch (error) {
         console.error(error);
-        c.status(500);
-        return c.json({ error: 'Internal Server Error' });
+        return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
+
 
 
 //edit user detail route
