@@ -1,6 +1,6 @@
 import {Hono} from "hono";
 import {getUserDetails,deleteProfile,reviewProfile,getUserId,editProfile} from "./user.service"
-import { userAuthMiddleware } from '../user/user.middleware';
+import { userMiddleware } from '../user/user.middleware';
 
 
 export const userRoutes = new Hono<{
@@ -10,7 +10,7 @@ export const userRoutes = new Hono<{
     }
 }>()
 
-userRoutes.use('/*', userAuthMiddleware);
+userRoutes.use('/*', userMiddleware);
 
 userRoutes.get('/:id', getUserDetails);
 userRoutes.get('/:id', deleteProfile);

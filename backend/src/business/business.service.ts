@@ -1,27 +1,22 @@
-import {Hono} from 'hono'
-import {PrismaClient} from '@prisma/client/edge'
-import { withAccelerate } from '@prisma/extension-accelerate';
-import {sign,verify} from 'hono/jwt'
+import { Context } from "hono";
+import { createRedisClient } from "../services/redis";
+import { PrismaClient } from "@prisma/client/edge";
+import { withAccelerate } from "@prisma/extension-accelerate";
+import { AES } from "../services/aesService";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import {addBusinessInput} from "@omsureja/reachout"
 import {editBusinessTimings} from "@omsureja/reachout"
 import {editBusinessDetails} from "@omsureja/reachout"
-import {AES} from '../services/aesService'
 import crypto from 'crypto'
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 
 
-export const businessRoutes = new Hono<{
-    Bindings:{
-        DATABASE_URL:string,
-        JWT_SECRET:string,
-        AES_SECRET_KEY: string
-    },
-    Variables:{
-        userId: string;
-        prisma: PrismaClient;
-    }
-}>()
+export const getPrisma = (env: { DATABASE_URL: string }) => {
+  return new PrismaClient({
+    datasourceUrl: env.DATABASE_URL,
+  }).$extends(withAccelerate());
+};
+
 
 const s3 = new S3Client({
     region: "ap-south-1",
@@ -30,49 +25,11 @@ const s3 = new S3Client({
       secretAccessKey: "8LC0UIeuSsk8eBPHkX2u40rsx9eODCZebw2Bd43F",
     },
 });
-  
-
-businessRoutes.use('*', async (c, next) => {
-    const prisma = new PrismaClient({
-      datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate()) as unknown as PrismaClient;
-  
-    c.set('prisma', prisma);
-    await next();
-});
 
 
-//global middelware
-businessRoutes.use('/*', async (c, next) => {
-    const cookies = c.req.header("Cookie") || "";
-    const accessToken = cookies.split("; ").find(row=>row.startsWith("accessToken="))?.split("=")[1];
-
-    if (!accessToken) {
-        c.status(401);
-        return c.json({ error: 'Unauthorized' });
-    }
-
-
-    try {
-        const payload = await verify(accessToken, c.env.JWT_SECRET);
-        if (!payload || !payload.id) {
-            c.status(401);
-            return c.json({ error: 'Unauthorized' });
-        }
-
-        c.set('userId', payload.id as string);
-        await next();
-    } catch (error) {
-        console.log(error);
-        c.status(500);
-        return c.json({ error: 'Internal Server Error' });
-    }
-});
-
-
-//create new business
-businessRoutes.post('/create', async (c) => {
-    const prisma = c.get('prisma');
+//creating new business route
+export async function createNewBusiness(c:Context){
+    const prisma = getPrisma(c.env);
     const userId = c.get('userId');
     const body = await c.req.json();
 
@@ -190,7 +147,7 @@ businessRoutes.post('/create', async (c) => {
                 }
             }
         });        
-          
+            
         return c.json({
             message: 'Business created successfully',
             business: newBusiness
@@ -200,12 +157,11 @@ businessRoutes.post('/create', async (c) => {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
-});
+};
 
-
-//update business details
-businessRoutes.put('/updatebusiness/:id', async (c) => {
-    const prisma = c.get('prisma');
+//updating business profile route
+export async function updateBusinessProfile(c:Context){
+    const prisma = getPrisma(c.env);
     const body = await c.req.json();
     const userId = c.get('userId');
     const businessId = c.req.param('id');
@@ -287,12 +243,11 @@ businessRoutes.put('/updatebusiness/:id', async (c) => {
             error: 'Internal Server Error'
         }, 500);
     }
-});
+};
 
-
-//delete the business profile
-businessRoutes.delete('/delete', async (c) => {
-    const prisma = c.get('prisma');
+//delete business profile route
+export async function deleteBusinessProfile(c:Context){
+    const prisma = getPrisma(c.env);
     const userId = c.get('userId');
     const businessId = c.req.param('id')
 
@@ -323,14 +278,19 @@ businessRoutes.delete('/delete', async (c) => {
         console.log(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
-});
+};
 
-
-//get a single business profile
-businessRoutes.get('/viewprofile/:id', async (c) => {
-    const prisma = c.get('prisma');
+//get a single business profile route
+export async function getBusinessProfile(c:Context){
+    const prisma = getPrisma(c.env);
     const userId = c.get('userId');
-    const businessId = c.req.param('id')
+    const businessId = c.req.param('id');
+    const redis = createRedisClient(c.env);
+
+
+    const cacheKey = `business:${businessId}`;
+    const cachedBusiness = await redis.get(cacheKey);
+    if(cachedBusiness) return c.json(cachedBusiness); 
 
     try {
         if(!userId) {
@@ -362,333 +322,80 @@ businessRoutes.get('/viewprofile/:id', async (c) => {
                 id: businessId
             },
         });
+        await redis.set(cacheKey,userBusiness,{ex:3600});
         return c.json({userBusiness},200);
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
-});
+};
 
+//add business media route
+export async function addBusinessMedia(c:Context){
+    const prisma = getPrisma(c.env);
+    const userId = c.get('userId');
+    const businessId = c.req.param('id');
 
-//get all business with filters and search
-businessRoutes.get('/bulk', async (c) => {
-    const prisma = c.get('prisma');
-    const query = c.req.query();
+    if (!userId) return c.json({ error: 'Provide a user ID' }, 401);
+    if (!businessId) return c.json({ error: 'Business ID is required' }, 400);
 
-    const categoryId = query.categoryId || undefined;
-    
     try {
-        const categories = await prisma.category.findMany({
-            where: categoryId ? { id: categoryId } : {},  
-            include: {
-                Business: {
-                    include: {
-                        subCategories: {
-                            include: { subCategory: { select: { id: true, name: true } } } // Fetch subCategory ID + name
-                        }
-                    }
-                }
-            }
+        const business = await prisma.business.findFirst({
+            where: { id: businessId },
+            select: { ownerId: true },
         });
 
-        const bulkBusinesses = categories.map(category => ({
-            categoryId: category.id,
-            categoryName: category.name,
-            businesses: category.Business.map(business => ({
-                id: business.id,
-                name: business.name,
-                about: business.about,
-                subCategories: business.subCategories.map(sub => ({
-                    id: sub.subCategory.id,  // Fetch subCategory ID
-                    name: sub.subCategory.name // Fetch subCategory Name
-                }))
-            }))
+        console.log(business);
+        if (!business) return c.json({ error: 'Business not found' }, 404);
+        if (userId !== business.ownerId) {
+            return c.json({ error: 'You are not the owner of this business' }, 401);
+        }
+
+        // Parse formData instead of JSON
+        const body = await c.req.formData();
+        const files = body.getAll("files") as File[];
+
+        if (!files || files.length === 0) {
+            return c.json({ error: 'No files provided' }, 400);
+        }
+
+        // Upload each file to S3 and store URLs
+        const uploadedMedia = await Promise.all(files.map(async (file) => {
+            const fileBuffer = await file.arrayBuffer();
+            const fileKey = `business-media/${businessId}/${Date.now()}-${file.name}`;
+
+            const command = new PutObjectCommand({
+                Bucket: "myprojectuploads",
+                Key: fileKey,
+                Body: Buffer.from(fileBuffer),
+                ContentType: file.type,
+            });
+
+            await s3.send(command);
+            return {
+                type: file.type,
+                url: `https://myprojectuploads.s3.amazonaws.com/${fileKey}`,
+                businessMediaId: businessId,
+            };
         }));
 
-        return c.json({ bulkBusinesses }, 200);
+        // Save uploaded media details in DB
+        await prisma.media.createMany({ data: uploadedMedia });
+
+        return c.json({
+            message: 'Business media uploaded successfully',
+            uploadedMediaCount: uploadedMedia.length,
+        }, 200);
+
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
-});
+};
 
-
-
-//liking a business
-businessRoutes.put('/like/:id',async (c)=>{
-    const prisma = c.get('prisma');
-    const userId = c.get('userId');
-    const businessId = c.req.param('id');
-
-
-    try{
-        if(!businessId) return c.json({
-            error:'Provide a business Id'
-        },401)
-
-        if(!userId) return c.json({
-            error: 'Provide a user Id'
-        },401)
-
-        const user = await prisma.user.findUnique({
-            where:{
-                id : userId
-            }
-        })
-        if(!user){
-            return c.json({
-                error: 'Unauthorized'
-            },401)
-        }
-
-        await prisma.business.update({
-            where:{
-                id: businessId
-            },
-            data:{
-                likes : {
-                    increment : 1
-                }
-            }
-        })
-
-        return c.json({
-            message: 'Business liked successfully'
-        },200)
-    }
-    catch(error){
-        console.log(error);
-        return c.json({
-            error: 'Internal Server Error',
-        },500)
-    }
-})
-
-
-//disliking a busienss
-businessRoutes.put('/dislike/:id',async(c)=>{
-    const prisma = c.get('prisma');
-    const userId = c.get('userId');
-    const businessId = c.req.param('id');
-
-    try{
-
-        if(!businessId) return c.json({
-            error:'Provide a business Id'
-        },401)
-
-        if(!userId) return c.json({
-            error: 'Provide a user Id'
-        },401)
-        const user = await prisma.user.findUnique({
-            where:{
-                id:userId
-            }
-        })
-        if(!user){
-            return c.json({
-                error: 'User not found'
-            },401)
-        }
-
-        await prisma.business.update({
-            where:{
-                id:businessId
-            },
-            data:{
-                dislikes : {
-                    increment : 1
-                }
-            }
-        })
-
-        return c.json({
-            message: 'Business disliked successfully'
-        },200)
-    }
-    catch(error){
-        console.log(error);
-        return c.json({
-            error: 'Internal Server Error',
-        },500)
-    }
-})
-
-
-//get all reviews 
-businessRoutes.get('/getallreviews/:id', async (c) => {
-    const prisma = c.get('prisma');
-    const userId = c.get('userId');
-    const businessId  = c.req.param('id'); 
-
-    try {
-
-        if (!businessId) {
-            return c.json({ error: 'Provide a business ID' }, 400);
-        }
-        if (!userId) {
-            return c.json({ error: 'Provide a user ID' }, 400);
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-        });
-
-        if (!user) {
-            return c.json({ error: 'User not found' }, 404);
-        }
-
-        const business = await prisma.business.findUnique({
-            where: { id: businessId },
-            include: { reviews: true},
-        });
-
-        if (!business) {
-            return c.json({ error: 'Business not found' }, 404);
-        }
-
-        return c.json(business.reviews, 200);
-    } catch (error) {
-        console.log(error);
-        return c.json({ error: 'Internal Server Error' }, 500);
-    }
-});
-
-
-//report a business
-businessRoutes.post('/reportbusiness/:id',async (c)=>{
-    const prisma = c.get('prisma');
-    const userId = c.get('userId');
-    const businessId = c.req.param('id');
-    const { reason }=await c.req.json();
-
-    try{
-        if(!userId) {
-            return c.json({
-                error: 'Provide a user ID'
-            },401)
-        }
-
-        const user= await prisma.user.findUnique({
-            where:{
-                id:userId
-            }
-        })
-        if(!user) return c.json({
-            error: 'User not found'
-        },401)
-
-        if(!reason){
-            return c.json({
-                error: 'Provide a reason'
-            },401)
-        }
-
-        if(!businessId){
-            return c.json({
-                error: 'Provide a business ID'
-            },403)
-        }
-        const business = await prisma.business.findUnique({
-            where:{
-                id:businessId
-            }
-        })
-        if(!business){
-            return c.json({
-                error: 'Business not found'
-            },403)
-        }
-
-        await prisma.report.create({
-            data: {
-                businessId: businessId,
-                userId: userId,
-                reason,
-            }
-        })
-
-        return c.json({
-            message:'Business Reported Successfully',
-        },200)
-    }
-    catch(error){
-        console.log(error);
-        return c.json({
-            error: 'Internal Server Error',
-        },500)
-    }
-})
-
-
-//fetch all the report of a business for businessOwners
-businessRoutes.get('/fetchallreports/:id',async(c)=>{
-    const prisma = c.get('prisma');
-    const userId = c.get('userId');
-    const businessId = c.req.param('id');
-
-    try{
-        if(!userId) return c.json({
-            error: 'Provide a user ID'
-        },401)
-
-        if(!businessId) return c.json({
-            error: 'Provide a business ID'
-        },401)
-
-        const business= await prisma.business.findUnique({
-            where:{
-                id:businessId, 
-            },
-            select:{
-                ownerId : true,
-            }
-        })
-
-        if(!business){
-            return c.json({
-                error: 'Business Not Found',
-            },403)
-        }
-
-        if(userId !== business.ownerId){
-            return c.json({
-                error: 'You are not the owner of this business',
-            },401)
-        }
-
-        const user= await prisma.user.findUnique({
-            where:{
-                id:userId
-            }
-        })
-
-        if(!user) return c.json({
-            error: 'User not found'
-        },401)
-
-        const allReports = await prisma.report.findMany({
-            where:{
-                businessId :businessId
-            }
-        })
-
-        return c.json({
-            allReports
-        },200)
-    }
-    catch(error){
-        console.log(error);
-        return c.json({
-            error: 'Internal Server Error',
-        },500)
-    }
-})
-
-
-//update business hours
-businessRoutes.put('/updatebusinesstimings/:id', async (c) => {
-    const prisma = c.get('prisma');
+//update business hours route
+export async function updateBusinessHours(c:Context) {
+    const prisma = getPrisma(c.env);
     const userId = c.get('userId');
     const businessId = c.req.param('id');
 
@@ -763,88 +470,334 @@ businessRoutes.put('/updatebusinesstimings/:id', async (c) => {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
-});
+};
 
 
+//report a business route
+export async function reportABusiness(c:Context){
+    const prisma = getPrisma(c.env);
+    const userId = c.get('userId');
+    const businessId = c.req.param('id');
+    const { reason }=await c.req.json();
 
-//add business medias
-businessRoutes.put('/uploadbusinessmedia/:id', async (c) => {
-    const prisma = c.get('prisma');
+    try{
+        if(!userId) {
+            return c.json({
+                error: 'Provide a user ID'
+            },401)
+        }
+
+        const user= await prisma.user.findUnique({
+            where:{
+                id:userId
+            }
+        })
+        if(!user) return c.json({
+            error: 'User not found'
+        },401)
+
+        if(!reason){
+            return c.json({
+                error: 'Provide a reason'
+            },401)
+        }
+
+        if(!businessId){
+            return c.json({
+                error: 'Provide a business ID'
+            },403)
+        }
+        const business = await prisma.business.findUnique({
+            where:{
+                id:businessId
+            }
+        })
+        if(!business){
+            return c.json({
+                error: 'Business not found'
+            },403)
+        }
+
+        await prisma.report.create({
+            data: {
+                businessId: businessId,
+                userId: userId,
+                reason,
+            }
+        })
+
+        return c.json({
+            message:'Business Reported Successfully',
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error',
+        },500)
+    }
+};
+
+
+//fetch all the report of a business for businessOwners route
+export async function getAllBusinessReports(c:Context){
+    const prisma = getPrisma(c.env);
     const userId = c.get('userId');
     const businessId = c.req.param('id');
 
-    if (!userId) return c.json({ error: 'Provide a user ID' }, 401);
-    if (!businessId) return c.json({ error: 'Business ID is required' }, 400);
+    const redis = createRedisClient(c.env);
+    const cacheKey = `businessReport${businessId}`;
+    const cachedBusinessReports = await redis.get(cacheKey);
+    if(cachedBusinessReports) return c.json(cachedBusinessReports);
+
+    try{
+        if(!userId) return c.json({
+            error: 'Provide a user ID'
+        },401)
+
+        if(!businessId) return c.json({
+            error: 'Provide a business ID'
+        },401)
+
+        const business= await prisma.business.findUnique({
+            where:{
+                id:businessId, 
+            },
+            select:{
+                ownerId : true,
+            }
+        })
+
+        if(!business){
+            return c.json({
+                error: 'Business Not Found',
+            },403)
+        }
+
+        if(userId !== business.ownerId){
+            return c.json({
+                error: 'You are not the owner of this business',
+            },401)
+        }
+
+        const user= await prisma.user.findUnique({
+            where:{
+                id:userId
+            }
+        })
+
+        if(!user) return c.json({
+            error: 'User not found'
+        },401)
+
+        const allReports = await prisma.report.findMany({
+            where:{
+                businessId :businessId
+            }
+        })
+
+        await redis.set(cacheKey,allReports,{ex:3600});
+        return c.json({
+            allReports
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error',
+        },500)
+    }
+};
+
+
+//get all business reviews route
+export async function getAllReviews(c:Context) {
+    const prisma = getPrisma(c.env);
+    const userId = c.get('userId');
+    const businessId  = c.req.param('id'); 
+
+    const redis = createRedisClient(c.env);
+    const cacheKey = `businessReviews${businessId}`;
+    const cachedBusinessReviews = await redis.get(cacheKey);
+    if(cachedBusinessReviews) return c.json(cachedBusinessReviews);
 
     try {
-        const business = await prisma.business.findFirst({
-            where: { id: businessId },
-            select: { ownerId: true },
+        if (!businessId) {
+            return c.json({ error: 'Provide a business ID' }, 400);
+        }
+        if (!userId) {
+            return c.json({ error: 'Provide a user ID' }, 400);
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
         });
 
-        console.log(business);
-        if (!business) return c.json({ error: 'Business not found' }, 404);
-        if (userId !== business.ownerId) {
-            return c.json({ error: 'You are not the owner of this business' }, 401);
+        if (!user) {
+            return c.json({ error: 'User not found' }, 404);
         }
 
-        // Parse formData instead of JSON
-        const body = await c.req.formData();
-        const files = body.getAll("files") as File[];
+        const business = await prisma.business.findUnique({
+            where: { id: businessId },
+            include: { reviews: true},
+        });
 
-        if (!files || files.length === 0) {
-            return c.json({ error: 'No files provided' }, 400);
+        if (!business) {
+            return c.json({ error: 'Business not found' }, 404);
         }
 
-        // Upload each file to S3 and store URLs
-        const uploadedMedia = await Promise.all(files.map(async (file) => {
-            const fileBuffer = await file.arrayBuffer();
-            const fileKey = `business-media/${businessId}/${Date.now()}-${file.name}`;
+        await redis.set(cacheKey,business.reviews,{ex:3600});
+        return c.json(business.reviews, 200);
+    } catch (error) {
+        console.log(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
+    }
+};
 
-            const command = new PutObjectCommand({
-                Bucket: "myprojectuploads",
-                Key: fileKey,
-                Body: Buffer.from(fileBuffer),
-                ContentType: file.type,
-            });
+//disliking a busienss route
+export async function dislikingABusiness(c:Context){
+    const prisma = getPrisma(c.env);
+    const userId = c.get('userId');
+    const businessId = c.req.param('id');
 
-            await s3.send(command);
-            return {
-                type: file.type,
-                url: `https://myprojectuploads.s3.amazonaws.com/${fileKey}`,
-                businessMediaId: businessId,
-            };
-        }));
+    try{
+        if(!businessId) return c.json({
+            error:'Provide a business Id'
+        },401)
 
-        // Save uploaded media details in DB
-        await prisma.media.createMany({ data: uploadedMedia });
+        if(!userId) return c.json({
+            error: 'Provide a user Id'
+        },401)
+        const user = await prisma.user.findUnique({
+            where:{
+                id:userId
+            }
+        })
+        if(!user){
+            return c.json({
+                error: 'User not found'
+            },401)
+        }
+
+        await prisma.business.update({
+            where:{
+                id:businessId
+            },
+            data:{
+                dislikes : {
+                    increment : 1
+                }
+            }
+        })
 
         return c.json({
-            message: 'Business media uploaded successfully',
-            uploadedMediaCount: uploadedMedia.length,
-        }, 200);
+            message: 'Business disliked successfully'
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error',
+        },500)
+    }
+};
 
+
+//liking a business route
+export async function likingABusiness(c:Context){
+    const prisma = getPrisma(c.env);
+    const userId = c.get('userId');
+    const businessId = c.req.param('id');
+
+
+    try{
+        if(!businessId) return c.json({
+            error:'Provide a business Id'
+        },401)
+
+        if(!userId) return c.json({
+            error: 'Provide a user Id'
+        },401)
+
+        const user = await prisma.user.findUnique({
+            where:{
+                id : userId
+            }
+        })
+        if(!user){
+            return c.json({
+                error: 'Unauthorized'
+            },401)
+        }
+
+        await prisma.business.update({
+            where:{
+                id: businessId
+            },
+            data:{
+                likes : {
+                    increment : 1
+                }
+            }
+        })
+
+        return c.json({
+            message: 'Business liked successfully'
+        },200)
+    }
+    catch(error){
+        console.log(error);
+        return c.json({
+            error: 'Internal Server Error',
+        },500)
+    }
+};
+
+
+//get all business with filters and search route
+export async function getBusinessBulk(c:Context){
+    const prisma = getPrisma(c.env);
+    // const categoryId = c.req.param('categoryId');
+    const query = c.req.query();
+    const categoryId = query.categoryId || undefined;
+
+    const redis = createRedisClient(c.env);
+    const cacheKey = `businessBulk${categoryId}`;
+    const cachedBulkBusinesses = await redis.get(cacheKey);
+    if(cachedBulkBusinesses) return c.json(cachedBulkBusinesses);
+    
+    try {
+        const categories = await prisma.category.findMany({
+            where: categoryId ? { id: categoryId } : {},  
+            include: {
+                Business: {
+                    include: {
+                        subCategories: {
+                            include: { subCategory: { select: { id: true, name: true } } } // Fetch subCategory ID + name
+                        }
+                    }
+                }
+            }
+        });
+
+        const bulkBusinesses = categories.map(category => ({
+            categoryId: category.id,
+            categoryName: category.name,
+            businesses: category.Business.map(business => ({
+                id: business.id,
+                name: business.name,
+                about: business.about,
+                subCategories: business.subCategories.map(sub => ({
+                    id: sub.subCategory.id,  // Fetch subCategory ID
+                    name: sub.subCategory.name // Fetch subCategory Name
+                }))
+            }))
+        }));
+
+        await redis.set(cacheKey,bulkBusinesses,{ex:3600});
+        return c.json({ bulkBusinesses }, 200);
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
-});
-
-
-
-businessRoutes.get('/me', async (c) => {
-    const userId = c.get('userId');  
-    const prisma =c.get('prisma');
-    const businessId = await prisma.business.findFirst({
-        where:{
-            ownerId : userId
-        },
-        select:{
-            id:true
-        }
-    })
-    if (!businessId) {
-        return c.json({ error: "Unauthorized" }, 401);
-    }
-    return c.json({ businessId });
-});
+};

@@ -29,7 +29,6 @@ export async function getUserDetails(c: Context) {
     const redis = createRedisClient(c.env);
     const id = c.req.param('id');
   
-    console.log("User ID:", userId);
   
     const cacheKey = `user:${userId}`;
     const cachedUser = await redis.get(cacheKey);

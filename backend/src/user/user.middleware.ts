@@ -1,7 +1,7 @@
 import { verify } from 'hono/jwt';
 import { MiddlewareHandler } from 'hono';
 
-export const userAuthMiddleware: MiddlewareHandler = async (c, next) => {
+export const userMiddleware: MiddlewareHandler = async (c, next) => {
     const cookies = c.req.header("Cookie") || "";
     const accessToken = cookies.split("; ").find(row => row.startsWith("accessToken="))?.split("=")[1];
 
