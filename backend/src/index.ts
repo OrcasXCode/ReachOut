@@ -1,8 +1,9 @@
 import { Env, Hono } from "hono";
-import { userRoutes } from "./routes/user";
+// import { userRoutes } from "./routes/user";
 import { businessRoutes } from "./routes/business";
 import { categoryRoutes } from "./routes/category";
 import { authRoutes } from "./auth/auth.route";
+import { userRoutes } from "./user/user.route";
 import { cors } from "hono/cors";
 
 const app = new Hono<{
@@ -21,8 +22,9 @@ app.use(
   })
 );
 
-app.route("/api/v1/user", userRoutes);
+// app.route("/api/v1/user", userRoutes);
 app.route("/api/v1/auth", authRoutes);
+app.route("/api/v1/user", userRoutes);
 app.route("/api/v1/business", businessRoutes);
 app.route("/api/v1/category", categoryRoutes);
 

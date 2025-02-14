@@ -108,8 +108,8 @@ export async function signin(c: Context) {
       ex: 7 * 86400, // Expire after 7 days
     });
 
-    c.header("Set-Cookie", `accessToken=${accessToken}; HttpOnly; SameSite=Strict; Path=/`);
-    c.header("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${7 * 86400}`);
+    c.res.headers.append("Set-Cookie", `accessToken=${accessToken}; HttpOnly; SameSite=Strict; Path=/`);
+    c.res.headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${7 * 86400}`);
 
     return c.json({ message: "Login successful" }, 200);
   } catch (error) {

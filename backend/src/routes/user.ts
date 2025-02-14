@@ -389,7 +389,6 @@ userRoutes.post('/resetpassword', async (c) => {
 });
 
 
-
 //global middelware
 userRoutes.use('/*', async (c, next) => {
     const cookies = c.req.header("Cookie") || "";
@@ -489,7 +488,6 @@ userRoutes.get('/:id', async (c) => {
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 });
-
 
 
 //edit user detail route
