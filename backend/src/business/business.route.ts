@@ -1,6 +1,6 @@
 import {Hono} from "hono";
 import {createNewBusiness,updateBusinessProfile,deleteBusinessProfile,getBusinessProfile,getBusinessBulk, likingABusiness, dislikingABusiness,getAllReviews,getAllBusinessReports,reportABusiness,updateBusinessHours,addBusinessMedia} from "./business.service"
-import { businessMiddleware } from '../business/business.middleware';
+import { businessMiddleware } from './business.middleware';
 
 
 export const businessRoutes = new Hono<{
