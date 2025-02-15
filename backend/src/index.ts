@@ -4,6 +4,7 @@ import { businessRoutes } from "./routes/business";
 import { categoryRoutes } from "./routes/category";
 import { authRoutes } from "./auth/auth.route";
 import { userRoutes } from "./user/user.route";
+// import { businessRoutes } from "./business/business.route";
 import { cors } from "hono/cors";
 
 const app = new Hono<{
@@ -22,7 +23,7 @@ app.use(
   })
 );
 
-// app.route("/api/v1/user", userRoutes);
+
 app.route("/api/v1/auth", authRoutes);
 app.route("/api/v1/user", userRoutes);
 app.route("/api/v1/business", businessRoutes);

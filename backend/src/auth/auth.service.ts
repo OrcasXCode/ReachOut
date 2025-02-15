@@ -85,11 +85,13 @@ export async function signin(c: Context) {
     }
 
     const decryptedEmail = await AES.decrypt(user.email, user.emailIV, secretKey);
-    if (decryptedEmail !== email) {
+    if (!decryptedEmail || decryptedEmail !== email) {
+      console.error("Decryption failed:", decryptedEmail);
       await redis.incr(failedAttemptsKey);
       await redis.expire(failedAttemptsKey, 900);
       return c.json({ error: "Incorrect Credentials" }, 403);
     }
+    
 
     if (user.password !== password) {
       await redis.incr(failedAttemptsKey);
@@ -103,12 +105,12 @@ export async function signin(c: Context) {
     const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
     const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
 
-    // Store refresh token in Redis
-    await redis.set(`refresh_token:${user.id}`, refreshToken, {
-      ex: 7 * 86400, // Expire after 7 days
-    });
+    await redis.set(`access_token:${user.id}`, accessToken, { ex: 3600 }); // 1-hour expiry
+    await redis.set(`refresh_token:${user.id}`, refreshToken, { ex: 7 * 86400 }); // 7-day expiry
 
-    c.res.headers.append("Set-Cookie", `accessToken=${accessToken}; HttpOnly; SameSite=Strict; Path=/`);
+    await redis.set(`session:${user.id}`, accessToken, { ex: 3600 }); // Store session
+
+    c.res.headers.append("Set-Cookie", `accessToken=${accessToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`);
     c.res.headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${7 * 86400}`);
 
     return c.json({ message: "Login successful" }, 200);
@@ -179,19 +181,17 @@ export async function signup(c: Context) {
   }
 }
 
-// **Logout Function**
-export async function logout(c: Context) {
-  const redis = createRedisClient(c.env);
+
+export async function signout(c:Context){
+  const prisma = getPrisma(c.env)
   try {
-    const userId = c.get("userId");
-    await redis.del(`refresh_token:${userId}`); 
-
-    c.header("Set-Cookie", `accessToken=; HttpOnly; Path=/; Max-Age=0`);
-    c.header("Set-Cookie", `refreshToken=; HttpOnly; Path=/; Max-Age=0`);
-
-    return c.json({ message: "Logout successful" }, 200);
-  } catch (error) {
-    console.error(error);
-    return c.json({ error: "Internal Server Error" }, 500);
+    c.res.headers.append('Set-Cookie', 'accessToken=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Strict');
+    c.res.headers.append('Set-Cookie', 'refreshToken=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Strict');
+    // Return a success response
+    return c.json({ message: 'Logged out successfully' },200);
+  } 
+  catch (error) {
+    console.error('Error during sign-out:', error);
+    return c.json({ error: 'Internal Server Error' },500);
   }
-}
+};

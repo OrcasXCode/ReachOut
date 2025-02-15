@@ -22,6 +22,8 @@ import {
 } from "@heroicons/react/24/solid";
 import { useAuthStore } from "../lib/useAuthStore";
 import axios from 'axios';
+import {toast} from 'react-hot-toast';
+
  
 const profileMenuItems = [
   { label: "My Profile", icon: UserCircleIcon , route:'/myprofile' },
@@ -35,29 +37,42 @@ export default function AvatarWithUserDropdown() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const closeMenu = () => setIsMenuOpen(false);
   const { setIsSignedIn } = useAuthStore();
-  
 
   const handleSignOut = async () => {
+    // Show loading toast
+    const loadingToast = toast.loading('Signing out...', { duration: Infinity });
+  
     try {
-      const response = await axios.post('http://localhost:8787/api/v1/user/signout', {}, {
+      const response = await axios.post('http://localhost:8787/api/v1/auth/signout', {}, {
         withCredentials: true, 
       });
   
       if (response.status === 200) {
-        alert("Signout successful");
-  
         setIsSignedIn(false);
+        // Update the loading toast to success
+        toast.success('Logout Successful', {
+          id: loadingToast,
+          duration: 3000,
+        });
   
-        localStorage.removeItem("auth-store"); // Clear Zustand's persisted state
-        setTimeout(()=>{
+        localStorage.removeItem('auth-store'); // Clear Zustand's persisted state
+        setTimeout(() => {
           window.location.href = '/signin';
-        },1000)
+        }, 1000);
       } else {
-        alert("Signout failed. Please try again.");
+        // Update the loading toast to error
+        toast.error('Signout failed. Please try again.', {
+          id: loadingToast,
+          duration: 3000,
+        });
       }
     } catch (err: any) {
-      console.error("Error during sign-out:", err);
-      alert("An error occurred during sign-out. Please try again.");
+      console.error('Error during sign-out:', err);
+      // Update the loading toast to error
+      toast.error('An error occurred during sign-out. Please try again.', {
+        id: loadingToast,
+        duration: 3000,
+      });
     }
   };
 

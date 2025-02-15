@@ -10,7 +10,6 @@ import {editBusinessDetails} from "@omsureja/reachout"
 import crypto from 'crypto'
 
 
-
 export const getPrisma = (env: { DATABASE_URL: string }) => {
   return new PrismaClient({
     datasourceUrl: env.DATABASE_URL,
@@ -282,6 +281,7 @@ export async function deleteBusinessProfile(c:Context){
 
 //get a single business profile route
 export async function getBusinessProfile(c:Context){
+    const startTime = performance.now();
     const prisma = getPrisma(c.env);
     const userId = c.get('userId');
     const businessId = c.req.param('id');
@@ -290,6 +290,10 @@ export async function getBusinessProfile(c:Context){
 
     const cacheKey = `business:${businessId}`;
     const cachedBusiness = await redis.get(cacheKey);
+    if(cachedBusiness) {
+        const endTime = performance.now(); 
+        console.log(`REdis Execution Time: ${(endTime - startTime).toFixed(2)}ms`);
+    }
     if(cachedBusiness) return c.json(cachedBusiness); 
 
     try {
@@ -323,6 +327,8 @@ export async function getBusinessProfile(c:Context){
             },
         });
         await redis.set(cacheKey,userBusiness,{ex:3600});
+        const endTime = performance.now(); 
+        console.log(`Execution Time: ${(endTime - startTime).toFixed(2)}ms`);
         return c.json({userBusiness},200);
     } catch (error) {
         console.error(error);

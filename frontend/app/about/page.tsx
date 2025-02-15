@@ -1,6 +1,7 @@
 "use client"
 import { CloudArrowUpIcon, LockClosedIcon, ServerIcon } from '@heroicons/react/20/solid'
 import { CalendarDaysIcon, HandRaisedIcon } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 
 
 export default function Example() {
@@ -27,7 +28,7 @@ export default function Example() {
                   <div className="absolute inset-x-10 top-10 bottom-0 overflow-hidden rounded-t-[12cqw] border-x-[3cqw] border-t-[3cqw] border-gray-700 bg-gray-900 shadow-2xl">
                     <img
                       className="size-full object-cover object-top"
-                      src="https://tailwindui.com/plus/img/component-images/bento-03-mobile-friendly.png"
+                      src="./easy.svg"
                       alt=""
                     />
                   </div>
@@ -46,8 +47,8 @@ export default function Example() {
                 </div>
                 <div className="flex flex-1 items-center justify-center px-8 max-lg:pt-10 max-lg:pb-12 sm:px-10 lg:pb-2">
                   <img
-                    className="w-full max-lg:max-w-xs"
-                    src="https://tailwindui.com/plus/img/component-images/bento-03-performance.png"
+                    className="w-[150px] h-[150px]"
+                    src="./customers.svg"
                     alt=""
                   />
                 </div>
@@ -63,10 +64,10 @@ export default function Example() {
                   Your business data is protected with advanced security measures.
                   </p>
                 </div>
-                <div className="@container flex flex-1 items-center max-lg:py-6 lg:pb-2">
+                <div className="@container flex flex-1 items-center max-lg:py-6 lg:pb">
                   <img
-                    className="h-[min(152px,40cqw)] object-cover"
-                    src="https://tailwindui.com/plus/img/component-images/bento-03-security.png"
+                    className="h-[min(550px,40cqw)] object-cover mx-auto"
+                    src="./secure.svg"
                     alt=""
                   />
                 </div>
@@ -84,17 +85,14 @@ export default function Example() {
                   Promote your products and services effortlessly with our built-in marketing solutions.
                   </p>
                 </div>
+               
                 <div className="relative min-h-[30rem] w-full grow">
                   <div className="absolute top-10 right-0 bottom-0 left-10 overflow-hidden rounded-tl-xl bg-gray-900 shadow-2xl">
                     <div className="flex bg-gray-800/40 ring-1 ring-white/5">
-                      <div className="-mb-px flex text-sm/6 font-medium text-gray-400">
-                        <div className="border-r border-b border-r-white/10 border-b-white/20 bg-white/5 px-4 py-2 text-white">
-                          NotificationSetting.jsx
-                        </div>
-                        <div className="border-r border-gray-600/10 px-4 py-2">App.jsx</div>
-                      </div>
-                    </div>
-                    <div className="px-6 pt-6 pb-14">{/* Your code example */}</div>
+                       <Image src='./marketing.svg' alt="marketing" layout="fill"
+                        objectFit="cover"
+                          ></Image>
+                    </div> 
                   </div>
                 </div>
               </div>
@@ -104,7 +102,7 @@ export default function Example() {
         </div>
         <div className="relative isolate overflow-hidden bg-white px-6 py-24 sm:py-32 lg:overflow-visible lg:px-0">
           <div className="absolute inset-0 -z-10 overflow-hidden">
-            <svg
+            {/* <svg
               aria-hidden="true"
               className="absolute top-0 left-[max(50%,25rem)] h-[64rem] w-[128rem] -translate-x-1/2 stroke-gray-200 [mask-image:radial-gradient(64rem_64rem_at_top,white,transparent)]"
             >
@@ -127,7 +125,7 @@ export default function Example() {
                 />
               </svg>
               <rect fill="url(#e813992c-7d03-4cc4-a2bd-151760b470a0)" width="100%" height="100%" strokeWidth={0} />
-            </svg>
+            </svg> */}
           </div>
           <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 lg:mx-0 lg:max-w-none lg:grid-cols-2 lg:items-start lg:gap-y-10">
             <div className="lg:col-span-2 lg:col-start-1 lg:row-start-1 lg:mx-auto lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8">
@@ -146,8 +144,12 @@ export default function Example() {
             <div className="-mt-12 -ml-12 p-12 lg:sticky lg:top-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:overflow-hidden">
               <img
                 alt=""
-                src="https://tailwindui.com/plus/img/component-images/dark-project-app-screenshot.png"
+                src="./unlock.svg"
                 className="w-[48rem] max-w-none rounded-xl bg-gray-900 ring-1 shadow-xl ring-gray-400/10 sm:w-[57rem]"
+                style={{
+                  border: '4px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 0 15px rgba(255, 255, 255, 0.7)',
+                }}
               />
             </div>
             <div className="lg:col-span-2 lg:col-start-1 lg:row-start-2 lg:mx-auto lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8">

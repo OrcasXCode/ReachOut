@@ -54,7 +54,7 @@ interface File{
 
 export default function OnBoarding() {
 
-  const { updateSignupData, submitSignup } = useSignup();
+  const {updateBusinessData, submitSignup, submitCreateBusiness , signupData } = useSignup();
   const [step, setStep] = useState<number>(1);
   const [name,setName] = useState<string | null>(null);
   const [email,setEmail] = useState<string | null>(null);
@@ -70,24 +70,24 @@ export default function OnBoarding() {
 
   const [businessDetails, setBusinessDetails] = useState({
     name: "",
-    email: "",
+    businessEmail: "",
     address: "",
-    verified: "False",
+    verified: false,
     phoneNumber: "",
     website: "",
     about: "",
-    totalrating: "0.0",
-    categoryId: null as string | null,
+    totalRating: 0,
+    categoryId: "",
     subCategoryIds: [] as string[],
-    mediaUrls: [] as File[],
+    mediaUrls: [] as { type: string; url: string }[],
     businessHours: [
-      { dayofWeek: "Monday", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "Tuesday", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "Wednesday", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "Thursday", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "Friday", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "Saturday", openingTime: "21:00", closingTime: "12:00" },
-      { dayofWeek: "Sunday", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "MONDAY", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "TUESDAY", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "WEDNESDAY", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "THURSDAY", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "FRIDAY", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "SATURDAY", openingTime: "21:00", closingTime: "12:00" },
+      { dayofWeek: "SUNDAY", openingTime: "21:00", closingTime: "12:00" },
     ],
   });
 
@@ -107,26 +107,40 @@ export default function OnBoarding() {
     }));
   };
 
-  const handleSubmit = () => {
-    updateSignupData({ 
-        businesses: {
-            name: name ?? "", 
-            businessEmail: email ?? "", // Ensures it's always a string
-            address: address ?? "", 
-            verified: verified ?? false,
-            phoneNumber: phoneNumber ?? "",
-            website: website ?? "",
-            about: about ?? "",
-            totalRating: totalrating ?? "0.0",
-            categoryId: categoryId ?? undefined,
-            subCategoryIds,
-            mediaUrls: [],
-            businessHours: []
-        } 
-    });
-    submitSignup(); 
-};
+  
+  // Handle form submission
+  const handleSubmit = async () => {
+    try {
+      const updatedBusinessData = {
+        name: businessDetails.name,
+        businessEmail: businessDetails.businessEmail,
+        address: businessDetails.address,
+        verified:businessDetails.verified,
+        phoneNumber: businessDetails.phoneNumber,
+        website: businessDetails.website,
+        about: businessDetails.about,
+        totalRating: businessDetails.totalRating,
+         categoryId: businessDetails.categoryId ?? null,
+        subCategoryIds: businessDetails.subCategoryIds,
+        mediaUrls: [],
+        businessHours: businessDetails.businessHours,
+      }
+      updateBusinessData(updatedBusinessData);
 
+      await submitSignup(signupData);
+
+      await submitCreateBusiness(updatedBusinessData);
+
+      console.log("Business created successfully!");
+      alert("Business created successfully!");
+      setTimeout(()=>{
+        window.location.href="/business"
+      },1000)
+    } catch (error) {
+      console.error("Error creating business:", error);
+      alert("Failed to create business. Please try again.");
+    }
+  };
 
   const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
   useEffect(() => {
@@ -328,7 +342,7 @@ export default function OnBoarding() {
                 className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
                 placeholder=""
                 required
-                onChange={(e) => handleInputChange("email", e.target.value)}
+                onChange={(e) => handleInputChange("businessEmail", e.target.value)}
               />
             </div>
             <div className="w-full">
@@ -396,7 +410,7 @@ export default function OnBoarding() {
                   placeholder="0.0"
                   required
                   disabled={true}
-                  onChange={(e) => handleInputChange("totalrating", e.target.value)}
+                  onChange={(e) => handleInputChange("totalRating", e.target.value)}
                 />
             </div>
           </div>
@@ -563,6 +577,16 @@ export default function OnBoarding() {
                   )}
                 </div>
               </div> */}
+                <div className="w-full">
+                    <div className="flex justify-end mt-5">
+                        <button
+                            className="border-2 border-gray-400 hover:bg-black hover:text-white transition-all duration-300 ease-in-out p-2 px-7 rounded-full"
+                            onClick={handleSubmit}
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </div>
           </div>
         </div>   
       </section>

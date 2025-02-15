@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 export default function Home() {
 
   const links = [
@@ -10,7 +12,7 @@ export default function Home() {
   ]
   const stats = [
     { name: 'Local Businesses Listed', value: '50M+' },
-    { name: 'Customers Connected', value: '500,000+' },
+    // { name: 'Customers Connected', value: '500,000+' },
     { name: 'Cities Covered', value: '150+' },
     { name: 'Successful Stories', value: '1M+' },
   ]
@@ -47,14 +49,14 @@ export default function Home() {
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <a
-                href="#"
+                href="/signup"
                 className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Get Listed Now
               </a>
-              <a href="#" className="text-sm/6 font-semibold text-gray-900">
+              {/* <a href="#" className="text-sm/6 font-semibold text-gray-900">
                 Learn more <span aria-hidden="true">→</span>
-              </a>
+              </a> */}
             </div>
           </div>
         </div>
@@ -71,11 +73,21 @@ export default function Home() {
           />
         </div>
         <div className="relative isolate overflow-hidden bg-gray-900 py-24 sm:py-32">
-        <img
+        {/* <img
           alt=""
           src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&crop=focalpoint&fp-y=.8&w=2830&h=1500&q=80&blend=111827&sat=-100&exp=15&blend-mode=multiply"
           className="absolute inset-0 -z-10 size-full object-cover object-right md:object-center"
+        /> */}
+        <img
+          alt=""
+          src="/partner.svg"
+          className="absolute bottom-[-60px] right-[-20px] -z-10 w-[500px] h-[500px] object-cover rounded-md"
+          style={{
+            border: '4px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 0 15px rgba(255, 255, 255, 0.7)',
+          }}
         />
+
         <div
           aria-hidden="true"
           className="hidden sm:absolute sm:-top-10 sm:right-1/2 sm:-z-10 sm:mr-10 sm:block sm:transform-gpu sm:blur-3xl"
@@ -169,23 +181,23 @@ export default function Home() {
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
               <a
-                href="#"
+                href="/signup"
                 className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-xs hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 Get started
               </a>
-              <a href="#" className="text-sm/6 font-semibold text-white">
+              <a href="/about" className="text-sm/6 font-semibold text-white">
                 Learn more <span aria-hidden="true">→</span>
               </a>
             </div>
           </div>
-          <div className="relative mt-16 h-80 lg:mt-8">
-            <img
+          <div className="relative mt-16 h-80 lg:mt-8 bg-amber-700">
+            <Image
               alt="App screenshot"
-              src="https://tailwindui.com/plus/img/component-images/dark-project-app-screenshot.png"
-              width={1824}
-              height={1080}
-              className="absolute top-0 left-0 w-[57rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10"
+              src="./growth.svg"
+              width={100}
+              height={100}
+              className="absolute inset-0 object-cover rounded-md bg-white/5 ring-1 ring-white/10"
             />
           </div>
         </div>

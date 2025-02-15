@@ -49,28 +49,32 @@ export default function SignIn() {
 
   const handleSignIn = async (event: React.FormEvent) => {
     event.preventDefault(); 
-
+    const loadingToast = toast.loading('Signing In...',{duration: Infinity})
     try {
       const response = await axios.post(
-        "http://localhost:8787/api/v1/user/signin",
+        "http://localhost:8787/api/v1/auth/signin",
         { email, password },
         { withCredentials: true}
       );
-
-      Cookies.set("accessToken", response.data.accessToken, {
-        expires: 7, 
-        secure: true, 
-        sameSite: "Lax", 
-        path:"/"
-      });
-
-      setIsSignedIn(true);
-      toast.success("SignIn Successful");
-    
-      // Redirect after state update
-      setTimeout(() => {
-        window.location.href = "/business";
-      }, 1000);
+      if(response.status===200){
+        Cookies.set("accessToken", response.data.accessToken, {
+          expires: 7, 
+          secure: true, 
+          sameSite: "Lax", 
+          path:"/"
+        });
+  
+        setIsSignedIn(true);
+        toast.success('SignIn Successful', {
+          id: loadingToast,
+          duration: 3000,
+        });
+      
+        // Redirect after state update
+        setTimeout(() => {
+          window.location.href = "/business";
+        }, 1000);
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong");
     }

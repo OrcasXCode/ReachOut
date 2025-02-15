@@ -31,16 +31,16 @@ const sortOptions = [
 ];
 
 const subCategories = [
-  { name: 'Food', href: '#' , id: ''},
-  { name: 'Health', href: '#' ,id: ''},
-  { name: 'Education', href: '#',id: '' },
-  { name: 'Entertainment', href: '#',id: '' },
-  { name: 'Technology', href: '#',id: '' },
-  { name: 'Fashion', href: '#',id: '' },
-  { name: 'Travel', href: '#',id: '' },
+  { name: 'Food', href: '#' , id: '8711621d-59df-4dff-82bc-d1f7943e43dc'},
+  { name: 'Health', href: '#' ,id: '8ecee37a-464a-4324-92e5-9ffe768c7145'},
+  { name: 'Education', href: '#',id: 'd02285c6-3ca5-43e3-b9a4-8e60e4d5f669' },
+  { name: 'Entertainment', href: '#',id: 'b3132d1c-d3dc-4e49-9af5-6f55fd6deb6e' },
+  { name: 'Technology', href: '#',id: 'f0ec96a2-8628-415f-aac0-80f2836e9d05' },
+  { name: 'Fashion', href: '#',id: 'c996fc4c-285a-4f64-8a49-b802895a3e05' },
+  { name: 'Travel', href: '#',id: 'bad5a399-c3ee-42b5-918a-cadc3ca382e6' },
   { name: 'Art', href: '#',id: '334c6fa1-37b5-4e81-b0f1-7ec0d4feb34b' },
   { name: 'Beauty', href: '#',id: 'e80c709c-cc6d-41ae-b551-0ce92594b1e1' },
-  { name: 'Sports', href: '#',id: '' },
+  { name: 'Sports', href: '#',id: '389cdea5-03d0-43a8-8e3d-ae1aeac00309' },
 ];
 
 
