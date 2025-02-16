@@ -12,9 +12,9 @@ export const userRoutes = new Hono<{
 
 userRoutes.use('/*', userMiddleware);
 
-userRoutes.get('/:id', getUserDetails);
-userRoutes.get('/:id', deleteProfile);
-userRoutes.get('/review/:id', reviewProfile);
 userRoutes.get('/me', getUserId);
-userRoutes.get('/:id', editProfile);
+userRoutes.get('/:id', getUserDetails);
+userRoutes.delete('/:id', deleteProfile);
+userRoutes.post('/review/:id', reviewProfile);
+userRoutes.put('/:id', editProfile);
 

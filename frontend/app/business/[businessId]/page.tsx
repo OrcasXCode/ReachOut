@@ -1,73 +1,108 @@
 "use client"
 
-import React, { useState } from "react";
+import {useParams} from 'next/navigation'
+import React, { useState,useEffect } from "react";
 import { FaCheckCircle, FaPhone, FaEnvelope, FaGlobe, FaMapMarkerAlt, FaCopy, FaStar, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import {Typography} from "@material-tailwind/react";
 import Carousel from "../../components/ui/Carousal";
 import { ReviewModel } from "@/app/components/ui/reviewmodal";
+import axios from 'axios';
 
 
 const UserProfile = () => {
-    const [isAboutExpanded, setIsAboutExpanded] = useState(false);
-    const [showCopiedTooltip, setShowCopiedTooltip] = useState(false);
-    const [open, setOpen] = React.useState(false);
-    
-    const handleWriteReview = () => setOpen(!open);
 
-    const slideData = [
-    {
-        src: "https://images.unsplash.com/photo-1494806812796-244fe51b774d?q=80&w=3534&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1518710843675-2540dd79065c?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1590041794748-2d8eb73a571c?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1679420437432-80cfbf88986c?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1494806812796-244fe51b774d?q=80&w=3534&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1518710843675-2540dd79065c?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1590041794748-2d8eb73a571c?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1679420437432-80cfbf88986c?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    ];
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+  const [showCopiedTooltip, setShowCopiedTooltip] = useState(false);
+  const [open, setOpen] = React.useState(false);
+  const {businessId} = useParams();
+  const [profileData,setProfileData] = useState<any>(null);
+  const [slideData, setSlideData] = useState<{ src: string }[]>([]);
 
-    const profileData = {
-    companyName: "TechCorp Solutions",
-    isVerified: true,
-    profileImage: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
-    email: "contact@techcorp.com",
-    phone: "+91 9429084446",
-    website: "www.techcorp.com",
-    address: "123 Innovation Street, Tech Valley, CA 94025",
-    category: "Technology",
-    subCategory: "Software Development",
-    rating: 4.8,
-    mediaGallery: [
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
-        "https://images.unsplash.com/photo-1451187580459-43490279c0fa",
-        "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    ],
-    businessHours: [
-        { day: "Monday", hours: "9:00 AM - 6:00 PM", isOpen: true },
-        { day: "Tuesday", hours: "9:00 AM - 6:00 PM", isOpen: true },
-        { day: "Wednesday", hours: "9:00 AM - 6:00 PM", isOpen: true },
-        { day: "Thursday", hours: "9:00 AM - 6:00 PM", isOpen: true },
-        { day: "Friday", hours: "9:00 AM - 5:00 PM", isOpen: true },
-        { day: "Saturday", hours: "Closed", isOpen: false },
-        { day: "Sunday", hours: "Closed", isOpen: false },
-    ],
-    about: "TechCorp Solutions is a leading software development company specializing in innovative solutions for enterprise clients. With over a decade of experience, we deliver cutting-edge technology solutions that drive business growth and digital transformation. Our team of expert developers and consultants work closely with clients to create customized solutions that meet their unique needs.",
+  useEffect(() => {
+    console.log("Business ID:", businessId); // Debugging step
+  
+    if (!businessId) return; // Prevent API call if businessId is undefined
+  
+    const fetchBusinessProfile = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8787/api/v1/business/${businessId}`, {
+          withCredentials: true
+        });
+        console.log(response.data);
+        setProfileData(response.data);
+        if (response.data?.businessMedia) {
+          const mappedSlideData = response.data.businessMedia.map((media: { url: string }) => ({
+            src: media.url,
+          }));
+          setSlideData(mappedSlideData);
+        }
+      } catch (error) {
+        console.error("Error fetching business profile:", error);
+      }
     };
+  
+    fetchBusinessProfile();
+  }, [businessId]);
+
+  
+  const handleWriteReview = () => setOpen(!open);
+
+  // const slideData = [
+  // {
+  //     src: "https://images.unsplash.com/photo-1494806812796-244fe51b774d?q=80&w=3534&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  // },
+  // {
+  //     src: "https://images.unsplash.com/photo-1518710843675-2540dd79065c?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  // },
+  // {
+  //     src: "https://images.unsplash.com/photo-1590041794748-2d8eb73a571c?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  // },
+  // {
+  //     src: "https://images.unsplash.com/photo-1679420437432-80cfbf88986c?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  // },
+  // {
+  //     src: "https://images.unsplash.com/photo-1494806812796-244fe51b774d?q=80&w=3534&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  // },
+  // {
+  //     src: "https://images.unsplash.com/photo-1518710843675-2540dd79065c?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  // },
+  // {
+  //     src: "https://images.unsplash.com/photo-1590041794748-2d8eb73a571c?q=80&w=3456&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  // },
+  // {
+  //     src: "https://images.unsplash.com/photo-1679420437432-80cfbf88986c?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  // },
+  // ];
+
+
+  
+  const sampleprofileData = {
+  companyName: "TechCorp Solutions",
+  isVerified: true,
+  profileImage: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
+  email: "contact@techcorp.com",
+  phone: "+91 9429084446",
+  website: "www.techcorp.com",
+  address: "123 Innovation Street, Tech Valley, CA 94025",
+  category: "Technology",
+  subCategory: "Software Development",
+  rating: 4.8,
+  mediaGallery: [
+      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
+      "https://images.unsplash.com/photo-1451187580459-43490279c0fa",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+  ],
+  businessHours: [
+      { day: "Monday", hours: "9:00 AM - 6:00 PM", isOpen: true },
+      { day: "Tuesday", hours: "9:00 AM - 6:00 PM", isOpen: true },
+      { day: "Wednesday", hours: "9:00 AM - 6:00 PM", isOpen: true },
+      { day: "Thursday", hours: "9:00 AM - 6:00 PM", isOpen: true },
+      { day: "Friday", hours: "9:00 AM - 5:00 PM", isOpen: true },
+      { day: "Saturday", hours: "Closed", isOpen: false },
+      { day: "Sunday", hours: "Closed", isOpen: false },
+  ],
+  about: "TechCorp Solutions is a leading software development company specializing in innovative solutions for enterprise clients. With over a decade of experience, we deliver cutting-edge technology solutions that drive business growth and digital transformation. Our team of expert developers and consultants work closely with clients to create customized solutions that meet their unique needs.",
+  };
 
   const handleCopyEmail = () => {
     navigator.clipboard.writeText(profileData.email);
@@ -98,21 +133,21 @@ const UserProfile = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6 justify-between grid grid-cols-1  md:grid-cols-2">
           <div className="flex items-center space-x-4">
             <img
-              src={profileData.profileImage}
+              src={sampleprofileData?.profileImage || 'Loading'}
               alt="Company Profile"
               className="w-24 h-24 rounded-full object-cover"
             />
             <div>
               <div className="flex items-center">
                 <h1 className="text-3xl font-bold text-gray-900">
-                  {profileData.companyName}
+                  {profileData?.name || 'Loading'}
                 </h1>
-                {profileData.isVerified && (
+                {profileData?.isVerified  && (
                   <FaCheckCircle className="ml-2 text-blue-500 w-6 h-6" />
                 )}
               </div>
               <div className="mt-2">
-                <RatingStars rating={profileData.rating} />
+                <RatingStars rating={String(profileData?.totalRating) || 'Loading'} />
               </div>
             </div>
           </div>
@@ -121,13 +156,13 @@ const UserProfile = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
                 <path d="M7.493 18.5c-.425 0-.82-.236-.975-.632A7.48 7.48 0 0 1 6 15.125c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75A.75.75 0 0 1 15 2a2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23h-.777ZM2.331 10.727a11.969 11.969 0 0 0-.831 4.398 12 12 0 0 0 .52 3.507C2.28 19.482 3.105 20 3.994 20H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 0 1-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227Z" />
                 </svg>
-                (560)
+                ({String(profileData?.likes) || "Loading"})
             </button>
             <button onClick={()=>alert("DiLiked")} className="flex flex-row gap-2 items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
                 <path d="M15.73 5.5h1.035A7.465 7.465 0 0 1 18 9.625a7.465 7.465 0 0 1-1.235 4.125h-.148c-.806 0-1.534.446-2.031 1.08a9.04 9.04 0 0 1-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.499 4.499 0 0 0-.322 1.672v.633A.75.75 0 0 1 9 22a2.25 2.25 0 0 1-2.25-2.25c0-1.152.26-2.243.723-3.218.266-.558-.107-1.282-.725-1.282H3.622c-1.026 0-1.945-.694-2.054-1.715A12.137 12.137 0 0 1 1.5 12.25c0-2.848.992-5.464 2.649-7.521C4.537 4.247 5.136 4 5.754 4H9.77a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23ZM21.669 14.023c.536-1.362.831-2.845.831-4.398 0-1.22-.182-2.398-.52-3.507-.26-.85-1.084-1.368-1.973-1.368H19.1c-.445 0-.72.498-.523.898.591 1.2.924 2.55.924 3.977a8.958 8.958 0 0 1-1.302 4.666c-.245.403.028.959.5.959h1.053c.832 0 1.612-.453 1.918-1.227Z" />
                 </svg>
-                (56)
+                ({String(profileData?.dislikes) || "Loading"})
             </button>
             <button onClick={()=>alert("DiLiked")} className="flex flex-row gap-2 items-center justify-center">
                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
@@ -145,7 +180,7 @@ const UserProfile = () => {
             <div className="space-y-10">
               <div className="flex items-center">
                 <FaEnvelope className="w-5 h-5 text-gray-500 mr-3" />
-                <span className="text-gray-700">{profileData.email}</span>
+                <span className="text-gray-700">{profileData?.businessEmail || 'Loading'}</span>
                 <button
                   onClick={handleCopyEmail}
                   className="ml-2 text-blue-500 hover:text-blue-600 relative"
@@ -161,10 +196,10 @@ const UserProfile = () => {
               <div className="flex items-center">
                 <FaPhone className="w-5 h-5 text-gray-500 mr-3" />
                 <a
-                  href={`tel:${profileData.phone}`}
+                  href={`tel:${profileData?.businessPhoneNumber}`}
                   className="text-gray-700 hover:text-blue-500"
                 >
-                  {profileData.phone}
+                  {profileData?.businessPhoneNumber || 'Loading'}
                 </a>
                 <button
                   onClick={handleCopyEmail}
@@ -181,17 +216,17 @@ const UserProfile = () => {
               <div className="flex items-center">
                 <FaGlobe className="w-5 h-5 text-gray-500 mr-3" />
                 <a
-                  href={`https://${profileData.website}`}
+                  href={`https://${profileData?.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-700 hover:text-blue-500"
                 >
-                  {profileData.website}
+                  {profileData?.website || "Loading"}
                 </a>
               </div>
               <div className="flex items-center">
                 <FaMapMarkerAlt className="w-5 h-5 text-gray-500 mr-3" />
-                <span className="text-gray-700">{profileData.address}</span>
+                <span className="text-gray-700">{profileData?.address || 'Loading'}</span>
               </div>
             </div>
           </div>
@@ -200,7 +235,7 @@ const UserProfile = () => {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Business Hours</h2>
             <div className="space-y-2">
-              {profileData.businessHours.map((schedule, index) => (
+              {sampleprofileData.businessHours.map((schedule, index) => (
                 <div
                   key={index}
                   className={`flex justify-between items-center p-2 rounded ${
@@ -241,7 +276,7 @@ const UserProfile = () => {
               isAboutExpanded ? "" : "line-clamp-3"
             }`}
           >
-            {profileData.about}
+            {profileData?.about || 'Loading'}
           </p>
         </div>
 
@@ -370,8 +405,8 @@ const UserProfile = () => {
                               <div className="col-span-12 md:col-span-8 flex items-center">
                                   <div className="flex flex-col sm:flex-row items-center max-lg:justify-center w-full h-full">
                                       <div
-                                          className="sm:pr-3 sm:border-r border-gray-200 flex items-center justify-center flex-col">
-                                          <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">4.3</h2>
+                                          className="sm:pr-3 mx-auto flex items-center justify-center flex-col">
+                                          <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">{String(profileData?.totalRating) || "Loading"}</h2>
                                           <div className="flex items-center gap-3 mb-4">
                                               <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
                                                   viewBox="0 0 36 36" fill="none">
@@ -442,7 +477,7 @@ const UserProfile = () => {
                                           <p className="font-normal text-lg leading-8 text-gray-400">46 Ratings</p>
                                       </div>
 
-                                      <div
+                                      {/* <div
                                           className="sm:pl-3 sm:border-l border-gray-200 flex items-center justify-center flex-col">
                                           <h2 className="font-manrope font-bold text-5xl text-black text-center mb-4">4.8</h2>
                                           <div className="flex items-center gap-3 mb-4">
@@ -513,7 +548,7 @@ const UserProfile = () => {
                                               </svg>
                                           </div>
                                           <p className="font-normal text-lg leading-8 text-gray-400">Last Month</p>
-                                      </div>
+                                      </div> */}
                                   </div>
                               </div>
                               <div className="col-span-12 md:col-span-4 max-lg:mt-8 md:pl-8">
@@ -528,7 +563,7 @@ const UserProfile = () => {
                           </div>
                       </div>
                   </div>
-                  <div className="pb-8 border-b border-gray-200 max-xl:max-w-3xl max-xl:mx-auto">
+                  {/* <div className="pb-8 border-b border-gray-200 max-xl:max-w-3xl max-xl:mx-auto">
                       <h4 className="font-manrope font-semibold text-3xl leading-10 text-black mb-6">Review Summary</h4>
                       <p className="font-normal text-lg leading-8 text-gray-500 ">
                           I recently had the opportunity to explore Pagedone's UI design system, and it left a lasting
@@ -536,7 +571,7 @@ const UserProfile = () => {
                           of design components, making it a go-to for creating visually stunning and consistent
                           interfaces.
                       </p>
-                  </div>
+                  </div> */}
               </div>
           </div>
         </section>
@@ -568,7 +603,7 @@ const UserProfile = () => {
                 </div>
             </div>
         </div> */}
-        <div className="py-20 px-4 font-[sans-serif]">
+        <div className="py-20 px-4">
             <div className="max-w-4xl w-full mx-auto text-center grid grid-cols-1  md:grid-cols-2 gap-9">
                 <div>
                     <h2 className="text-gray-800 text-2xl md:text-3xl font-extrabold mb-6 leading-[45px]">Raise a Complaint</h2>

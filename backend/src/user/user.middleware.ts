@@ -17,8 +17,8 @@ export const userMiddleware: MiddlewareHandler = async (c, next) => {
             return c.json({ error: 'Unauthorized' }, 401);
         }
 
-        console.log("UserID",payload.id as string);
         c.set('userId', payload.id as string);
+        console.log("Sending UserId in Context",payload.id)
         await next();
     } catch (error) {
         console.error("JWT Verification Error:", error);

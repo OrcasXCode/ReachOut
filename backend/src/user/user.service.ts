@@ -15,7 +15,8 @@ export const getPrisma = (env: { DATABASE_URL: string }) => {
 
 //fetching userID route
 export async function getUserId(c:Context){
-    const userId = c.get('userId');  
+    const userId = c.get('userId');
+    console.log("UserId in backend",userId);  
     if (!userId) {
         return c.json({ error: "Unauthorized" }, 401);
     }
@@ -42,10 +43,24 @@ export async function getUserDetails(c: Context) {
             return c.json({ error: 'Id is required' }, 400);
         }
         if (!userId) return c.json({ error: "User is not authenticated" }, 403);
-        const userDetails = await prisma.user.findFirst({ where: { id: userId }, include: { businesses: true } });
+        const userDetails = await prisma.user.findFirst({
+            where: { id: userId },
+            include: {
+              businesses: {
+                include: {
+                  businessMedia: {
+                    select: {
+                      id: true,
+                      url: true, // Ensure that businessMedia fields exist
+                    },
+                  },
+                },
+              },
+            },
+        });  
         if (!userDetails) return c.json({ error: "User does not exist" }, 404);
 
-        const businessDetails = await prisma.business.findFirst({ where: { ownerId: id } });
+        const businessDetails = await prisma.business.findFirst({ where: { ownerId: id },});
         if (!businessDetails) return c.json({ error: 'User does not exist' }, 404);
 
         let decryptedEmail = "";

@@ -290,11 +290,12 @@ export async function getBusinessProfile(c:Context){
 
     const cacheKey = `business:${businessId}`;
     const cachedBusiness = await redis.get(cacheKey);
-    if(cachedBusiness) {
-        const endTime = performance.now(); 
-        console.log(`REdis Execution Time: ${(endTime - startTime).toFixed(2)}ms`);
+    if (cachedBusiness && typeof cachedBusiness === "string") {
+        return c.json(JSON.parse(cachedBusiness));
     }
-    if(cachedBusiness) return c.json(cachedBusiness); 
+
+    const secretKey = c.env.AES_SECRET_KEY;
+    if (!secretKey) return c.json({ error: "Server misconfiguration: Missing AES secret key" }, 500);
 
     try {
         if(!userId) {
@@ -316,20 +317,59 @@ export async function getBusinessProfile(c:Context){
             },403)
         }
 
-        if(user.ownerId !== userId){
-            return c.json({error: 'You are not authorized to update this business'}, 403);
-        }
+        // if(user.ownerId !== userId){
+        //     return c.json({error: 'You are not authorized to update this business'}, 403);
+        // }
 
         
         const userBusiness = await prisma.business.findUnique({
             where: {
                 id: businessId
             },
+            include:{
+                businessMedia:true
+            }
         });
-        await redis.set(cacheKey,userBusiness,{ex:3600});
+
+        
+        let decryptedEmail = "";
+        let decryptedPhoneNumber = "";
+        let decryptedBusinessEmail = "";
+        let decryptedBusinessPhoneNumber = "";
+  
+        try {
+            if (userBusiness) {
+                decryptedBusinessEmail = await AES.decrypt(
+                    userBusiness.businessEmail,
+                    userBusiness.businessEmailIV || "", // Ensure IV field exists
+                secretKey
+                ) || "";
+            
+                decryptedBusinessPhoneNumber = await AES.decrypt(
+                userBusiness.phoneNumber, 
+                userBusiness.phoneNumberIV || "", // Ensure IV field exists
+                secretKey
+                ) || "";
+            }
+            
+        } catch (decryptError) {
+            console.error("Decryption failed:", decryptError);
+            return c.json({ error: "Failed to decrypt user data" }, 500);
+        }
+        await redis.set(
+            cacheKey,
+            JSON.stringify({
+              ...userBusiness,
+              businessEmail: decryptedBusinessEmail,
+              businessPhoneNumber: decryptedBusinessPhoneNumber
+            }),
+            { ex: 3600 }
+          );
+          
         const endTime = performance.now(); 
         console.log(`Execution Time: ${(endTime - startTime).toFixed(2)}ms`);
-        return c.json({userBusiness},200);
+        return c.json({...userBusiness,businessEmail: decryptedBusinessEmail,
+            businessPhoneNumber: decryptedBusinessPhoneNumber,},200);
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
@@ -477,7 +517,6 @@ export async function updateBusinessHours(c:Context) {
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 };
-
 
 //report a business route
 export async function reportABusiness(c:Context){
@@ -770,7 +809,9 @@ export async function getBusinessBulk(c:Context){
     const redis = createRedisClient(c.env);
     const cacheKey = `businessBulk${categoryId}`;
     const cachedBulkBusinesses = await redis.get(cacheKey);
-    if(cachedBulkBusinesses) return c.json(cachedBulkBusinesses);
+    if (cachedBulkBusinesses && typeof cachedBulkBusinesses === "string") {
+        return c.json(JSON.parse(cachedBulkBusinesses));
+    }
     
     try {
         const categories = await prisma.category.findMany({
@@ -800,10 +841,28 @@ export async function getBusinessBulk(c:Context){
             }))
         }));
 
-        await redis.set(cacheKey,bulkBusinesses,{ex:3600});
+        await redis.set(cacheKey, JSON.stringify(bulkBusinesses),{ex:3600});
         return c.json({ bulkBusinesses }, 200);
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 };
+
+//get my business id route
+export async function getBusinessMe(c:Context){
+    const userId = c.get('userId');  
+    const prisma = getPrisma(c.env);
+    const businessId = await prisma.business.findFirst({
+        where:{
+            ownerId : userId
+        },
+        select:{
+            id:true
+        }
+    })
+    if (!businessId) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+    return c.json({ businessId });
+}

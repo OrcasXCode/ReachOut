@@ -383,7 +383,7 @@ export default function Example() {
               {/* Product grid */}
               <div className="lg:col-span-3 text-black">
                 <Listings></Listings>
-                <PaginationTab></PaginationTab>
+                {/* <PaginationTab></PaginationTab> */}
               </div>
             </div>
           </section>
