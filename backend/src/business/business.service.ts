@@ -664,7 +664,9 @@ export async function getAllReviews(c:Context) {
     const redis = createRedisClient(c.env);
     const cacheKey = `businessReviews${businessId}`;
     const cachedBusinessReviews = await redis.get(cacheKey);
-    if(cachedBusinessReviews) return c.json(cachedBusinessReviews);
+    if(cachedBusinessReviews && typeof cachedBusinessReviews === "string"){
+        return c.json(JSON.parse(cachedBusinessReviews)); 
+    }
 
     try {
         if (!businessId) {
@@ -691,7 +693,7 @@ export async function getAllReviews(c:Context) {
             return c.json({ error: 'Business not found' }, 404);
         }
 
-        await redis.set(cacheKey,business.reviews,{ex:3600});
+        await redis.set(cacheKey,JSON.stringify(business.reviews),{ex:3600});
         return c.json(business.reviews, 200);
     } catch (error) {
         console.log(error);
@@ -802,12 +804,23 @@ export async function likingABusiness(c:Context){
 //get all business with filters and search route
 export async function getBusinessBulk(c:Context){
     const prisma = getPrisma(c.env);
-    // const categoryId = c.req.param('categoryId');
-    const query = c.req.query();
-    const categoryId = query.categoryId || undefined;
+
+    const queryString = c.req.query();
+    const frequentlyChosen = queryString.frequents ?? undefined;
+    const category = queryString.category ?? undefined;
+    const rating = queryString.rating ? Number(queryString.rating) : undefined;
+    const businesstype = queryString.businessType ?? undefined;
+
+    const timings = queryString.timings ??  undefined;
+    let openTime, closeTime;
+    if (timings && timings.includes("+")) {
+        [openTime, closeTime] = timings.split("+");
+    }
 
     const redis = createRedisClient(c.env);
-    const cacheKey = `businessBulk${categoryId}`;
+    const cacheKey = `businessBulk:${Object.entries(queryString)
+        .map(([k, v]) => `${k}=${v}`)
+        .join("&")}`;
     const cachedBulkBusinesses = await redis.get(cacheKey);
     if (cachedBulkBusinesses && typeof cachedBulkBusinesses === "string") {
         return c.json(JSON.parse(cachedBulkBusinesses));
@@ -815,12 +828,27 @@ export async function getBusinessBulk(c:Context){
     
     try {
         const categories = await prisma.category.findMany({
-            where: categoryId ? { id: categoryId } : {},  
+            where: {
+                ...(category && { name: category }),
+                ...(frequentlyChosen && { id: frequentlyChosen }),
+            },  
             include: {
                 Business: {
+                    where:{
+                        // ...(businesstype!==undefined && {businessType:{gte:businesstype}}),
+                        ...(rating !== undefined && { totalRating: { gte: rating } }),
+                        ...(timings !== undefined && {
+                            businessHours:{
+                                some:{
+                                    openingTime:{lte:openTime},
+                                    closingTime:{gte:closeTime}
+                                }
+                            }
+                        })
+                    },
                     include: {
                         subCategories: {
-                            include: { subCategory: { select: { id: true, name: true } } } // Fetch subCategory ID + name
+                            include: { subCategory: { select: { id: true, name: true } } } 
                         }
                     }
                 }
@@ -835,17 +863,17 @@ export async function getBusinessBulk(c:Context){
                 name: business.name,
                 about: business.about,
                 subCategories: business.subCategories.map(sub => ({
-                    id: sub.subCategory.id,  // Fetch subCategory ID
-                    name: sub.subCategory.name // Fetch subCategory Name
+                    id: sub.subCategory.id, 
+                    name: sub.subCategory.name 
                 }))
             }))
         }));
 
         await redis.set(cacheKey, JSON.stringify(bulkBusinesses),{ex:3600});
         return c.json({ bulkBusinesses }, 200);
-    } catch (error) {
-        console.error(error);
-        return c.json({ error: 'Internal Server Error' }, 500);
+    } catch (error:any) {
+        console.log(error);
+        return c.json({ error: error.message || "Internal Server Error" }, 500);
     }
 };
 

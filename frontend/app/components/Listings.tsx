@@ -17,21 +17,53 @@ type BusinessStatus = "Open" | "Closed";
 export default function Listings() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [fetchedbusiness, setFetchedBusinesses] = useState<any[]>([]);
-  const searchParams = useSearchParams();
-  const categoryId = searchParams.get("categoryId") || "";
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+
+  // const [filters, setFilters] = useState({
+  //   category: "", 
+  //   frequents: "", 
+  //   rating: "", 
+  //   businessType: "", 
+  //   timings: "", 
+  // });
+  // const searchParams = new URLSearchParams();
+  // if (filters.category) searchParams.set("category", filters.category);
+  // if (filters.frequents) searchParams.set("frequents", filters.frequents);
+  // if (filters.rating) searchParams.set("rating", filters.rating);
+  // if (filters.businessType) searchParams.set("businessType", filters.businessType);
+  // if (filters.timings) searchParams.set("timings", filters.timings);
+
+  // const queryString = searchParams.toString(); 
+  const filters = new URLSearchParams(window.location.search); // Get query params from the URL
+  const category = filters.get("category") || "";
+  const frequentlyChosen = filters.get("frequents") || "";
+  const rating = filters.get("rating") || "";
+  const businesstype = filters.get("businessType") || "";
+  const timings = filters.get("timings") || "";
+
+  // Construct the query string
+  const queryString = new URLSearchParams({
+    category,
+    frequents: frequentlyChosen,
+    rating,
+    businessType: businesstype,
+    timings
+  }).toString();
+
 
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8787/api/v1/business/bulk",
+          `http://localhost:8787/api/v1/business/bulk?${queryString}`,
           { withCredentials: true }
         );
 
-        console.log(response);
+        console.log( `http://localhost:8787/api/v1/business/bulk?${queryString}`);
+        console.log("Response fetched in bulk",response);
         if (!response.data || !Array.isArray(response.data.bulkBusinesses)) {
           throw new Error("Unexpected API response format");
         }
@@ -45,23 +77,23 @@ export default function Listings() {
             }))
         );
 
-        const filteredBusinesses = categoryId
-          ? businessList.filter(
-              (business: { categoryId: string }) =>
-                String(business.categoryId).trim().toLowerCase() ===
-                String(categoryId).trim().toLowerCase()
-            )
-          : businessList;
+        // const filteredBusinesses = categoryId
+        //   ? businessList.filter(
+        //       (business: { categoryId: string }) =>
+        //         String(business.categoryId).trim().toLowerCase() ===
+        //         String(categoryId).trim().toLowerCase()
+        //     )
+        //   : businessList;
 
-        console.log("Fetched Businesses:", filteredBusinesses);
-        setFetchedBusinesses(filteredBusinesses);
+        console.log("Fetched Businesses:", businessList);
+        setFetchedBusinesses(businessList);
       } catch (err: any) {
         console.log(err.response?.data?.message || "Error fetching businesses", err);
       }
     };
 
     fetchBusinesses();
-  }, [categoryId]);
+  }, [queryString]);
 
   const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
 
