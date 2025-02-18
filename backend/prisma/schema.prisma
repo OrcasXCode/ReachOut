@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(uuid())
+  id            String     @id @default(ulid())
   firstName     String
   lastName      String
   email         String     @unique
@@ -22,43 +22,44 @@ model User {
 }
 
 model Business {
-  id            String                @id @default(uuid())
-  ownerId       String
-  name          String
-  verified      Boolean               @default(false)
-  address       String
-  totalRating   Int                   @default(0)
-  website       String?
-  about         String
-  businessEmail String                @unique
-  businessEmailHash String            @unique
-  businessEmailIV String   
-  categoryId    String
-  phoneNumber   String                @unique
-  phoneNumberIV String          
-  phoneNumberHash String              @unique
-  dislikes      Int                   @default(0)
-  likes         Int                   @default(0)
-  category      Category              @relation(fields: [categoryId], references: [id])
-  owner         User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  subCategories BusinessSubCategory[]
-  businessHours BusinessTimings[]
-  businessMedia Media[]               @relation("BusinessMedia")
-  reports       Report[]
-  reviews       Review[]
+  id                String                @id @default(ulid())
+  ownerId           String
+  name              String
+  verified          Boolean               @default(false)
+  address           String
+  totalRating       Int                   @default(0)
+  website           String?
+  about             String
+  businessEmail     String                @unique
+  businessEmailHash String                @unique
+  businessEmailIV   String
+  categoryId        String
+  phoneNumber       String                @unique
+  phoneNumberIV     String
+  phoneNumberHash   String                @unique
+  dislikes          Int                   @default(0)
+  likes             Int                   @default(0)
+  category          Category              @relation(fields: [categoryId], references: [id])
+  owner             User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  subCategories     BusinessSubCategory[]
+  businessHours     BusinessTimings[]
+  businessMedia     Media[]               @relation("BusinessMedia")
+  reports           Report[]
+  reviews           Review[]
+  businessType      BusinessType
 
   @@unique([name, address])
 }
 
 model Category {
-  id            String        @id @default(uuid())
+  id            String        @id @default(ulid())
   name          String        @unique
   Business      Business[]
   subCategories SubCategory[]
 }
 
 model SubCategory {
-  id         String                @id @default(uuid())
+  id         String                @id @default(ulid())
   name       String
   categoryId String
   businesses BusinessSubCategory[]
@@ -77,7 +78,7 @@ model BusinessSubCategory {
 }
 
 model Review {
-  id            String   @id @default(uuid())
+  id            String   @id @default(ulid())
   businessId    String
   rating        Int
   description   String
@@ -87,7 +88,7 @@ model Review {
 }
 
 model Media {
-  id              String    @id @default(uuid())
+  id              String    @id @default(ulid())
   type            String
   url             String
   customerMediaId String?
@@ -97,7 +98,7 @@ model Media {
 }
 
 model BusinessTimings {
-  id          String    @id @default(uuid())
+  id          String    @id @default(ulid())
   businessId  String
   dayOfWeek   DayOfWeek
   openingTime String
@@ -107,7 +108,7 @@ model BusinessTimings {
 }
 
 model OTP {
-  id        String   @id @default(uuid())
+  id        String   @id @default(ulid())
   email     String   @unique
   emailHash String   @unique
   emailIV   String
@@ -119,7 +120,7 @@ model OTP {
 }
 
 model Report {
-  id         String   @id @default(uuid())
+  id         String   @id @default(ulid())
   businessId String
   userId     String
   reason     String
@@ -141,4 +142,11 @@ enum DayOfWeek {
   THURSDAY
   FRIDAY
   SATURDAY
+}
+
+enum BusinessType {
+  ESTABLISHED_BUSINESS
+  STREET_VENDOR
+  HOME_BUSINESS
+  SERVICES
 }

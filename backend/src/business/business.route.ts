@@ -14,7 +14,7 @@ businessRoutes.use('/*', businessMiddleware);
 
 businessRoutes.get('/bulk', getBusinessBulk);
 businessRoutes.get('/me', getBusinessMe);
-businessRoutes.get('/create', createNewBusiness);
+businessRoutes.post('/create', createNewBusiness);
 businessRoutes.put('/updatebusiness/:id', updateBusinessProfile);
 businessRoutes.delete('/delete', deleteBusinessProfile);
 businessRoutes.get('/:id', getBusinessProfile);

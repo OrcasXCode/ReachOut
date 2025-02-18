@@ -29,6 +29,7 @@ export async function businessMiddleware(c: Context, next: Next) {
     }
 
     c.set("userId", payload.id as string);
+    console.log("passed")
     await next();
   } catch (error) {
     console.error("Auth Middleware Error:", error);

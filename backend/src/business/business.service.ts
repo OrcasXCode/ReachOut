@@ -27,16 +27,50 @@ const s3 = new S3Client({
 
 
 //creating new business route
-export async function createNewBusiness(c:Context){
+export async function createNewBusiness(c: Context) {
     const prisma = getPrisma(c.env);
     const userId = c.get('userId');
-    const body = await c.req.json();
+    const body = await c.req.formData();
+
+    const name = body.get("name")?.toString();
+    const verified = body.get("verified") === "true";
+    const address = body.get("address")?.toString();
+    const businessEmail = body.get("businessEmail")?.toString();
+    const phoneNumber = body.get("phoneNumber")?.toString();
+    const categoryId = body.get("categoryId")?.toString();
+    const about = body.get("about")?.toString();
+    const website = body.get("website")?.toString();
+
+    const subCategoryIds = JSON.parse(body.get("subCategoryIds")?.toString() || "[]");
+    const businessHours = JSON.parse(body.get("businessHours")?.toString() || "[]");
+
+    const mediaFiles: { file: File; type: string }[] = [];
+    const files = body.getAll("mediaFiles") as File[];
+
+    for (const file of files) {
+    mediaFiles.push({ file, type: file.type });
+    }
+
+    const parsedData = {
+        name,
+        verified,
+        address,
+        businessEmail,
+        phoneNumber,
+        categoryId,
+        subCategoryIds,
+        about,
+        website,
+        businessHours,
+        mediaFiles,
+    };
+
 
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId }
         });
-        
+
         if (!user) {
             return c.json({ error: 'User not found' }, 404);
         }
@@ -45,7 +79,7 @@ export async function createNewBusiness(c:Context){
             return c.json({ error: 'User is not a business user, not allowed to create a business' }, 401);
         }
 
-        const parsed = addBusinessInput.safeParse(body);
+        const parsed = addBusinessInput.safeParse(parsedData);
         if (!parsed.success) {
             return c.json({
                 error: 'Invalid Inputs',
@@ -53,33 +87,28 @@ export async function createNewBusiness(c:Context){
             }, 400);
         }
 
-        const { name, verified, address, mediaUrls, businessHours ,businessEmail, categoryId, subCategoryIds, phoneNumber, totalRating, website, about } = parsed.data;
+        const { name, verified, address, businessHours, businessEmail, categoryId, subCategoryIds, phoneNumber, totalRating, website, about, mediaUrls } = parsed.data;
 
 
-        if (!Array.isArray(mediaUrls) || !mediaUrls.every(media => typeof media.type === 'string' && typeof media.url === 'string')) {
-            return c.json({ error: 'Invalid media format: Each media item must have type and url' }, 400);
-        }
-
-        if (!Array.isArray(businessHours) || !businessHours.every(hour => 
-            typeof hour.dayofWeek === 'string' && 
-            typeof hour.openingTime === 'string' && 
+        if (!Array.isArray(businessHours) || !businessHours.every(hour =>
+            typeof hour.dayofWeek === 'string' &&
+            typeof hour.openingTime === 'string' &&
             typeof hour.closingTime === 'string'
         )) {
             return c.json({ error: 'Invalid business hours format' }, 400);
         }
 
         const secretKey = c.env.AES_SECRET_KEY;
-        if(!secretKey){
+        if (!secretKey) {
             return c.json({
                 error: 'AES Secret Key is missing'
-            },403)
+            }, 403);
         }
 
         const businessEmailHash = crypto.createHash("sha256").update(businessEmail).digest("hex");
         const phoneNumberHash = crypto.createHash("sha256").update(phoneNumber).digest("hex");
-        const encryptedBusienssEmail = await AES.encrypt(businessEmail,secretKey);
-        const encryptedPhoneNumber = await AES.encrypt(phoneNumber,secretKey);
-        // const encryptedOwnerId = await AES.encrypt(userId,secretKey);
+        const encryptedBusinessEmail = await AES.encrypt(businessEmail, secretKey);
+        const encryptedPhoneNumber = await AES.encrypt(phoneNumber, secretKey);
 
         const existingBusiness = await prisma.business.findFirst({
             where: {
@@ -103,22 +132,23 @@ export async function createNewBusiness(c:Context){
             return c.json({ error: `Category with ID ${categoryId} does not exist` }, 401);
         }
 
-        if(!categoryId || !userId || !subCategoryIds){
+        if (!categoryId || !userId || !subCategoryIds) {
             return c.json({
                 error: 'Category ID is missing'
-            },403)
+            }, 403);
         }
 
+        // Create the new business
         const newBusiness = await prisma.business.create({
             data: {
                 name,
-                ownerId:userId,
-                businessEmail: encryptedBusienssEmail.encrypted,
-                businessEmailIV: encryptedBusienssEmail.iv,
-                businessEmailHash,  
+                ownerId: userId,
+                businessEmail: encryptedBusinessEmail.encrypted,
+                businessEmailIV: encryptedBusinessEmail.iv,
+                businessEmailHash,
                 phoneNumber: encryptedPhoneNumber.encrypted,
                 phoneNumberIV: encryptedPhoneNumber.iv,
-                phoneNumberHash,   
+                phoneNumberHash,
                 verified: false,
                 address,
                 categoryId,
@@ -130,33 +160,57 @@ export async function createNewBusiness(c:Context){
                 totalRating: 0,
                 website,
                 about,
-                businessMedia: {
-                    create: mediaUrls.map(media => ({
-                        type: media.type,
-                        url: media.url
-                    }))
-                },
                 businessHours: {
                     create: businessHours.map(hour => ({
-                        dayOfWeek: hour.dayofWeek, 
+                        dayOfWeek: hour.dayofWeek,
                         openingTime: hour.openingTime,
                         closingTime: hour.closingTime,
-                        specialNote: hour.specialNote || null  
+                        specialNote: hour.specialNote || null
                     }))
                 }
             }
-        });        
-            
+        });
+
+        if (body.has("mediaFiles")) {
+            const mediaFiles = body.getAll("mediaFiles") as File[];
+        
+            if (!mediaFiles || mediaFiles.length === 0) {
+                return c.json({ error: 'No media files provided' }, 400);
+            }
+        
+            const uploadedMedia = await Promise.all(mediaFiles.map(async (file) => {
+                const fileBuffer = await file.arrayBuffer();
+                const fileKey = `business-media/${newBusiness.id}/${Date.now()}-${file.name}`;
+        
+                const command = new PutObjectCommand({
+                    Bucket: "myprojectuploads",
+                    Key: fileKey,
+                    Body: Buffer.from(fileBuffer),
+                    ContentType: file.type,
+                });
+        
+                await s3.send(command);
+                return {
+                    type: file.type,
+                    url: `https://myprojectuploads.s3.amazonaws.com/${fileKey}`,
+                    businessMediaId: newBusiness.id,
+                };
+            }));
+        
+            await prisma.media.createMany({ data: uploadedMedia });
+        }
+        
+
         return c.json({
             message: 'Business created successfully',
             business: newBusiness
         }, 200);
-        
+
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
     }
-};
+}
 
 //updating business profile route
 export async function updateBusinessProfile(c:Context){

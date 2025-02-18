@@ -146,8 +146,7 @@ export async function signup(c: Context) {
     const encryptedEmail = await AES.encrypt(email, secretKey);
     const encryptedPhoneNumber = await AES.encrypt(phoneNumber, secretKey);
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
-
+    // Create the user synchronously
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -157,22 +156,19 @@ export async function signup(c: Context) {
         emailHash,
         phoneNumber: encryptedPhoneNumber.encrypted,
         phoneNumberIV: encryptedPhoneNumber.iv,
-        password: password,
-        // password: hashedPassword,
+        password: password, // or use hashed password
         role,
       },
     });
 
+    // Generate tokens and set cookies
     const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
     const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
 
-    //Store refresh token in Redis
-    await redis.set(`refresh_token:${user.id}`, refreshToken, {
-      ex: 7 * 86400, 
-    });
+    await redis.set(`refresh_token:${user.id}`, refreshToken, { ex: 7 * 86400 });
 
-    c.res.headers.append("Set-Cookie", `accessToken=${accessToken}; HttpOnly; Path=/;  SameSite=Strict`);
-    c.res.headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; Path=/;  SameSite=Strict`);
+    c.res.headers.append("Set-Cookie", `accessToken=${accessToken}; HttpOnly; Path=/; SameSite=Strict`);
+    c.res.headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; Path=/; SameSite=Strict`);
 
     return c.json({ message: "Signup successful", accessToken }, 201);
   } catch (error) {
@@ -180,7 +176,6 @@ export async function signup(c: Context) {
     return c.json({ error: "Internal Server Error" }, 500);
   }
 }
-
 
 export async function signout(c:Context){
   const prisma = getPrisma(c.env)
