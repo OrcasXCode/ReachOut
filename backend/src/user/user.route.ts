@@ -14,7 +14,7 @@ userRoutes.use('/*', userMiddleware);
 
 userRoutes.get('/me', getUserId);
 userRoutes.get('/:id', getUserDetails);
-userRoutes.delete('/:id', deleteProfile);
+userRoutes.delete('deleteuser/:id', deleteProfile);
 userRoutes.post('/review/:id', reviewProfile);
 userRoutes.put('/:id', editProfile);
 

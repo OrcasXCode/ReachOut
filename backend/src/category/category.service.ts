@@ -18,7 +18,9 @@ export async function getCategory(c:Context){
     const redis = createRedisClient(c.env);
     const cacheKey = `categorey${userId}`;
     const cachedCategories = await redis.get(cacheKey);
-    if(cachedCategories) return c.json(cachedCategories);
+    if(cachedCategories && typeof cachedCategories==="string"){
+        return c.json(JSON.parse(cachedCategories));
+    }
 
     try{
         const allCategories = await prisma.category.findMany({
@@ -26,7 +28,7 @@ export async function getCategory(c:Context){
                 subCategories: true
             }
         });
-        await redis.set(cacheKey,allCategories,{ex:3600});
+        await redis.set(cacheKey,JSON.stringify(allCategories),{ex:3600});
         return c.json({
             allCategories
         },200)
@@ -36,4 +38,23 @@ export async function getCategory(c:Context){
         c.status(500);
         return c.json({error:"Internal Server Error"})
     }
+}
+
+
+//get all user domains routes
+export async function getUserDomains(c:Context){
+    const userId = c.get('userId');
+    const redis = createRedisClient(c.env);
+    const cacheKey = `userDomains${userId}`;
+    const cachedUserDomains = await redis.get(cacheKey);
+    if(cachedUserDomains && typeof cachedUserDomains==="string"){
+        return c.json(JSON.parse(cachedUserDomains));
+    }
+
+    const userDomains=[
+        "IT & Digital Services", "Beauty & Personal Care", "Home-Based Businesses & Small Manufacturers", "Food & Beverage", "Health & Wellness", "Education & Coaching", "Home Services & Repairs", "Local Vendors & Market Sellers", "Transport & Logistics", "Photography & Event Planning", "Miscellaneous & Special Services"
+    ]
+
+    await redis.set(cacheKey,JSON.stringify(userDomains),{ex:3600});
+    return c.json({userDomains},200);
 }

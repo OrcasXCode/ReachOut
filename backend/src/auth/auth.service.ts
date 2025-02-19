@@ -130,7 +130,7 @@ export async function signup(c: Context) {
     return c.json({ error: "Invalid Input", details: parsed.error.errors }, 400);
   }
 
-  const { firstName, lastName, email, phoneNumber, password, role } = parsed.data;
+  const { firstName, lastName, email, phoneNumber, password, role ,userDomain } = parsed.data;
 
   try {
     const secretKey = c.env.AES_SECRET_KEY;
@@ -157,6 +157,7 @@ export async function signup(c: Context) {
         phoneNumber: encryptedPhoneNumber.encrypted,
         phoneNumberIV: encryptedPhoneNumber.iv,
         password: password, // or use hashed password
+        userDomain,
         role,
       },
     });

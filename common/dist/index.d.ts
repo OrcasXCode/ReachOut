@@ -6,6 +6,7 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: z.ZodString;
     password: z.ZodString;
     role: z.ZodEnum<["USER", "BUSINESS"]>;
+    userDomain: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     firstName: string;
     lastName: string;
@@ -13,6 +14,7 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: string;
     password: string;
     role: "USER" | "BUSINESS";
+    userDomain: string;
 }, {
     firstName: string;
     lastName: string;
@@ -20,6 +22,7 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: string;
     password: string;
     role: "USER" | "BUSINESS";
+    userDomain: string;
 }>;
 export type SignupInput = z.infer<typeof signupinput>;
 export declare const signininput: z.ZodObject<{
@@ -42,13 +45,13 @@ export declare const forgetpasswordinput: z.ZodObject<{
 }>;
 export type ForgetPasswordInput = z.infer<typeof forgetpasswordinput>;
 export declare const verifyotpinput: z.ZodObject<{
-    email: z.ZodString;
+    emailHash: z.ZodString;
     otp: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    email: string;
+    emailHash: string;
     otp: string;
 }, {
-    email: string;
+    emailHash: string;
     otp: string;
 }>;
 export type VerifyOtpInput = z.infer<typeof verifyotpinput>;
@@ -96,16 +99,17 @@ export declare const addBusinessInput: z.ZodObject<{
     subCategoryIds: z.ZodArray<z.ZodString, "many">;
     totalRating: z.ZodDefault<z.ZodNumber>;
     website: z.ZodOptional<z.ZodString>;
+    businessType: z.ZodEnum<["ESTABLISHED_BUSINESS", "STREET_VENDOR", "HOME_BUSINESS", "SERVICES"]>;
     about: z.ZodString;
-    mediaUrls: z.ZodOptional<z.ZodArray<z.ZodObject<{
+    mediaFiles: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        file: z.ZodType<File, z.ZodTypeDef, File>;
         type: z.ZodString;
-        url: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         type: string;
-        url: string;
+        file: File;
     }, {
         type: string;
-        url: string;
+        file: File;
     }>, "many">>;
     businessHours: z.ZodOptional<z.ZodArray<z.ZodObject<{
         dayofWeek: z.ZodEnum<["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"]>;
@@ -132,11 +136,12 @@ export declare const addBusinessInput: z.ZodObject<{
     categoryId: string;
     subCategoryIds: string[];
     totalRating: number;
+    businessType: "ESTABLISHED_BUSINESS" | "STREET_VENDOR" | "HOME_BUSINESS" | "SERVICES";
     about: string;
     website?: string | undefined;
-    mediaUrls?: {
+    mediaFiles?: {
         type: string;
-        url: string;
+        file: File;
     }[] | undefined;
     businessHours?: {
         dayofWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
@@ -152,12 +157,13 @@ export declare const addBusinessInput: z.ZodObject<{
     businessEmail: string;
     categoryId: string;
     subCategoryIds: string[];
+    businessType: "ESTABLISHED_BUSINESS" | "STREET_VENDOR" | "HOME_BUSINESS" | "SERVICES";
     about: string;
     totalRating?: number | undefined;
     website?: string | undefined;
-    mediaUrls?: {
+    mediaFiles?: {
         type: string;
-        url: string;
+        file: File;
     }[] | undefined;
     businessHours?: {
         dayofWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";

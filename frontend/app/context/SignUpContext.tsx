@@ -9,6 +9,7 @@ interface MediaUrls {
   url: string;
 }
 
+
 interface BusinessHours {
   dayofWeek: string;
   openingTime: string;
@@ -27,6 +28,7 @@ interface BusinessData {
   totalRating: number;
   website: string;
   about: string;
+  businessType: string,
   mediaUrls?: MediaUrls[];
   businessHours?: BusinessHours[];
 }
@@ -39,6 +41,7 @@ interface SignupData {
   password: string;
   role: string;
   businesses?: BusinessData;
+  userDomains?: string;
 }
 
 interface SignupContextType {
@@ -48,18 +51,20 @@ interface SignupContextType {
   updateBusinessData: (data: Partial<BusinessData>) => void;
   submitSignup: (data: SignupData) => Promise<void>
   submitCreateBusiness: (data: BusinessData) => Promise<void>;
+  mediaUrls: MediaUrls[]
 }
 
 const SignupContext = createContext<SignupContextType | undefined>(undefined);
 
 export const SignupProvider = ({ children }: { children: ReactNode }) => {
   const [signupData, setSignupData] = useState<SignupData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
-    password: "",
-    role: "USER", // Default to USER or BUSINESS
+    firstName: "Om",
+    lastName: "Sureja",
+    email: "omsureja@gmail.com",
+    phoneNumber: "9429084446",
+    password: "omsureja",
+    role: "BUSINESS", 
+    userDomains: "",
   });
 
   const [businessData, setBusinessData] = useState<BusinessData>({
@@ -73,6 +78,7 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
     totalRating: 0,
     website: "",
     about: "",
+    businessType:"",
     mediaUrls: [],
     businessHours: [],
   });
@@ -97,9 +103,13 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Sending Signup data:", data);
   
-      const response = await axios.post("http://localhost:8787/api/v1/user/signup", data, {
+      const response = await axios.post("http://localhost:8787/api/v1/auth/signup", data, {
         withCredentials: true,
       });
+
+      if(!response){
+        console.log("Something went wrong while wrong");
+      }
   
       Cookies.set("accessToken", response.data.accessToken, {
         expires: 1,
@@ -112,31 +122,104 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
       console.error(err.response?.data?.error || "Something Went Wrong");
     }
   };
-  
 
-  const submitCreateBusiness = async (data:BusinessData) => {
+  // const submitCreateBusiness = async (data:BusinessData) => {
+  //   try {
+  //     console.log("Sending Business Data:",data);
+  //     const response = await axios.post("http://localhost:8787/api/v1/business/create",data, {
+  //       withCredentials: true,
+  //     });
+
+  //     Cookies.set("accessToken", response.data.accessToken, {
+  //       expires: 1,
+  //       secure: true,
+  //       sameSite: "Strict",
+  //     });
+
+  //     console.log("Business Created successfully");
+  //     alert("Account Created Successfully With Business");
+  //   } catch (err: any) {
+  //     console.error(err.response?.data?.error || "Something Went Wrong");
+  //   }
+  // };
+  const submitCreateBusiness = async (data: BusinessData) => {
     try {
-      console.log("Sending Business Data:",data);
-      const response = await axios.post("http://localhost:8787/api/v1/business/create",data, {
-        withCredentials: true,
-      });
+      const formData = new FormData();
+  
+      formData.append("name", data.name);
+      formData.append("verified", data.verified.toString());
+      formData.append("address", data.address);
+      formData.append("businessEmail", data.businessEmail);
+      formData.append("phoneNumber", data.phoneNumber);
+      formData.append("categoryId", data.categoryId || "");
+      formData.append("totalRating", data.totalRating.toString());
+      formData.append("website", data.website);
+      formData.append("about", data.about);
+      formData.append("businessType", data.businessType);
+      formData.append("subCategoryIds", JSON.stringify(data.subCategoryIds || []));
+      formData.append("businessHours", JSON.stringify(data.businessHours || []));
+  
+      if (data.mediaUrls) {
+        for (const media of data.mediaUrls) {
+          const response = await fetch(media.url);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch media: ${media.url}`);
+          }
+          const blob = await response.blob();
+          formData.append("mediaFiles", blob, `media-${Date.now()}.${blob.type.split("/")[1]}`);
+        }
+      }
 
+      for (const [key, value] of formData.entries()) {
+        console.log(key, value);
+      }      
+  
+      const response = await axios.post(
+        "http://localhost:8787/api/v1/business/create",
+        formData,
+        { 
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data", // Explicitly set this
+          }, 
+        }
+      );
+  
+      if (!response || !response.data) {
+        throw new Error("Something went wrong while creating business");
+      }
+  
       Cookies.set("accessToken", response.data.accessToken, {
         expires: 1,
         secure: true,
         sameSite: "Strict",
       });
-
+  
       console.log("Business Created successfully");
       alert("Account Created Successfully With Business");
-    } catch (err: any) {
-      console.error(err.response?.data?.error || "Something Went Wrong");
+      
+      setTimeout(() => {
+        window.location.href = "/business";
+      }, 500);
+  
+      console.log("Business created successfully:", response.data);
+    } catch (error: any) {
+      console.error(error?.response?.data?.error || error.message || "Something Went Wrong");
     }
   };
+  
 
   return (
     <SignupContext.Provider
-      value={{ signupData, businessData, updateSignupData, updateBusinessData, submitSignup, submitCreateBusiness }}
+      value={{
+        signupData,
+        businessData,
+        updateSignupData,
+        updateBusinessData,
+        submitSignup,
+        submitCreateBusiness,
+        mediaUrls: businessData.mediaUrls || [],
+      }}
     >
       {children}
     </SignupContext.Provider>

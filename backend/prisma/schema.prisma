@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(ulid())
+  id            String     @id @default(uuid())
   firstName     String
   lastName      String
   email         String     @unique
@@ -18,11 +18,12 @@ model User {
   emailIV       String
   emailHash     String     @unique
   phoneNumberIV String
+  userDomain    String
   businesses    Business[]
 }
 
 model Business {
-  id                String                @id @default(ulid())
+  id                String                @id @default(uuid())
   ownerId           String
   name              String
   verified          Boolean               @default(false)
@@ -52,14 +53,14 @@ model Business {
 }
 
 model Category {
-  id            String        @id @default(ulid())
+  id            String        @id  @default(uuid())
   name          String        @unique
   Business      Business[]
   subCategories SubCategory[]
 }
 
 model SubCategory {
-  id         String                @id @default(ulid())
+  id         String                @id @default(uuid())
   name       String
   categoryId String
   businesses BusinessSubCategory[]
@@ -78,7 +79,7 @@ model BusinessSubCategory {
 }
 
 model Review {
-  id            String   @id @default(ulid())
+  id            String   @id @default(uuid())
   businessId    String
   rating        Int
   description   String
@@ -88,7 +89,7 @@ model Review {
 }
 
 model Media {
-  id              String    @id @default(ulid())
+  id              String    @id @default(uuid())
   type            String
   url             String
   customerMediaId String?
@@ -98,7 +99,7 @@ model Media {
 }
 
 model BusinessTimings {
-  id          String    @id @default(ulid())
+  id          String    @id @default(uuid())
   businessId  String
   dayOfWeek   DayOfWeek
   openingTime String
@@ -108,7 +109,7 @@ model BusinessTimings {
 }
 
 model OTP {
-  id        String   @id @default(ulid())
+  id        String   @id @default(uuid())
   email     String   @unique
   emailHash String   @unique
   emailIV   String
@@ -120,7 +121,7 @@ model OTP {
 }
 
 model Report {
-  id         String   @id @default(ulid())
+  id         String   @id @default(uuid())
   businessId String
   userId     String
   reason     String

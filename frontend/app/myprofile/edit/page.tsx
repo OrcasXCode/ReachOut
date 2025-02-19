@@ -119,8 +119,6 @@ export default function EditProfile() {
         }
     };
     
-
-
     const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) return;
     
@@ -136,16 +134,11 @@ export default function EditProfile() {
             delete updatedFiles[objectURL];
             return updatedFiles;
         });
-    };
+    };   
     
-    
-
-
-    // Handle cancel
     const handleCancel = () => {
         setFiles({});
     };
-
 
     //fetching info for the current value of the information
     useEffect(() => {

@@ -10,13 +10,14 @@ export const businessRoutes = new Hono<{
     }
 }>()
 
+
 businessRoutes.use('/*', businessMiddleware);
 
+businessRoutes.post('/create', createNewBusiness);
 businessRoutes.get('/bulk', getBusinessBulk);
 businessRoutes.get('/me', getBusinessMe);
-businessRoutes.post('/create', createNewBusiness);
 businessRoutes.put('/updatebusiness/:id', updateBusinessProfile);
-businessRoutes.delete('/delete', deleteBusinessProfile);
+businessRoutes.delete('/delete/:id', deleteBusinessProfile);
 businessRoutes.get('/:id', getBusinessProfile);
 businessRoutes.put('/like/:id', likingABusiness);
 businessRoutes.put('/dislike/:id', dislikingABusiness);

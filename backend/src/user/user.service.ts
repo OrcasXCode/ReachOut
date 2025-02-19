@@ -16,10 +16,18 @@ export const getPrisma = (env: { DATABASE_URL: string }) => {
 //fetching userID route
 export async function getUserId(c:Context){
     const userId = c.get('userId');
+
+    const redis = createRedisClient(c.env);
+    const cacheKey = `myuserId${userId}`;
+    const cachedMyUserId = await redis.get(cacheKey);
+    if(cachedMyUserId && typeof cachedMyUserId==="string") {
+        return c.json(JSON.parse(cachedMyUserId));
+    }
     console.log("UserId in backend",userId);  
     if (!userId) {
         return c.json({ error: "Unauthorized" }, 401);
     }
+    await redis.set(cacheKey,JSON.stringify(userId),{ex:3600});
     return c.json({ userId });
 }
 
@@ -33,7 +41,9 @@ export async function getUserDetails(c: Context) {
   
     const cacheKey = `user:${userId}`;
     const cachedUser = await redis.get(cacheKey);
-    if (cachedUser) return c.json(cachedUser);
+    if (cachedUser && typeof cachedUser==="string"){
+        return c.json(JSON.parse(cachedUser));
+    }
   
     const secretKey = c.env.AES_SECRET_KEY;
     if (!secretKey) return c.json({ error: "Server misconfiguration: Missing AES secret key" }, 500);
@@ -99,7 +109,7 @@ export async function getUserDetails(c: Context) {
             businessPhoneNumber: decryptedBusinessPhoneNumber,
         };
     
-        await redis.set(cacheKey, responseData, { ex: 3600 });
+        await redis.set(cacheKey,JSON.stringify(responseData), { ex: 3600 });
     
         return c.json(responseData);
     } 
@@ -281,6 +291,5 @@ export async function editProfile(c:Context){
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 }
-  
   
 

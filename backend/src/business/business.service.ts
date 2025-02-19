@@ -40,6 +40,9 @@ export async function createNewBusiness(c: Context) {
     const categoryId = body.get("categoryId")?.toString();
     const about = body.get("about")?.toString();
     const website = body.get("website")?.toString();
+    const businessType = body.get("businessType")?.toString();
+    const totalRating = body.get("totalRating") ? Number(body.get("totalRating")) : undefined;
+
 
     const subCategoryIds = JSON.parse(body.get("subCategoryIds")?.toString() || "[]");
     const businessHours = JSON.parse(body.get("businessHours")?.toString() || "[]");
@@ -48,7 +51,7 @@ export async function createNewBusiness(c: Context) {
     const files = body.getAll("mediaFiles") as File[];
 
     for (const file of files) {
-    mediaFiles.push({ file, type: file.type });
+        mediaFiles.push({ file, type: file.type });
     }
 
     const parsedData = {
@@ -59,10 +62,12 @@ export async function createNewBusiness(c: Context) {
         phoneNumber,
         categoryId,
         subCategoryIds,
+        totalRating,
         about,
         website,
         businessHours,
         mediaFiles,
+        businessType
     };
 
 
@@ -87,7 +92,7 @@ export async function createNewBusiness(c: Context) {
             }, 400);
         }
 
-        const { name, verified, address, businessHours, businessEmail, categoryId, subCategoryIds, phoneNumber, totalRating, website, about, mediaUrls } = parsed.data;
+        const { name, verified, address, businessHours, businessEmail, categoryId, subCategoryIds, phoneNumber, totalRating, website, about, businessType } = parsed.data;
 
 
         if (!Array.isArray(businessHours) || !businessHours.every(hour =>
@@ -152,6 +157,7 @@ export async function createNewBusiness(c: Context) {
                 verified: false,
                 address,
                 categoryId,
+                businessType,
                 subCategories: {
                     create: subCategoryIds.map(subCategoryId => ({
                         subCategory: { connect: { id: subCategoryId } }
@@ -318,6 +324,10 @@ export async function deleteBusinessProfile(c:Context){
             return c.json({ error: 'You are not the owner of this business' }, 401);
         }
 
+        await prisma.businessTimings.deleteMany({
+            where: { businessId }
+        });
+
         await prisma.businessSubCategory.deleteMany({
             where: { businessId: businessId },
         });
@@ -371,11 +381,6 @@ export async function getBusinessProfile(c:Context){
             },403)
         }
 
-        // if(user.ownerId !== userId){
-        //     return c.json({error: 'You are not authorized to update this business'}, 403);
-        // }
-
-        
         const userBusiness = await prisma.business.findUnique({
             where: {
                 id: businessId
@@ -422,8 +427,7 @@ export async function getBusinessProfile(c:Context){
           
         const endTime = performance.now(); 
         console.log(`Execution Time: ${(endTime - startTime).toFixed(2)}ms`);
-        return c.json({...userBusiness,businessEmail: decryptedBusinessEmail,
-            businessPhoneNumber: decryptedBusinessPhoneNumber,},200);
+        return c.json({...userBusiness,businessEmail: decryptedBusinessEmail,businessPhoneNumber: decryptedBusinessPhoneNumber,},200);
     } catch (error) {
         console.error(error);
         return c.json({ error: 'Internal Server Error' }, 500);
@@ -647,7 +651,9 @@ export async function getAllBusinessReports(c:Context){
     const redis = createRedisClient(c.env);
     const cacheKey = `businessReport${businessId}`;
     const cachedBusinessReports = await redis.get(cacheKey);
-    if(cachedBusinessReports) return c.json(cachedBusinessReports);
+    if(cachedBusinessReports && typeof cachedBusinessReports === "string"){
+        return c.json(JSON.parse(cachedBusinessReports));
+    }
 
     try{
         if(!userId) return c.json({
@@ -695,7 +701,7 @@ export async function getAllBusinessReports(c:Context){
             }
         })
 
-        await redis.set(cacheKey,allReports,{ex:3600});
+        await redis.set(cacheKey,JSON.stringify(allReports),{ex:3600});
         return c.json({
             allReports
         },200)
@@ -935,6 +941,13 @@ export async function getBusinessBulk(c:Context){
 export async function getBusinessMe(c:Context){
     const userId = c.get('userId');  
     const prisma = getPrisma(c.env);
+
+    const redis = createRedisClient(c.env);
+    const cacheKey = `mybusinessId${userId}`;
+    const cachedMyBusinessId = await redis.get(cacheKey);
+    if (cachedMyBusinessId && typeof cachedMyBusinessId==="string"){
+        return c.json(JSON.parse(cachedMyBusinessId));
+    }
     const businessId = await prisma.business.findFirst({
         where:{
             ownerId : userId
@@ -943,8 +956,11 @@ export async function getBusinessMe(c:Context){
             id:true
         }
     })
+    
     if (!businessId) {
         return c.json({ error: "Unauthorized" }, 401);
     }
+
+    await redis.set(cacheKey,JSON.stringify(businessId),{ex:3600});
     return c.json({ businessId });
 }

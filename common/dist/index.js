@@ -9,6 +9,7 @@ exports.signupinput = zod_1.z.object({
     phoneNumber: zod_1.z.string().max(10),
     password: zod_1.z.string().min(6),
     role: zod_1.z.enum(['USER', 'BUSINESS']),
+    userDomain: zod_1.z.string(),
 });
 exports.signininput = zod_1.z.object({
     email: zod_1.z.string().email(),
@@ -18,8 +19,8 @@ exports.forgetpasswordinput = zod_1.z.object({
     email: zod_1.z.string().email(),
 });
 exports.verifyotpinput = zod_1.z.object({
-    email: zod_1.z.string().email(),
-    otp: zod_1.z.string().min(6)
+    emailHash: zod_1.z.string().length(64).regex(/^[a-f0-9]{64}$/i, "Invalid SHA-256 hash"),
+    otp: zod_1.z.string().length(6, "OTP must be exactly 6 digits").regex(/^\d{6}$/, "OTP must be numeric"),
 });
 exports.resetpasswordinput = zod_1.z.object({
     resetToken: zod_1.z.string(),
@@ -46,10 +47,11 @@ exports.addBusinessInput = zod_1.z.object({
     subCategoryIds: zod_1.z.array(zod_1.z.string()).min(1),
     totalRating: zod_1.z.number().default(0),
     website: zod_1.z.string().optional(),
+    businessType: zod_1.z.enum(['ESTABLISHED_BUSINESS', 'STREET_VENDOR', 'HOME_BUSINESS', 'SERVICES']),
     about: zod_1.z.string(),
-    mediaUrls: zod_1.z.array(zod_1.z.object({
+    mediaFiles: zod_1.z.array(zod_1.z.object({
+        file: zod_1.z.instanceof(File), // Checks if it's a File object
         type: zod_1.z.string(),
-        url: zod_1.z.string().url()
     })).optional(),
     businessHours: zod_1.z.array(zod_1.z.object({
         dayofWeek: DayOfWeekEnum,

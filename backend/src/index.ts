@@ -1,7 +1,7 @@
 import { Env, Hono } from "hono";
 // import { userRoutes } from "./routes/user";
 // import { businessRoutes } from "./routes/business";
-import { categoryRoutes } from "./routes/category";
+import { categoryRoutes } from "./category/category.route";
 import { authRoutes } from "./auth/auth.route";
 import { userRoutes } from "./user/user.route";
 import { businessRoutes } from "./business/business.route";

@@ -43,7 +43,7 @@ export default function AvatarWithUserDropdown() {
     const loadingToast = toast.loading('Signing out...', { duration: Infinity });
   
     try {
-      const response = await axios.post('http://localhost:8787/api/v1/auth/signout', {}, {
+      const response = await axios.post('http://localhost:8787/api/v1/auth/signout', {
         withCredentials: true, 
       });
   
@@ -58,7 +58,7 @@ export default function AvatarWithUserDropdown() {
         localStorage.removeItem('auth-store'); // Clear Zustand's persisted state
         setTimeout(() => {
           window.location.href = '/signin';
-        }, 1000);
+        }, 500);
       } else {
         // Update the loading toast to error
         toast.error('Signout failed. Please try again.', {

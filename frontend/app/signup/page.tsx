@@ -1,8 +1,7 @@
 "use client"
 import Link from 'next/link'
 import { ChangeEventHandler, useState } from "react";
-// import BusinessOnBoarding from '../components/BusinessOnBoarding'
-import BusinessOnBoarding from '../components/demo'
+import BusinessOnBoarding from '../components/BusinessOnBoarding'
 import UserOnBoarding from '../components/UserOnBoarding'
 import {useSignup} from '../context/SignUpContext'
 
@@ -39,7 +38,7 @@ export default function SignUp() {
   const [phoneNumber,setPhoneNumber] = useState("");
   const [password,setPassword] = useState("");
   const [role,setRole] = useState("USER");
-  // const [showUserOnBoarding,setShowUserOnBoarding] = useState(false);
+  const [showUserOnBoarding,setShowUserOnBoarding] = useState(false);
   const [showBusinessOnBoarding,setShowBusinessOnBoarding] = useState(false);
   const { updateSignupData ,submitSignup} = useSignup();
 
@@ -62,11 +61,12 @@ export default function SignUp() {
       submitSignup(updatedData);
     }
     if (role === "BUSINESS") setShowBusinessOnBoarding(true);
+    if (role === "USER") setShowUserOnBoarding(true);
   };
   
 
   if(showBusinessOnBoarding) return <BusinessOnBoarding></BusinessOnBoarding>
-  // if(showUserOnBoarding) return <UserOnBoarding></UserOnBoarding>
+  if(showUserOnBoarding) return <UserOnBoarding></UserOnBoarding>
 
   return (
     <>

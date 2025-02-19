@@ -1,6 +1,6 @@
 import {Hono} from "hono";
-import {getCategory} from "./category.service"
-import { categoryMiddleware } from './category.middleware';
+import {getCategory,getUserDomains} from "./category.service"
+// import { categoryMiddleware } from './category.middleware';
 
 
 export const categoryRoutes = new Hono<{
@@ -10,6 +10,7 @@ export const categoryRoutes = new Hono<{
     }
 }>()
 
-categoryRoutes.use('/*', categoryMiddleware);
+// categoryRoutes.use('/*', categoryMiddleware);
 
 categoryRoutes.get('/getAll', getCategory);
+categoryRoutes.get('/getUserDomains', getUserDomains);

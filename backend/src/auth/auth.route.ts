@@ -1,5 +1,6 @@
 import {Hono} from "hono";
 import {signin, signup,signout} from "./auth.service"
+import {authMiddleware} from "./auth.middleware"
 
 
 export const authRoutes = new Hono<{
@@ -12,6 +13,9 @@ export const authRoutes = new Hono<{
 authRoutes.post('/signin',signin);
 authRoutes.post('/signup',signup);
 authRoutes.post('/signout',signout);
+
+authRoutes.use("/*",authMiddleware);
+// authRoutes.post('/signout',signout);
 // authRouter.post('/forgetpassword',forgetpassword);
 // authRouter.post('/verifyotp',verifyotp);
 // authRouter.post('/resetpassword',resetpassword);
