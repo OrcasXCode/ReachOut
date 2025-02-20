@@ -9,6 +9,8 @@ datasource db {
 
 model User {
   id            String     @id @default(uuid())
+  profilePhoto  ProfilePhoto? @relation(name: "ProfilePhotoToUser")
+  profilePhotoId String?      @unique
   firstName     String
   lastName      String
   email         String     @unique
@@ -96,6 +98,13 @@ model Media {
   businessMediaId String?
   businessMedia   Business? @relation("BusinessMedia", fields: [businessMediaId], references: [id])
   customerMedia   Review?   @relation("CustomerMedia", fields: [customerMediaId], references: [id])
+}
+model ProfilePhoto {
+  id     String  @id @default(uuid())
+  userId String  @unique
+  type   String
+  url    String
+  user   User    @relation(name: "ProfilePhotoToUser", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model BusinessTimings {

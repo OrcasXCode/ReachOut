@@ -1,5 +1,5 @@
 import {Hono} from "hono";
-import {getBusinessMe,createNewBusiness,updateBusinessProfile,deleteBusinessProfile,getBusinessProfile,getBusinessBulk, likingABusiness, dislikingABusiness,getAllReviews,getAllBusinessReports,reportABusiness,updateBusinessHours,addBusinessMedia} from "./business.service"
+import {updateProfilePhoto,getBusinessMe,createNewBusiness,updateBusinessProfile,deleteBusinessProfile,getBusinessProfile,getBusinessBulk, likingABusiness, dislikingABusiness,getAllReviews,getAllBusinessReports,reportABusiness,updateBusinessHours,addBusinessMedia} from "./business.service"
 import { businessMiddleware } from './business.middleware';
 
 
@@ -25,4 +25,5 @@ businessRoutes.get('/getallreviews/:id', getAllReviews);
 businessRoutes.post('/reportbusiness/:id', getAllBusinessReports);
 businessRoutes.get('/fetchallreports/:id', reportABusiness);
 businessRoutes.put('/updatebusinesstimings/:id', updateBusinessHours);
+businessRoutes.put('/updateprofilephoto/:id', updateProfilePhoto);
 businessRoutes.put('/uploadbusinessmedia/:id', addBusinessMedia);

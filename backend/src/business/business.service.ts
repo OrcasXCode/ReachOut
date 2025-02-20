@@ -497,6 +497,69 @@ export async function addBusinessMedia(c:Context){
     }
 };
 
+
+//add profile photo route
+export async function updateProfilePhoto(c: Context) {
+    const prisma = getPrisma(c.env);
+    const userId = c.get('userId');
+
+    if (!userId) return c.json({ error: 'Provide a user ID' }, 401);
+
+    try {
+        // Parse formData to handle file uploads
+        const body = await c.req.formData();
+        const files = body.getAll("files") as File[];
+
+        if (!files || files.length === 0) {
+            return c.json({ error: 'No files provided' }, 400);
+        }
+
+        // Upload each file to S3 and store URLs
+        const uploadedMedia = await Promise.all(files.map(async (file) => {
+            const fileBuffer = await file.arrayBuffer();
+            const fileKey = `profilePhoto/${userId}/${Date.now()}-${file.name}`;
+
+            const command = new PutObjectCommand({
+                Bucket: "myprojectuploads",
+                Key: fileKey,
+                Body: Buffer.from(fileBuffer),
+                ContentType: file.type,
+            });
+
+            await s3.send(command);
+            return {
+                type: file.type,
+                url: `https://myprojectuploads.s3.amazonaws.com/${fileKey}`,
+            };
+        }));
+
+        // Update or create ProfilePhoto in the Prisma model
+        const profilePhoto = await prisma.profilePhoto.upsert({
+            where: { userId },
+            update: {
+                url: uploadedMedia[0].url,
+                type: uploadedMedia[0].type,
+            },
+            create: {
+                userId,
+                url: uploadedMedia[0].url,
+                type: uploadedMedia[0].type,
+            },
+        });
+
+        // Respond with success message
+        return c.json({
+            message: 'Profile photo uploaded successfully',
+            profilePhoto,
+        }, 200);
+
+    } catch (error) {
+        console.error(error);
+        return c.json({ error: 'Internal Server Error' }, 500);
+    }
+};
+
+
 //update business hours route
 export async function updateBusinessHours(c:Context) {
     const prisma = getPrisma(c.env);
