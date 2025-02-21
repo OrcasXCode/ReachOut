@@ -46,12 +46,16 @@ export const CustomRadio = (props: any) => {
 
 export default function OnBoarding() {
   const {updateBusinessData, submitSignup, submitCreateBusiness , signupData, mediaUrls} = useSignup();
-  const [step, setStep] = useState<number>(1);
+  const [step, setStep] = useState<number>(3);
   const [categoryId, setcategoryId] = useState<string | null>(null);
   const [subCategoryIds, setsubCategoryIds] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [draggedOver, setDraggedOver] = useState(false);
+  const [city, setCity] = useState<string>("");
+  const [state, setState] = useState<string>("");
+  const [zip, setZip] = useState<string>("");
+  const [landmark, setLandmark] = useState<string>("");
 
   interface MediaUrls {
     type: string;
@@ -66,6 +70,10 @@ export default function OnBoarding() {
     verified: false,
     phoneNumber: "9429084446",
     website: "sandy.com",
+    city: city,
+    state: state,
+    postalcode: zip,
+    landmark: landmark,
     businessType:"ESTABLISHED_BUSINESS",
     about: "kjwdfkjsdf",
     totalRating: 0,
@@ -254,6 +262,39 @@ export default function OnBoarding() {
     setStep((prev) => prev + 1);
   };
 
+  async function getLocation() {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        const API_KEY = "3276956a71704e8fb07cb00684882166"; // Replace with your OpenCage API key
+        const response = await fetch(
+          `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${API_KEY}`
+        );
+        const data = await response.json();
+
+        if (data.results.length > 0) {
+          const result = data.results[0];
+          const components = result.components;
+
+          setCity(components.city || components.town || components.village || "");
+          setState(components.state || "");
+          setZip(components.postcode || "");
+          setLandmark(result.formatted || ""); // Full formatted address
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        alert("Failed to retrieve location. Please enable location services.");
+      }
+    );
+  }
+
   return (
     <div className="w-100vw h-100vh flex flex-col items-center p-5">
 
@@ -349,7 +390,7 @@ export default function OnBoarding() {
         </Typography>
         <div className="flex flex-col mt-8">
             
-          {/* Name & Address */}
+          {/* Name & Description */}
           <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-900 mb-2">Name</label>
@@ -363,15 +404,15 @@ export default function OnBoarding() {
               />
             </div>
             <div className="w-full">
-                <label className="block text-sm font-medium text-gray-900 mb-2">Address</label>
-                <input
-                  // onChange={onChange}
-                  type="text"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
-                  placeholder=""
-                  required
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                />
+              <label className="block text-sm font-medium text-gray-900 mb-2">Description</label>
+              <input
+                // onChange={onChange}
+                type="text"
+                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
+                placeholder=""
+                required
+                onChange={(e) => handleInputChange("about", e.target.value)}
+              />
             </div>
           </div>
           
@@ -401,21 +442,16 @@ export default function OnBoarding() {
             </div>
           </div>
 
-          {/* Description & Website */}
+          {/* get location & Website */}
           <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
             <div className="w-full">
-              <label className="block text-sm font-medium text-gray-900 mb-2">Description</label>
-              <input
-                // onChange={onChange}
-                type="text"
-                className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
-                placeholder=""
-                required
-                onChange={(e) => handleInputChange("about", e.target.value)}
-              />
+                <button
+                  className="block w-full rounded-md px-3 py-1.5 text-base  outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm  bg-blue-600 text-white"
+                  onClick={getLocation} 
+                >Use Current Location</button>
             </div>
             <div className="w-full">
-              <label className="block text-sm font-medium text-gray-900 mb-2">Website</label>
+              <label className="block text-sm font-medium text-gray-900 mb-2">Website (Optional)</label>
                   <div className="flex">
                     <span className="flex items-center px-3 pointer-events-none sm:text-sm rounded-l-md dark:bg-gray-300">https://</span>
                     <input
@@ -429,10 +465,67 @@ export default function OnBoarding() {
                   </div>
             </div>
           </div>
+
+          {/* city,state,postalcode,landmark,address */}
+          <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+            <div className="w-full space-y-3">
+                <label className="block text-sm font-medium text-gray-900 mb-2">City</label>
+                <input
+                  // onChange={onChange}
+                  type="text"
+                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
+                  placeholder=""
+                  required
+                  value={city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                />
+                <label className="block text-sm font-medium text-gray-900 mb-2">State</label>
+                <input
+                  // onChange={onChange}
+                  type="text"
+                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
+                  placeholder=""
+                  required
+                  value={state}
+                  onChange={(e) => handleInputChange("state", e.target.value)}
+                />
+                <label className="block text-sm font-medium text-gray-900 mb-2">Postal Code</label>
+                <input
+                  // onChange={onChange}
+                  type="text"
+                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
+                  placeholder=""
+                  required
+                  value={zip}
+                  onChange={(e) => handleInputChange("postalcode", e.target.value)}
+                />
+            </div>
+            <div className="w-full space-y-3">
+                <label className="block text-sm font-medium text-gray-900 mb-2 ">Address</label>
+                <textarea
+                  // onChange={onChange}
+                  rows={5}
+                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
+                  placeholder=""
+                  required
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                />
+                <label className="block text-sm font-medium text-gray-900 mb-2">Landmark</label>
+                <input
+                  // onChange={onChange}
+                  type="text"
+                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm"
+                  placeholder=""
+                  required
+                  value={landmark}
+                  onChange={(e) => handleInputChange("landmark", e.target.value)}
+                />
+            </div>
+          </div>
           
           {/* Current League & Rating */}
           <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
-            <div className="w-full">
+            {/* <div className="w-full">
               <label className="block text-sm font-medium text-gray-900 mb-2">Current League</label>
               <input
                 // onChange={onChange}
@@ -443,8 +536,8 @@ export default function OnBoarding() {
                 disabled={true}
                 onChange={(e) => handleInputChange("verified", e.target.value)}
               />
-            </div>
-            <div className="w-full">
+            </div> */}
+            {/* <div className="w-full">
                 <label className="block text-sm font-medium text-gray-900 mb-2">Rating</label>
                 <input
                   // onChange={onChange}
@@ -455,7 +548,7 @@ export default function OnBoarding() {
                   disabled={true}
                   onChange={(e) => handleInputChange("totalRating", e.target.value)}
                 />
-            </div>
+            </div> */}
           </div>
 
           {/* Business Timings & Media Upload */}

@@ -3,12 +3,16 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { useAuthStore } from "../lib/useAuthStore";
 
 interface MediaUrls {
   type: string;
   url: string;
 }
-
+interface ProfilePhoto {
+  type: string;
+  url: string;
+}
 
 interface BusinessHours {
   dayofWeek: string;
@@ -40,6 +44,7 @@ interface SignupData {
   phoneNumber: string;
   password: string;
   role: string;
+  profilePhoto?: ProfilePhoto,
   businesses?: BusinessData;
   userDomains?: string;
 }
@@ -57,6 +62,8 @@ interface SignupContextType {
 const SignupContext = createContext<SignupContextType | undefined>(undefined);
 
 export const SignupProvider = ({ children }: { children: ReactNode }) => {
+  const { setIsSignedIn } = useAuthStore();
+  
   const [signupData, setSignupData] = useState<SignupData>({
     firstName: "Om",
     lastName: "Sureja",
@@ -65,6 +72,7 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
     password: "omsureja",
     role: "BUSINESS", 
     userDomains: "",
+    profilePhoto: { type: "", url: "" },
   });
 
   const [businessData, setBusinessData] = useState<BusinessData>({
@@ -101,47 +109,37 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
 
   const submitSignup = async (data: SignupData) => {
     try {
-      console.log("Sending Signup data:", data);
-  
-      const response = await axios.post("http://localhost:8787/api/v1/auth/signup", data, {
-        withCredentials: true,
-      });
+        console.log("Sending Signup data:", data);
+    
+        const response = await axios.post("http://localhost:8787/api/v1/auth/signup", data, {
+            withCredentials: true,
+        });
 
-      if(!response){
-        console.log("Something went wrong while wrong");
-      }
-  
-      Cookies.set("accessToken", response.data.accessToken, {
-        expires: 1,
-        secure: true,
-        sameSite: "Strict",
-      });
-  
-      console.log("Signup successful");
+        // Ensure response has data before proceeding
+        if (!response.data || !response.data.accessToken) {
+          throw new Error("Invalid response from server");
+          alert("Invalid response from server");
+        }
+
+       
+        if(response.status===200){
+          Cookies.set("accessToken", response.data.accessToken, {
+            expires: 1,
+            secure: true,
+            sameSite: "Strict",
+          });
+          setIsSignedIn();
+          console.log("Signup successful");
+          alert("Signup successful");
+        }
+
+       
     } catch (err: any) {
-      console.error(err.response?.data?.error || "Something Went Wrong");
+        console.error(err.response?.data?.error || err.message || "Something Went Wrong");
+        alert("Something Went Wrong");
     }
-  };
+};
 
-  // const submitCreateBusiness = async (data:BusinessData) => {
-  //   try {
-  //     console.log("Sending Business Data:",data);
-  //     const response = await axios.post("http://localhost:8787/api/v1/business/create",data, {
-  //       withCredentials: true,
-  //     });
-
-  //     Cookies.set("accessToken", response.data.accessToken, {
-  //       expires: 1,
-  //       secure: true,
-  //       sameSite: "Strict",
-  //     });
-
-  //     console.log("Business Created successfully");
-  //     alert("Account Created Successfully With Business");
-  //   } catch (err: any) {
-  //     console.error(err.response?.data?.error || "Something Went Wrong");
-  //   }
-  // };
   const submitCreateBusiness = async (data: BusinessData) => {
     try {
       const formData = new FormData();
@@ -189,20 +187,23 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Something went wrong while creating business");
       }
   
-      Cookies.set("accessToken", response.data.accessToken, {
-        expires: 1,
-        secure: true,
-        sameSite: "Strict",
-      });
-  
-      console.log("Business Created successfully");
-      alert("Account Created Successfully With Business");
-      
-      setTimeout(() => {
-        window.location.href = "/business";
-      }, 500);
-  
-      console.log("Business created successfully:", response.data);
+      if(response.status===200){
+        Cookies.set("accessToken", response.data.accessToken, {
+          expires: 1,
+          secure: true,
+          sameSite: "Strict",
+        });
+        
+        setIsSignedIn();
+        console.log("Business Created successfully");
+        alert("Account Created Successfully With Business");
+        
+        setTimeout(() => {
+          window.location.href = "/business";
+        }, 500);
+    
+        console.log("Business created successfully:", response.data);
+      }
     } catch (error: any) {
       console.error(error?.response?.data?.error || error.message || "Something Went Wrong");
     }

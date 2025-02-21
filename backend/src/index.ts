@@ -16,13 +16,12 @@ const app = new Hono<{
 
 app.use(
   cors({
-    origin: "http://localhost:3000", 
+    origin: "http://localhost:3000",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true, 
   })
 );
-
 
 app.route("/api/v1/auth", authRoutes);
 app.route("/api/v1/user", userRoutes);

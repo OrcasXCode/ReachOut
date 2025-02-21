@@ -33,6 +33,10 @@ model Business {
   totalRating       Int                   @default(0)
   website           String?
   about             String
+  city              String
+  state             String
+  postalcode        String
+  landmark          String
   businessEmail     String                @unique
   businessEmailHash String                @unique
   businessEmailIV   String

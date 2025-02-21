@@ -9,7 +9,13 @@ exports.signupinput = zod_1.z.object({
     phoneNumber: zod_1.z.string().max(10),
     password: zod_1.z.string().min(6),
     role: zod_1.z.enum(['USER', 'BUSINESS']),
-    userDomain: zod_1.z.string(),
+    userDomain: zod_1.z.string().optional(),
+    profilePhoto: zod_1.z
+        .object({
+        type: zod_1.z.string(),
+        url: zod_1.z.string().url(),
+    })
+        .optional(),
 });
 exports.signininput = zod_1.z.object({
     email: zod_1.z.string().email(),
@@ -47,6 +53,10 @@ exports.addBusinessInput = zod_1.z.object({
     subCategoryIds: zod_1.z.array(zod_1.z.string()).min(1),
     totalRating: zod_1.z.number().default(0),
     website: zod_1.z.string().optional(),
+    city: zod_1.z.string().optional(),
+    state: zod_1.z.string().optional(),
+    postalcode: zod_1.z.string().optional(),
+    landmark: zod_1.z.string().optional(),
     businessType: zod_1.z.enum(['ESTABLISHED_BUSINESS', 'STREET_VENDOR', 'HOME_BUSINESS', 'SERVICES']),
     about: zod_1.z.string(),
     mediaFiles: zod_1.z.array(zod_1.z.object({

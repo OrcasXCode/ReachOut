@@ -55,7 +55,6 @@ export default function UserOnBoarding() {
   const {submitSignup,signupData,updateSignupData } = useSignup();
   const { setIsSignedIn } = useAuthStore();
   
-  
 
   const handleCategoryChange = (value: string) => {
     setSelectedUserDomain(value);
@@ -63,24 +62,26 @@ export default function UserOnBoarding() {
 
 
   const handleSubmit = async () => {
+
     try {
       const updatedData: { userDomains: string | undefined } = {
-        userDomains: selectedUserDomain || undefined, 
+          userDomains: selectedUserDomain || undefined,
       };
 
       updateSignupData(updatedData);
+
       await submitSignup(signupData);
-      
-      setIsSignedIn(true);
-  
+
       console.log("User Account created successfully!");
       alert("User Account created successfully!");
-      
-    } catch (error) {
+    }
+    catch (error) {
       console.error("Error creating business:", error);
       alert("Failed to create business. Please try again.");
+      return; // Stop execution if there's an error
     }
-  };
+};
+
 
   return (
     <div className="w-100vw h-100vh flex flex-col items-center p-5">

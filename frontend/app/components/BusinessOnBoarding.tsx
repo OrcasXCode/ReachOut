@@ -191,7 +191,6 @@ export default function OnBoarding() {
   
       // Then create business
       await submitCreateBusiness(updatedBusinessData);
-      setIsSignedIn(true);
   
       console.log("Business created successfully!");
       alert("Business created successfully!");

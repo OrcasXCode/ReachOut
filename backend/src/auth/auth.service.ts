@@ -14,6 +14,7 @@ export const getPrisma = (env: { DATABASE_URL: string }) => {
   }).$extends(withAccelerate());
 };
 
+
 export async function signin(c: Context) {
   const prisma = getPrisma(c.env);
   const body = await c.req.json();
@@ -36,7 +37,7 @@ export async function signin(c: Context) {
     const failedAttemptsKey = `failed_attempts:${emailHash}`;
     const failedAttempts = await redis.get(failedAttemptsKey);
 
-    if (failedAttempts && parseInt(failedAttempts?.toString() || "0") >= 5) {
+    if (failedAttempts && parseInt(failedAttempts.toString() || "0") >= 5) {
       c.status(429);
       return c.json({ error: "Too many failed attempts. Try again later." });
     }
@@ -47,24 +48,14 @@ export async function signin(c: Context) {
 
     if (userData) {
       try {
-        user = JSON.parse(userData);
+        user = typeof userData === "string" ? JSON.parse(userData) : userData;
       } catch (error) {
         console.error("Failed to parse user data from Redis:", error);
-        // If parsing fails, fetch the user from the database
-        user = await prisma.user.findUnique({
-          where: { emailHash },
-          select: { id: true, email: true, emailIV: true, password: true },
-        });
-
-        if (!user) {
-          await redis.incr(failedAttemptsKey);
-          await redis.expire(failedAttemptsKey, 900);
-          return c.json({ error: "Incorrect Credentials" }, 403);
-        }
-
-        await redis.set(userCacheKey, JSON.stringify(user), { ex: 3600 });
+        userData = null; // Reset userData to fetch from DB
       }
-    } else {
+    }
+
+    if (!userData) {
       user = await prisma.user.findUnique({
         where: { emailHash },
         select: { id: true, email: true, emailIV: true, password: true },
@@ -79,7 +70,6 @@ export async function signin(c: Context) {
       await redis.set(userCacheKey, JSON.stringify(user), { ex: 3600 });
     }
 
-    // TypeScript now recognizes `user` properties
     if (!user || !user.id) {
       return c.json({ error: "Invalid user data" }, 500);
     }
@@ -91,7 +81,6 @@ export async function signin(c: Context) {
       await redis.expire(failedAttemptsKey, 900);
       return c.json({ error: "Incorrect Credentials" }, 403);
     }
-    
 
     if (user.password !== password) {
       await redis.incr(failedAttemptsKey);
@@ -99,21 +88,18 @@ export async function signin(c: Context) {
       return c.json({ error: "Password does not match" }, 403);
     }
 
-    // Clear failed login attempts after successful login
     await redis.del(failedAttemptsKey);
 
     const accessToken = await sign({ id: user.id }, c.env.JWT_SECRET || "");
     const refreshToken = await sign({ id: user.id }, c.env.REFRESH_SECRET || "");
 
-    await redis.set(`access_token:${user.id}`, accessToken, { ex: 3600 }); // 1-hour expiry
-    await redis.set(`refresh_token:${user.id}`, refreshToken, { ex: 7 * 86400 }); // 7-day expiry
+    await redis.set(`access_token:${user.id}`, accessToken, { ex: 3600 });
+    await redis.set(`refresh_token:${user.id}`, refreshToken, { ex: 7 * 86400 });
 
-    await redis.set(`session:${user.id}`, accessToken, { ex: 3600 }); // Store session
-
-    c.res.headers.append("Set-Cookie", `accessToken=${accessToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`);
+    c.res.headers.append("Set-Cookie", `accessToken=${accessToken}; HttpOnly; SameSite=Lax; Path=/; Max-Age=3600`);
     c.res.headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${7 * 86400}`);
 
-    return c.json({ message: "Login successful" }, 200);
+    return c.json({ message: "Login successful",accessToken,refreshToken }, 200);
   } catch (error) {
     console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
@@ -130,7 +116,7 @@ export async function signup(c: Context) {
     return c.json({ error: "Invalid Input", details: parsed.error.errors }, 400);
   }
 
-  const { firstName, lastName, email, phoneNumber, password, role ,userDomain } = parsed.data;
+  const { firstName, lastName, email, phoneNumber, password, role, userDomain, profilePhoto } = parsed.data;
 
   try {
     const secretKey = c.env.AES_SECRET_KEY;
@@ -157,8 +143,14 @@ export async function signup(c: Context) {
         phoneNumber: encryptedPhoneNumber.encrypted,
         phoneNumberIV: encryptedPhoneNumber.iv,
         password: password, // or use hashed password
-        userDomain,
+        userDomain:"",
         role,
+        profilePhoto: {
+          create: {
+            type: profilePhoto?.type || "",
+            url: profilePhoto?.url || "",
+          },
+        },
       },
     });
 
@@ -177,6 +169,7 @@ export async function signup(c: Context) {
     return c.json({ error: "Internal Server Error" }, 500);
   }
 }
+
 
 export async function signout(c:Context){
   const prisma = getPrisma(c.env)

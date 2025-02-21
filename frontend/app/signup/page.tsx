@@ -12,6 +12,11 @@ interface LabelledInputType{
   onChange: ChangeEventHandler<HTMLInputElement>;
 }
 
+interface ProfilePhoto {
+  type: string;
+  url: string;
+}
+
 function LabelledInput({label,placeholder,type="text",onChange}:LabelledInputType){
   return(
     <div>
@@ -44,6 +49,11 @@ export default function SignUp() {
 
   const handleSignUp = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    const profilePhotoData: ProfilePhoto = {
+      type: "image", 
+      url: `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=random`,
+    };
   
     const updatedData = {
       firstName,
@@ -52,6 +62,7 @@ export default function SignUp() {
       phoneNumber,
       password,
       role,
+      profilePhoto: profilePhotoData,
     };
   
     updateSignupData(updatedData);

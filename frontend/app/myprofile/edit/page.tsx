@@ -1,7 +1,6 @@
 "use client"
 
-
-import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid';
+import {  UserCircleIcon } from '@heroicons/react/24/solid';
 import { useState, useRef ,useEffect} from 'react';
 import axios from 'axios';
 import {toast} from 'react-hot-toast';
@@ -140,14 +139,15 @@ export default function EditProfile() {
         setFiles({});
     };
 
-    //fetching info for the current value of the information
     useEffect(() => {
       const fetchUserData = async () => {
         try {
             const meResponse = await axios.get("http://localhost:8787/api/v1/user/me", {
                 withCredentials: true,
             });
+            console.log("Me Response",meResponse);
             const userId = meResponse.data.userId;
+            console.log(userId);
             setUserId(userId);
     
             if (!userId) {
@@ -248,6 +248,18 @@ export default function EditProfile() {
             alert("Failed to update profile. Please try again.");
         }
     };
+
+    const [profileurl,setProfileUrl] = useState(null);
+
+    const fetchUserProfile = async()=>{
+      const response = await axios.get('http://localhost:8787/api/v1/business/getprofilepic',{withCredentials:true});
+      console.log(response.data.profilePhoto.url);
+      setProfileUrl(response.data.profilePhoto.url);
+    }
+  
+    useEffect(()=>{
+      fetchUserProfile();
+    },[profileurl])
   
     return (
         <form className="w-full h-full flex items-center justify-center mb-[150px] mt-[150px]">
@@ -264,8 +276,14 @@ export default function EditProfile() {
                         <label htmlFor="photo" className="block text-sm/6 font-medium text-gray-900">
                             Profile Photo
                         </label>
-                        <div className="mt-2 flex items-center gap-x-3">
-                            <UserCircleIcon aria-hidden="true" className="size-12 text-gray-300" />
+                        <div className="mt-2 flex items-center gap-x-3">  
+                            <div aria-hidden="true" className="size-12 text-gray-300 border rounded-full">
+                                {profileurl ? (
+                                    <img src={profileurl} alt="Profile" className="size-12 rounded-full" />
+                                ) : (
+                                    <UserCircleIcon aria-hidden="true" className="size-12 text-gray-300" />
+                                )}
+                            </div>
                             <button
                                 type="button"
                                 className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50"

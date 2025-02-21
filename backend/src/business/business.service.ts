@@ -39,6 +39,10 @@ export async function createNewBusiness(c: Context) {
     const phoneNumber = body.get("phoneNumber")?.toString();
     const categoryId = body.get("categoryId")?.toString();
     const about = body.get("about")?.toString();
+    const city = body.get("city")?.toString();
+    const state = body.get("state")?.toString();
+    const postalcode = body.get("postalcode")?.toString();
+    const landmark = body.get("landmark")?.toString();
     const website = body.get("website")?.toString();
     const businessType = body.get("businessType")?.toString();
     const totalRating = body.get("totalRating") ? Number(body.get("totalRating")) : undefined;
@@ -64,6 +68,10 @@ export async function createNewBusiness(c: Context) {
         subCategoryIds,
         totalRating,
         about,
+        city,
+        state,
+        postalcode,
+        landmark,
         website,
         businessHours,
         mediaFiles,
@@ -92,7 +100,7 @@ export async function createNewBusiness(c: Context) {
             }, 400);
         }
 
-        const { name, verified, address, businessHours, businessEmail, categoryId, subCategoryIds, phoneNumber, totalRating, website, about, businessType } = parsed.data;
+        const { name, verified, address,city,state,landmark,postalcode, businessHours, businessEmail, categoryId, subCategoryIds, phoneNumber, totalRating, website, about, businessType } = parsed.data;
 
 
         if (!Array.isArray(businessHours) || !businessHours.every(hour =>
@@ -156,6 +164,10 @@ export async function createNewBusiness(c: Context) {
                 phoneNumberHash,
                 verified: false,
                 address,
+                city: city ?? "",       // Ensure it's a string
+                state: state ?? "",
+                postalcode: postalcode ?? "",
+                landmark: landmark ?? "",
                 categoryId,
                 businessType,
                 subCategories: {
@@ -558,6 +570,30 @@ export async function updateProfilePhoto(c: Context) {
         return c.json({ error: 'Internal Server Error' }, 500);
     }
 };
+
+//get profile picture route
+export async function getProfilePhoto(c:Context){
+    const prisma = getPrisma(c.env);
+    const userId = c.get('userId');
+    try{
+        const response = await prisma.user.findFirst({
+            where:{
+                id:userId
+            },
+            select:{
+                profilePhoto:true
+            }
+        })
+        if(!response){
+            console.log("Error in repsonse");
+            return c.json({error:'Something went wrong'},401);
+        }
+        return c.json(response);
+    }
+    catch(error){
+        console.log({error:"Something went wrong"});
+    }
+}
 
 
 //update business hours route

@@ -8,7 +8,13 @@ export const signupinput=z.object({
     phoneNumber:z.string().max(10),
     password:z.string().min(6),
     role: z.enum(['USER', 'BUSINESS']), 
-    userDomain: z.string(),
+    userDomain: z.string().optional(),
+    profilePhoto: z
+    .object({
+      type: z.string(), 
+      url: z.string().url(),
+    })
+    .optional(),
 })
 export type SignupInput= z.infer<typeof signupinput>
 
@@ -66,6 +72,10 @@ export const addBusinessInput = z.object({
     subCategoryIds: z.array(z.string()).min(1),
     totalRating: z.number().default(0),
     website: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    postalcode: z.string().optional(),
+    landmark: z.string().optional(),
     businessType: z.enum(['ESTABLISHED_BUSINESS', 'STREET_VENDOR', 'HOME_BUSINESS', 'SERVICES']),
     about: z.string(),
     mediaFiles: z.array(

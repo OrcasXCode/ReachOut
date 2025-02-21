@@ -14,21 +14,27 @@ export const getPrisma = (env: { DATABASE_URL: string }) => {
 
 
 //fetching userID route
-export async function getUserId(c:Context){
-    const userId = c.get('userId');
+export async function getUserId(c: Context) {
+    const userId = c.get("userId");
 
     const redis = createRedisClient(c.env);
     const cacheKey = `myuserId${userId}`;
     const cachedMyUserId = await redis.get(cacheKey);
-    if(cachedMyUserId && typeof cachedMyUserId==="string") {
-        return c.json(JSON.parse(cachedMyUserId));
+
+    if (cachedMyUserId) {
+        return c.json({ userId: cachedMyUserId });
     }
-    console.log("UserId in backend",userId);  
+
     if (!userId) {
         return c.json({ error: "Unauthorized" }, 401);
     }
-    await redis.set(cacheKey,JSON.stringify(userId),{ex:3600});
-    return c.json({ userId });
+
+    try {
+        await redis.set(cacheKey, userId, { ex: 3600 }); 
+        return c.json({ userId });
+    } catch (error) {
+        console.log({ error: "Internal Server Error" });
+    }
 }
 
 //getting user profile route

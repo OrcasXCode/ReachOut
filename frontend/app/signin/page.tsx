@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import axios from "axios";
-import { ChangeEventHandler, useState } from "react";
+import { ChangeEventHandler, useState ,useEffect} from "react";
 import Cookies from "js-cookie"; 
 import { useAuthStore } from "../lib/useAuthStore";
 import {toast} from 'react-hot-toast';
@@ -44,42 +44,39 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { setIsSignedIn } = useAuthStore();
-
+  const { setIsSignedIn, isSignedIn } = useAuthStore();
 
   const handleSignIn = async (event: React.FormEvent) => {
-    event.preventDefault(); 
-    const loadingToast = toast.loading('Signing In...',{duration: Infinity})
+    event.preventDefault();
+    const loadingToast = toast.loading("Signing In...", { duration: Infinity });
+  
     try {
       const response = await axios.post(
         "http://localhost:8787/api/v1/auth/signin",
         { email, password },
-        { withCredentials: true}
+        { withCredentials: true }
       );
-      if(response.status===200){
-        Cookies.set("accessToken", response.data.accessToken, {
-          expires: 7, 
-          secure: true, 
-          sameSite: "Lax", 
-          path:"/"
-        });
+      console.log("response from login", response);
   
-        setIsSignedIn(true);
-        toast.success('SignIn Successful', {
+      if (response.status === 200) {
+        setIsSignedIn(); // Update Zustand state
+        toast.success("SignIn Successful", {
           id: loadingToast,
           duration: 3000,
         });
-      
-        // Redirect after state update
-        setTimeout(() => {
-          window.location.href = "/business";
-        }, 1000);
+        window.location.href = "/business";
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || "Something went wrong");
+      setError(err.response?.data?.error);
+      toast.error("SignIn Failed", {
+        id: loadingToast,
+        duration: 3000,
+      });
     }
   };
+  
 
+  
   return (
     <div className="flex h-screen  flex-1 flex-col justify-center lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">

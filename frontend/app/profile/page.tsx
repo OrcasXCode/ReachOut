@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState,useEffect } from "react";
+
 import Link from "next/link"
-import Cookies from 'js-cookie'
 import {
   Avatar,
   Button,
@@ -23,13 +23,14 @@ import {
 import { useAuthStore } from "../lib/useAuthStore";
 import axios from 'axios';
 import {toast} from 'react-hot-toast';
+const userIcon = "/user.png"; // Directly reference from the public folder
 
  
 const profileMenuItems = [
   { label: "My Profile", icon: UserCircleIcon , route:'/myprofile' },
   { label: "Edit Profile", icon: Cog6ToothIcon , route:'/myprofile/edit' },
   { label: "Inbox", icon: InboxArrowDownIcon , route:'/viewinbox'},
-  { label: "Help", icon: LifebuoyIcon , route:'/contact'},
+  { label: "Help", icon: LifebuoyIcon , route:'/help'},
   { label: "Sign Out", icon: PowerIcon, route:'/signout' },
 ];
 
@@ -37,9 +38,29 @@ export default function AvatarWithUserDropdown() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const closeMenu = () => setIsMenuOpen(false);
   const { setIsSignedIn } = useAuthStore();
+  const [profileurl, setProfileUrl] = useState<string | undefined>(undefined);
+
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await axios.get("http://localhost:8787/api/v1/business/getprofilepic", {
+        withCredentials: true,
+      });
+  
+      const imageUrl = response.data.profilePhoto?.url;
+      setProfileUrl(imageUrl && imageUrl.trim() !== "" ? imageUrl : userIcon);
+    } catch (error) {
+      console.error("Error fetching profile picture:", error);
+      setProfileUrl(userIcon); // Use default icon on error
+    }
+  };
+
+  useEffect(()=>{
+    fetchUserProfile();
+  },[])
+
 
   const handleSignOut = async () => {
-    // Show loading toast
     const loadingToast = toast.loading('Signing out...', { duration: Infinity });
   
     try {
@@ -48,19 +69,17 @@ export default function AvatarWithUserDropdown() {
       });
   
       if (response.status === 200) {
-        setIsSignedIn(false);
-        // Update the loading toast to success
+        setIsSignedIn();
         toast.success('Logout Successful', {
           id: loadingToast,
           duration: 3000,
         });
   
-        localStorage.removeItem('auth-store'); // Clear Zustand's persisted state
+        localStorage.removeItem('auth-store'); 
         setTimeout(() => {
           window.location.href = '/signin';
         }, 500);
       } else {
-        // Update the loading toast to error
         toast.error('Signout failed. Please try again.', {
           id: loadingToast,
           duration: 3000,
@@ -68,7 +87,6 @@ export default function AvatarWithUserDropdown() {
       }
     } catch (err: any) {
       console.error('Error during sign-out:', err);
-      // Update the loading toast to error
       toast.error('An error occurred during sign-out. Please try again.', {
         id: loadingToast,
         duration: 3000,
@@ -88,7 +106,7 @@ export default function AvatarWithUserDropdown() {
               withBorder={true}
               color="blue-gray"
               className="w-10 h-10 p-0.5 rounded-full"
-              src="https://docs.material-tailwind.com/img/face-2.jpg"
+              src={profileurl || undefined}
             />
           </Button>
         </MenuHandler>

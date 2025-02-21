@@ -6,7 +6,17 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: z.ZodString;
     password: z.ZodString;
     role: z.ZodEnum<["USER", "BUSINESS"]>;
-    userDomain: z.ZodString;
+    userDomain: z.ZodOptional<z.ZodString>;
+    profilePhoto: z.ZodOptional<z.ZodObject<{
+        type: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        type: string;
+        url: string;
+    }, {
+        type: string;
+        url: string;
+    }>>;
 }, "strip", z.ZodTypeAny, {
     firstName: string;
     lastName: string;
@@ -14,7 +24,11 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: string;
     password: string;
     role: "USER" | "BUSINESS";
-    userDomain: string;
+    userDomain?: string | undefined;
+    profilePhoto?: {
+        type: string;
+        url: string;
+    } | undefined;
 }, {
     firstName: string;
     lastName: string;
@@ -22,7 +36,11 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: string;
     password: string;
     role: "USER" | "BUSINESS";
-    userDomain: string;
+    userDomain?: string | undefined;
+    profilePhoto?: {
+        type: string;
+        url: string;
+    } | undefined;
 }>;
 export type SignupInput = z.infer<typeof signupinput>;
 export declare const signininput: z.ZodObject<{
@@ -99,6 +117,10 @@ export declare const addBusinessInput: z.ZodObject<{
     subCategoryIds: z.ZodArray<z.ZodString, "many">;
     totalRating: z.ZodDefault<z.ZodNumber>;
     website: z.ZodOptional<z.ZodString>;
+    city: z.ZodOptional<z.ZodString>;
+    state: z.ZodOptional<z.ZodString>;
+    postalcode: z.ZodOptional<z.ZodString>;
+    landmark: z.ZodOptional<z.ZodString>;
     businessType: z.ZodEnum<["ESTABLISHED_BUSINESS", "STREET_VENDOR", "HOME_BUSINESS", "SERVICES"]>;
     about: z.ZodString;
     mediaFiles: z.ZodOptional<z.ZodArray<z.ZodObject<{
@@ -139,6 +161,10 @@ export declare const addBusinessInput: z.ZodObject<{
     businessType: "ESTABLISHED_BUSINESS" | "STREET_VENDOR" | "HOME_BUSINESS" | "SERVICES";
     about: string;
     website?: string | undefined;
+    city?: string | undefined;
+    state?: string | undefined;
+    postalcode?: string | undefined;
+    landmark?: string | undefined;
     mediaFiles?: {
         type: string;
         file: File;
@@ -161,6 +187,10 @@ export declare const addBusinessInput: z.ZodObject<{
     about: string;
     totalRating?: number | undefined;
     website?: string | undefined;
+    city?: string | undefined;
+    state?: string | undefined;
+    postalcode?: string | undefined;
+    landmark?: string | undefined;
     mediaFiles?: {
         type: string;
         file: File;

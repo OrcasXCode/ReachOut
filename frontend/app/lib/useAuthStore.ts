@@ -1,35 +1,42 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode"; 
+import { jwtDecode } from "jwt-decode";
 
 interface AuthState {
   isSignedIn: boolean;
-  setIsSignedIn: (value: boolean) => void;
+  setIsSignedIn: () => void;
   checkTokenExpiration: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => {
+    (set) => {
       const checkTokenExpiration = () => {
         const accessToken = Cookies.get("accessToken");
         if (!accessToken) return false;
 
         try {
-          const decodedToken = jwtDecode<{ exp: number }>(accessToken); 
-          const currentTime = Date.now() / 1000;
-          return decodedToken.exp > currentTime;
+          const decodedToken = jwtDecode<{ exp: number }>(accessToken);
+          console.log(decodedToken);
+          return decodedToken.exp > Date.now() / 1000;
         } catch (error) {
           console.error("Error decoding token:", error);
-          return false; 
+          return false;
         }
       };
 
       return {
-        isSignedIn: !!Cookies.get("accessToken") && checkTokenExpiration(),
-        setIsSignedIn: (value) => set({ isSignedIn: value }),
-        checkTokenExpiration, 
+        isSignedIn: checkTokenExpiration(),
+        // setIsSignedIn: () => {
+        //   set({ isSignedIn: checkTokenExpiration() });
+        //   window.dispatchEvent(new Event("authChange")); // 🔹 Force reactivity
+        // },
+        setIsSignedIn: () => {
+          set({ isSignedIn: true }); 
+          window.dispatchEvent(new Event("authChange")); 
+        },
+        checkTokenExpiration,
       };
     },
     { name: "auth-store" }
