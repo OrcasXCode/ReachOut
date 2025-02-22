@@ -9,7 +9,7 @@ exports.signupinput = zod_1.z.object({
     phoneNumber: zod_1.z.string().max(10),
     password: zod_1.z.string().min(6),
     role: zod_1.z.enum(['USER', 'BUSINESS']),
-    userDomain: zod_1.z.string().optional(),
+    userDomain: zod_1.z.string(),
     profilePhoto: zod_1.z
         .object({
         type: zod_1.z.string(),

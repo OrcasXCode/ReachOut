@@ -8,7 +8,7 @@ export const signupinput=z.object({
     phoneNumber:z.string().max(10),
     password:z.string().min(6),
     role: z.enum(['USER', 'BUSINESS']), 
-    userDomain: z.string().optional(),
+    userDomain: z.string(),
     profilePhoto: z
     .object({
       type: z.string(), 

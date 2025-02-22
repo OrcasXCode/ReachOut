@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import { useSignup } from "../context/SignUpContext";
 import { useAuthStore } from "../lib/useAuthStore";
-
-
+import axios from "axios";
 
 const Categories = [
   { value: "businessman", label: "Businessman" },
@@ -12,75 +11,95 @@ const Categories = [
   { value: "housewife", label: "Housewife" },
   { value: "freelancer", label: "Freelancer" },
   { value: "student", label: "Student" },
-  { value: "shop_owner", label: "Shop Owner" },
-  { value: "street_vendor", label: "Street Vendor" },
-  { value: "home_chef", label: "Home Chef" },
-  { value: "makeup_artist", label: "Makeup Artist" },
+  { value: "shopkeeper", label: "Shopkeeper" },
+  { value: "vendor", label: "Vendor" }, // Consolidated "Street Vendor"
+  { value: "cook", label: "Cook" },
+  { value: "artist", label: "Artist" }, // Covers "Makeup Artist", "Tattoo Artist", "Beautician"
   { value: "electrician", label: "Electrician" },
   { value: "plumber", label: "Plumber" },
   { value: "photographer", label: "Photographer" },
   { value: "fitness_trainer", label: "Fitness Trainer" },
-  { value: "artist", label: "Artist" },
   { value: "musician", label: "Musician" },
   { value: "tutor", label: "Tutor" },
   { value: "event_planner", label: "Event Planner" },
   { value: "tailor", label: "Tailor" },
-  { value: "taxi_driver", label: "Taxi Driver" },
+  { value: "driver", label: "Driver" }, // Consolidated "Taxi Driver"
   { value: "mechanic", label: "Mechanic" },
-  { value: "handyman", label: "Handyman" },
+  { value: "handyman", label: "Handyman" }, // Consolidated "Repair Technician"
   { value: "astrologer", label: "Astrologer" },
-  { value: "tattoo_artist", label: "Tattoo Artist" },
   { value: "pet_groomer", label: "Pet Groomer" },
   { value: "security_guard", label: "Security Guard" },
   { value: "home_maid", label: "Home Maid" },
   { value: "baby_sitter", label: "Baby Sitter" },
-  { value: "cook", label: "Cook" },
-  { value: "driver", label: "Driver" },
   { value: "laundry_service_provider", label: "Laundry Service Provider" },
   { value: "gardener", label: "Gardener" },
   { value: "carpenter", label: "Carpenter" },
   { value: "pest_control_worker", label: "Pest Control Worker" },
   { value: "delivery_agent", label: "Delivery Agent" },
   { value: "dancer", label: "Dancer" },
-  { value: "yoga_instructor", label: "Yoga Instructor" },
-  { value: "beautician", label: "Beautician" },
-  { value: "vendor", label: "Vendor" },
-  { value: "shopkeeper", label: "Shopkeeper" },
-  { value: "repair_technician", label: "Repair Technician" }
+  { value: "yoga_instructor", label: "Yoga Instructor" }
 ];
 
-
 export default function UserOnBoarding() {
-  const [selectedUserDomain, setSelectedUserDomain] = useState<string | null>(null);
-  const {submitSignup,signupData,updateSignupData } = useSignup();
+
+  const {submitSignup,signupData, updateSignupData } = useSignup();
   const { setIsSignedIn } = useAuthStore();
-  
+
+  const [selectedUserDomain, setSelectedUserDomain] = useState<string | null>(null);
 
   const handleCategoryChange = (value: string) => {
     setSelectedUserDomain(value);
+    updateSignupData({ userDomains: value });
   };
+  
 
 
+  // const handleSubmit = async () => {
+  //   if (!selectedUserDomain) {
+  //     alert("Please select a category.");
+  //     return;
+  //   }
+  //   try {
+  //     const updatedData = {
+  //       userDomain: selectedUserDomain, // Pass a single string
+  //     };
+  
+  //     updateSignupData(updatedData);
+  
+  //     await submitSignup({
+  //       ...signupData,
+  //       ...updatedData,
+  //     });
+  
+  //     console.log("User Account created successfully!");
+  //     alert("User Account created successfully!");
+  //   } catch (error) {
+  //     console.error("Error creating business:", error);
+  //     alert("Failed to create business. Please try again.");
+  //   }
+  // }; 
+
+ 
   const handleSubmit = async () => {
+    const payload = {
+      ...signupData,
+      userDomain: signupData.userDomains, 
+    };
+
+    console.log("Final payload before sending:", payload);
 
     try {
-      const updatedData: { userDomains: string | undefined } = {
-          userDomains: selectedUserDomain || undefined,
-      };
+      const response = await axios.post("http://localhost:8787/api/v1/auth/signup", payload, {
+        withCredentials:true
+      });
 
-      updateSignupData(updatedData);
-
-      await submitSignup(signupData);
-
-      console.log("User Account created successfully!");
-      alert("User Account created successfully!");
+      console.log("Response:", response.data);
+    } 
+    catch (error:any) {
+      console.error("Error:", error.response?.data || error.message);
     }
-    catch (error) {
-      console.error("Error creating business:", error);
-      alert("Failed to create business. Please try again.");
-      return; // Stop execution if there's an error
-    }
-};
+  }
+  
 
 
   return (
@@ -102,7 +121,7 @@ export default function UserOnBoarding() {
                   <input
                     type="checkbox"
                     value={category.value}
-                    checked={selectedUserDomain?.includes(category.value)}
+                    checked={selectedUserDomain === category.value}
                     onChange={() => handleCategoryChange(category.value)}
                     className="w-4 h-4 text-black accent-black"
                   />

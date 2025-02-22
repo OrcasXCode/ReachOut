@@ -21,29 +21,22 @@ export default function Listings() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-
-  // const [filters, setFilters] = useState({
-  //   category: "", 
-  //   frequents: "", 
-  //   rating: "", 
-  //   businessType: "", 
-  //   timings: "", 
-  // });
-  // const searchParams = new URLSearchParams();
-  // if (filters.category) searchParams.set("category", filters.category);
-  // if (filters.frequents) searchParams.set("frequents", filters.frequents);
-  // if (filters.rating) searchParams.set("rating", filters.rating);
-  // if (filters.businessType) searchParams.set("businessType", filters.businessType);
-  // if (filters.timings) searchParams.set("timings", filters.timings);
-
-  // const queryString = searchParams.toString(); 
-  const filters = new URLSearchParams(window.location.search); // Get query params from the URL
-  const category = filters.get("category") || "";
-  const frequentlyChosen = filters.get("frequents") || "";
-  const rating = filters.get("rating") || "";
-  const businesstype = filters.get("businessType") || "";
-  const timings = filters.get("timings") || "";
-
+  const [category, setCategory] = useState("");
+  const [frequentlyChosen, setFrequentlyChosen] = useState("");
+  const [rating, setRating] = useState("");
+  const [businesstype, setBusinessType] = useState("");
+  const [timings, setTimings] = useState("");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const filters = new URLSearchParams(window.location.search);
+      setCategory(filters.get("category") || "");
+      setFrequentlyChosen(filters.get("frequents") || "");
+      setRating(filters.get("rating") || "");
+      setBusinessType(filters.get("businessType") || "");
+      setTimings(filters.get("timings") || "");
+    }
+  })
+  
   // Construct the query string
   const queryString = new URLSearchParams({
     category,
@@ -76,14 +69,6 @@ export default function Listings() {
               categoryName: category.categoryName,
             }))
         );
-
-        // const filteredBusinesses = categoryId
-        //   ? businessList.filter(
-        //       (business: { categoryId: string }) =>
-        //         String(business.categoryId).trim().toLowerCase() ===
-        //         String(categoryId).trim().toLowerCase()
-        //     )
-        //   : businessList;
 
         console.log("Fetched Businesses:", businessList);
         setFetchedBusinesses(businessList);

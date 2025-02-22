@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext,useEffect, useContext, useState, ReactNode } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useAuthStore } from "../lib/useAuthStore";
@@ -65,12 +65,12 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
   const { setIsSignedIn } = useAuthStore();
   
   const [signupData, setSignupData] = useState<SignupData>({
-    firstName: "Om",
-    lastName: "Sureja",
-    email: "omsureja@gmail.com",
-    phoneNumber: "9429084446",
-    password: "omsureja",
-    role: "BUSINESS", 
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    role: "", 
     userDomains: "",
     profilePhoto: { type: "", url: "" },
   });
@@ -94,7 +94,7 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
   const updateSignupData = (data: Partial<SignupData>) => {
     setSignupData((prev) => {
       const updatedData = { ...prev, ...data };
-      console.log("Signup Data Updated:", updatedData);
+      console.log("updated signup data:", updatedData);
       return updatedData;
     });
   };
@@ -106,6 +106,10 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
       return updatedBusinessData;
     });
   };
+  useEffect(() => {
+    console.log("Updated signupData:", signupData);
+  }, [signupData]);
+  
 
   const submitSignup = async (data: SignupData) => {
     try {
@@ -115,7 +119,6 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
             withCredentials: true,
         });
 
-        // Ensure response has data before proceeding
         if (!response.data || !response.data.accessToken) {
           throw new Error("Invalid response from server");
           alert("Invalid response from server");
@@ -131,6 +134,10 @@ export const SignupProvider = ({ children }: { children: ReactNode }) => {
           setIsSignedIn();
           console.log("Signup successful");
           alert("Signup successful");
+
+          // setTimeout(() => {
+          //   window.location.href="/sigin"
+          // }, 500);
         }
 
        

@@ -143,7 +143,7 @@ export async function signup(c: Context) {
         phoneNumber: encryptedPhoneNumber.encrypted,
         phoneNumberIV: encryptedPhoneNumber.iv,
         password: password, // or use hashed password
-        userDomain:"",
+        userDomain,
         role,
         profilePhoto: {
           create: {

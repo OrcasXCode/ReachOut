@@ -6,7 +6,7 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: z.ZodString;
     password: z.ZodString;
     role: z.ZodEnum<["USER", "BUSINESS"]>;
-    userDomain: z.ZodOptional<z.ZodString>;
+    userDomain: z.ZodString;
     profilePhoto: z.ZodOptional<z.ZodObject<{
         type: z.ZodString;
         url: z.ZodString;
@@ -24,7 +24,7 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: string;
     password: string;
     role: "USER" | "BUSINESS";
-    userDomain?: string | undefined;
+    userDomain: string;
     profilePhoto?: {
         type: string;
         url: string;
@@ -36,7 +36,7 @@ export declare const signupinput: z.ZodObject<{
     phoneNumber: string;
     password: string;
     role: "USER" | "BUSINESS";
-    userDomain?: string | undefined;
+    userDomain: string;
     profilePhoto?: {
         type: string;
         url: string;

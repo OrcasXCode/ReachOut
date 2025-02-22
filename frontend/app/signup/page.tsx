@@ -67,10 +67,6 @@ export default function SignUp() {
   
     updateSignupData(updatedData);
 
-    if (role === "USER"){
-      console.log("Updated signupData before API call:", updatedData);
-      submitSignup(updatedData);
-    }
     if (role === "BUSINESS") setShowBusinessOnBoarding(true);
     if (role === "USER") setShowUserOnBoarding(true);
   };
