@@ -62,31 +62,44 @@ export declare const forgetpasswordinput: z.ZodObject<{
     email: string;
 }>;
 export type ForgetPasswordInput = z.infer<typeof forgetpasswordinput>;
-export declare const verifyotpinput: z.ZodObject<{
-    emailHash: z.ZodString;
+export declare const otpVerifyInput: z.ZodObject<{
+    email: z.ZodString;
     otp: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    emailHash: string;
+    email: string;
     otp: string;
 }, {
-    emailHash: string;
+    email: string;
     otp: string;
 }>;
-export type VerifyOtpInput = z.infer<typeof verifyotpinput>;
-export declare const resetpasswordinput: z.ZodObject<{
-    resetToken: z.ZodString;
+export type VerifyOtpInput = z.infer<typeof otpVerifyInput>;
+export declare const resetPasswordInput: z.ZodEffects<z.ZodObject<{
+    email: z.ZodString;
+    otp: z.ZodString;
     newPassword: z.ZodString;
     confirmnewPassword: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    resetToken: string;
+    email: string;
+    otp: string;
     newPassword: string;
     confirmnewPassword: string;
 }, {
-    resetToken: string;
+    email: string;
+    otp: string;
+    newPassword: string;
+    confirmnewPassword: string;
+}>, {
+    email: string;
+    otp: string;
+    newPassword: string;
+    confirmnewPassword: string;
+}, {
+    email: string;
+    otp: string;
     newPassword: string;
     confirmnewPassword: string;
 }>;
-export type ResetPasswordInput = z.infer<typeof resetpasswordinput>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordInput>;
 export declare const editprofileinput: z.ZodObject<{
     firstName: z.ZodString;
     lastName: z.ZodString;

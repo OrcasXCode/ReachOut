@@ -11,10 +11,12 @@ import Link from "next/link";
 import axios from 'axios';
 import { useSearchParams } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
+import { useSearch } from "../context/SearchBarContext";
 
 type BusinessStatus = "Open" | "Closed";
 
 export default function Listings() {
+  const { searchQuery } = useSearch();
   const [isExpanded, setIsExpanded] = useState(false);
   const [fetchedbusiness, setFetchedBusinesses] = useState<any[]>([]);
 
@@ -26,6 +28,8 @@ export default function Listings() {
   const [rating, setRating] = useState("");
   const [businesstype, setBusinessType] = useState("");
   const [timings, setTimings] = useState("");
+  const [search, setSearch] = useState(searchQuery);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const filters = new URLSearchParams(window.location.search);
@@ -43,7 +47,8 @@ export default function Listings() {
     frequents: frequentlyChosen,
     rating,
     businessType: businesstype,
-    timings
+    timings,
+    search
   }).toString();
 
 

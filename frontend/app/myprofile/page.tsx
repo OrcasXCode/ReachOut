@@ -8,6 +8,8 @@ import Link from "next/link";
 import Image from "next/image"
 import Carousel from "../components/ui/Carousal";
 import axios from 'axios';
+import {toast} from 'react-hot-toast';
+
 
 
 export default function UserProfile() {
@@ -17,12 +19,14 @@ export default function UserProfile() {
   const [userDetails, setUserDetails] = useState<any>(null);
   const [userBusinessDetails, setUserBusinessDetails] = useState<any>(null);
   const [slideData, setSlideData] = useState<{ src: string }[]>([]);
-  
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         // Fetch userId from /me endpoint
+        setLoading(true);
         const meResponse = await axios.get("http://localhost:8787/api/v1/user/me", {
           withCredentials: true,
         });
@@ -51,9 +55,19 @@ export default function UserProfile() {
       } catch (error) {
         console.error("Error fetching user details:", error);
       }
+      finally {
+        setLoading(false);
+      }
     };
 
-    fetchUserData();
+    toast.promise(
+      fetchUserData(),
+      {
+          loading: "Fetching user data...",
+          success: "User data loaded!",
+          error: "Failed to fetch user data.",
+      }
+    );
   }, []);
 
 

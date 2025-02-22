@@ -4,9 +4,11 @@ import bcrypt from "bcryptjs";
 import { createRedisClient } from "../services/redis";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import { signininput, signupinput } from "@omsureja/reachout";
+import {forgetpasswordinput, signininput, signupinput,otpVerifyInput,resetPasswordInput} from "@omsureja/reachout";
 import { AES } from "../services/aesService";
 import crypto from "crypto";
+import jwt from 'jsonwebtoken';
+
 
 export const getPrisma = (env: { DATABASE_URL: string }) => {
   return new PrismaClient({
@@ -164,6 +166,134 @@ export async function signup(c: Context) {
     c.res.headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; Path=/; SameSite=Strict`);
 
     return c.json({ message: "Signup successful", accessToken }, 201);
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: "Internal Server Error" }, 500);
+  }
+}
+
+export async function sendPasswordResetOTP(c: Context) {
+  const prisma = getPrisma(c.env);
+  const redis = createRedisClient(c.env);
+  const body = await c.req.json();
+  const parsed = forgetpasswordinput.safeParse(body);
+
+  if (!parsed.success) {
+    return c.json({ error: "Invalid Input", details: parsed.error.errors }, 400);
+  }
+
+  const { email } = parsed.data;
+
+  try {
+    const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+
+    const user = await prisma.user.findUnique({
+      where: { emailHash },
+    });
+
+    if (!user) {
+      return c.json({ error: "User not found" }, 404);
+    }
+
+    // Generate OTP (6 digits)
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    // Store OTP in Redis with an expiration time (5 minutes)
+    const otpKey = `reset_otp:${emailHash}`;
+    await redis.set(otpKey, otp, { ex: 5 * 60 }); // Expire in 5 minutes
+
+    // Send OTP to the user's email
+    // await sendOTPEmail(email, otp);
+    const response = await fetch('https://cfw-react-emails.omp164703.workers.dev/send/email/otp-email', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ otp })
+    });
+
+    return c.json({ message: "OTP sent to email" }, 200);
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: "Internal Server Error" }, 500);
+  }
+}
+
+export async function verifyOTP(c: Context) {
+  const redis = createRedisClient(c.env);
+  const body = await c.req.json();
+  const parsed = otpVerifyInput.safeParse(body);
+
+  if (!parsed.success) {
+    return c.json({ error: "Invalid Input", details: parsed.error.errors }, 400);
+  }
+
+  const { email, otp } = parsed.data;
+
+  try {
+    const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+
+    // Get OTP from Redis
+    const otpKey = `reset_otp:${emailHash}`;
+    const storedOTP = await redis.get(otpKey);
+
+    if (!storedOTP) {
+      return c.json({ error: "OTP expired or not found" }, 400);
+    }
+
+    // Validate OTP
+    if (storedOTP !== otp) {
+      return c.json({ error: "Invalid OTP" }, 400);
+    }
+
+    // OTP is valid, proceed to password reset
+    return c.json({ message: "OTP verified successfully" }, 200);
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: "Internal Server Error" }, 500);
+  }
+}
+
+export async function resetPassword(c: Context) {
+  const prisma = getPrisma(c.env);
+  const redis = createRedisClient(c.env);
+  const body = await c.req.json();
+  const parsed = resetPasswordInput.safeParse(body);
+
+  if (!parsed.success) {
+    return c.json({ error: "Invalid Input", details: parsed.error.errors }, 400);
+  }
+
+  const { email, otp, newPassword } = parsed.data;
+
+  try {
+    const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+
+    // Verify OTP
+    const otpKey = `reset_otp:${emailHash}`;
+    const storedOTP = await redis.get(otpKey);
+
+    if (!storedOTP) {
+      return c.json({ error: "OTP expired or not found" }, 400);
+    }
+
+    if (storedOTP !== otp) {
+      return c.json({ error: "Invalid OTP" }, 400);
+    }
+
+    // Hash the new password
+    const hashedPassword = crypto.createHash('sha256').update(newPassword).digest('hex');
+
+    // Update the password in the database
+    const user = await prisma.user.update({
+      where: { emailHash },
+      data: { password: hashedPassword },
+    });
+
+    // Optionally, remove the OTP from Redis to prevent reuse
+    await redis.del(otpKey);
+
+    return c.json({ message: "Password reset successfully" }, 200);
   } catch (error) {
     console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);

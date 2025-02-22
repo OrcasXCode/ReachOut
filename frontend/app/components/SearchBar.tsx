@@ -1,7 +1,7 @@
 "use client"
+import { useSearch } from "../context/SearchBarContext";
 
-
-export default function ListingsSearchBar(){
+export default function SearchBar(){
   return(
     <div>
       <div className="relative flex items-center">

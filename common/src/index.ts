@@ -32,20 +32,23 @@ export const forgetpasswordinput=z.object({
 export type ForgetPasswordInput=z.infer<typeof forgetpasswordinput>
 
 
-export const verifyotpinput = z.object({
-    emailHash: z.string().length(64).regex(/^[a-f0-9]{64}$/i, "Invalid SHA-256 hash"),
-    otp: z.string().length(6, "OTP must be exactly 6 digits").regex(/^\d{6}$/, "OTP must be numeric"),
-});
-export type VerifyOtpInput = z.infer<typeof verifyotpinput>;
-
-
-export const resetpasswordinput=z.object({
-    resetToken:z.string(),
-    newPassword:z.string().min(6),
-    confirmnewPassword:z.string().min(6),
-})
-export type ResetPasswordInput=z.infer<typeof resetpasswordinput>
-
+export const otpVerifyInput = z.object({
+    email: z.string().email("Invalid email address"),  // Validate email format
+    otp: z.string().length(6, "OTP must be exactly 6 digits").regex(/^\d{6}$/, "OTP must be numeric"), // OTP validation
+  });
+export type VerifyOtpInput = z.infer<typeof otpVerifyInput>;
+  
+  export const resetPasswordInput = z.object({
+    email: z.string().email("Invalid email address"),  // Ensure valid email address
+    otp: z.string().length(6, "OTP must be exactly 6 digits").regex(/^\d{6}$/, "OTP must be numeric"),  // OTP validation
+    newPassword: z.string().min(6, "Password must be at least 6 characters long"),
+    confirmnewPassword: z.string().min(6, "Password must be at least 6 characters long"),
+  }).refine((data) => data.newPassword === data.confirmnewPassword, {
+    message: "Passwords do not match",
+    path: ["confirmnewPassword"],
+  });
+  
+export type ResetPasswordInput = z.infer<typeof resetPasswordInput>;
 
 export const editprofileinput = z.object({
     firstName:z.string(),

@@ -6,10 +6,8 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useAuthStore }  from "../lib/useAuthStore";
 import  AvatarWithUserDropdown  from "../profile/page"
-import  ListingsSearchBar  from "./ui/ListingsSearchBar"
-// import  CategoryDropDown  from "../components/CategoryDropDown"
-// import  SubCategoryDropDown  from "../components/SubCategoryDropDown"
-// import  Recommendation  from "../components/Recommendation"
+import SearchBar  from "./SearchBar"
+import { Button } from "@/components/ui/button"
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 
@@ -61,14 +59,16 @@ export default function Navbar() {
 
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-5  items-center justify-center">
                     <div className="max-w-[400px] min-w-[100px]">
-                        <ListingsSearchBar></ListingsSearchBar>
+                        <SearchBar/>
                     </div>
                         {isSignedIn ? (
                                     // <div>
                                     <   AvatarWithUserDropdown></AvatarWithUserDropdown>
                                     // </div>
                                 ) : (
-                                    <Link href="/signin">Sign in</Link>
+                                    <Button variant="outline">
+                                        <Link href="/signin">Login</Link>
+                                    </Button>
                         )} 
                     </div>
                 </nav>
@@ -105,7 +105,9 @@ export default function Navbar() {
                             {isSignedIn ? (
                                 <AvatarWithUserDropdown />
                             ) : (
-                                <Link href="/signin">Sign in</Link>
+                                <Button variant="outline">
+                                    <Link href="/signin">Login</Link>
+                                </Button>
                             )}
                             </div>
                         </div>
@@ -169,7 +171,9 @@ export default function Navbar() {
                                     <   AvatarWithUserDropdown></AvatarWithUserDropdown>
                                     </div>
                                 ) : (
-                                    <Link href="/signin">Sign in</Link>
+                                    <Button variant="outline">
+                                        <Link href="/signin">Login</Link>
+                                    </Button>
                         )}   
                     </div>
                 </nav>
@@ -211,7 +215,9 @@ export default function Navbar() {
                         {isSignedIn ? (
                             <AvatarWithUserDropdown />
                         ) : (
-                            <Link href="/signin">Sign in</Link>
+                            <Button variant="outline">
+                                <Link href="/signin">Login</Link>
+                            </Button>
                         )}
                         </div>
                     </div>

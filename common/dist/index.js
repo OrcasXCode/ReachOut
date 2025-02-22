@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editBusinessDetails = exports.editBusinessTimings = exports.addBusinessInput = exports.editprofileinput = exports.resetpasswordinput = exports.verifyotpinput = exports.forgetpasswordinput = exports.signininput = exports.signupinput = void 0;
+exports.editBusinessDetails = exports.editBusinessTimings = exports.addBusinessInput = exports.editprofileinput = exports.resetPasswordInput = exports.otpVerifyInput = exports.forgetpasswordinput = exports.signininput = exports.signupinput = void 0;
 const zod_1 = require("zod");
 exports.signupinput = zod_1.z.object({
     firstName: zod_1.z.string(),
@@ -24,14 +24,18 @@ exports.signininput = zod_1.z.object({
 exports.forgetpasswordinput = zod_1.z.object({
     email: zod_1.z.string().email(),
 });
-exports.verifyotpinput = zod_1.z.object({
-    emailHash: zod_1.z.string().length(64).regex(/^[a-f0-9]{64}$/i, "Invalid SHA-256 hash"),
-    otp: zod_1.z.string().length(6, "OTP must be exactly 6 digits").regex(/^\d{6}$/, "OTP must be numeric"),
+exports.otpVerifyInput = zod_1.z.object({
+    email: zod_1.z.string().email("Invalid email address"), // Validate email format
+    otp: zod_1.z.string().length(6, "OTP must be exactly 6 digits").regex(/^\d{6}$/, "OTP must be numeric"), // OTP validation
 });
-exports.resetpasswordinput = zod_1.z.object({
-    resetToken: zod_1.z.string(),
-    newPassword: zod_1.z.string().min(6),
-    confirmnewPassword: zod_1.z.string().min(6),
+exports.resetPasswordInput = zod_1.z.object({
+    email: zod_1.z.string().email("Invalid email address"), // Ensure valid email address
+    otp: zod_1.z.string().length(6, "OTP must be exactly 6 digits").regex(/^\d{6}$/, "OTP must be numeric"), // OTP validation
+    newPassword: zod_1.z.string().min(6, "Password must be at least 6 characters long"),
+    confirmnewPassword: zod_1.z.string().min(6, "Password must be at least 6 characters long"),
+}).refine((data) => data.newPassword === data.confirmnewPassword, {
+    message: "Passwords do not match",
+    path: ["confirmnewPassword"],
 });
 exports.editprofileinput = zod_1.z.object({
     firstName: zod_1.z.string(),
